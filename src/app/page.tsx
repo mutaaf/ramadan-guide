@@ -1,65 +1,181 @@
-import Image from "next/image";
+"use client";
+
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { GeometricPattern } from "@/components/GeometricPattern";
+import { getRamadanCountdown } from "@/lib/ramadan";
 
 export default function Home() {
+  const [countdown, setCountdown] = useState(getRamadanCountdown());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCountdown(getRamadanCountdown());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="relative min-h-dvh flex flex-col">
+      {/* Hero */}
+      <div className="relative flex-1 flex flex-col items-center justify-center px-6 overflow-hidden">
+        <GeometricPattern />
+
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse at 50% 30%, rgba(201, 168, 76, 0.08) 0%, transparent 70%)",
+          }}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="relative z-10 text-center max-w-sm"
+        >
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="text-sm font-medium tracking-widest uppercase mb-8"
+            style={{ color: "var(--accent-gold)" }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Bismillah
+          </motion.p>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.7 }}
+            className="text-4xl font-bold tracking-tight leading-tight"
           >
-            Documentation
-          </a>
-        </div>
-      </main>
+            Coach Hamza&apos;s
+            <br />
+            <span className="bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 bg-clip-text text-transparent">
+              Ramadan Guide
+            </span>
+            <br />
+            <span className="text-xl font-normal" style={{ color: "var(--muted)" }}>
+              for Athletes
+            </span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+            className="mt-4 text-sm"
+            style={{ color: "var(--muted)" }}
+          >
+            By Hamza Abdullah — Retired NFL Player
+          </motion.p>
+
+          {/* Countdown */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.6 }}
+            className="mt-10 glass-card px-6 py-4 inline-block"
+          >
+            {countdown.active ? (
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--accent-gold)" }}>
+                  Ramadan Day {countdown.dayOfRamadan}
+                </p>
+                <p className="text-2xl font-bold mt-1">Ramadan Mubarak</p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--accent-gold)" }}>
+                  Ramadan begins in
+                </p>
+                <div className="flex items-center gap-4 mt-2 justify-center">
+                  <CountdownUnit value={countdown.days} label="Days" />
+                  <span className="text-lg font-light" style={{ color: "var(--muted)" }}>:</span>
+                  <CountdownUnit value={countdown.hours} label="Hours" />
+                  <span className="text-lg font-light" style={{ color: "var(--muted)" }}>:</span>
+                  <CountdownUnit value={countdown.minutes} label="Min" />
+                </div>
+              </div>
+            )}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1, duration: 0.6 }}
+            className="mt-8"
+          >
+            <Link
+              href="/learn"
+              className="inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold text-black transition-all active:scale-[0.97]"
+              style={{
+                background: "linear-gradient(135deg, #c9a84c, #e8c75a, #c9a84c)",
+                boxShadow: "0 4px 20px rgba(201, 168, 76, 0.3)",
+              }}
+            >
+              Start Your Journey
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2, duration: 0.6 }}
+            className="mt-6 flex flex-wrap gap-3 justify-center"
+          >
+            <QuickLink href="/tracker" label="Daily Tracker" />
+            <QuickLink href="/prepare/checklist" label="Checklist" />
+            <QuickLink href="/dashboard" label="My Progress" />
+          </motion.div>
+        </motion.div>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.4 }}
+        className="px-6 pb-24 pt-4 text-center"
+      >
+        <p className="text-xs" style={{ color: "var(--muted)" }}>
+          Based on the book by Hamza Abdullah
+        </p>
+        <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
+          @ProBigBros &middot; ProBigBros.com
+        </p>
+      </motion.div>
     </div>
+  );
+}
+
+function CountdownUnit({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="text-center">
+      <p className="text-2xl font-bold tabular-nums">{value}</p>
+      <p className="text-[10px] uppercase tracking-wider" style={{ color: "var(--muted)" }}>
+        {label}
+      </p>
+    </div>
+  );
+}
+
+function QuickLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="rounded-full px-4 py-2 text-xs font-medium transition-all active:scale-[0.97]"
+      style={{
+        background: "var(--surface-1)",
+        color: "var(--muted)",
+      }}
+    >
+      {label}
+    </Link>
   );
 }
