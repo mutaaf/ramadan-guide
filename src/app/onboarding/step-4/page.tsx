@@ -23,7 +23,9 @@ export default function OnboardingStep4() {
   const { userProfile, setOnboarded } = useStore();
   const [mounted, setMounted] = useState(false);
 
+  // Track hydration state
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

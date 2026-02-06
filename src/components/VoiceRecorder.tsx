@@ -22,9 +22,9 @@ export function VoiceRecorder({ onTranscript }: VoiceRecorderProps) {
   const chunksRef = useRef<Blob[]>([]);
 
   // Check for Web Speech API support
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const hasSpeechAPI =
     typeof window !== "undefined" &&
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ("SpeechRecognition" in window || "webkitSpeechRecognition" in (window as any));
 
   const startWebSpeech = useCallback(() => {

@@ -1,4 +1,4 @@
-import { AIRequest, AIFeature, FEATURE_MODEL } from "./types";
+import { AIFeature, FEATURE_MODEL } from "./types";
 import { AICache } from "./cache";
 
 interface ExecuteOptions {

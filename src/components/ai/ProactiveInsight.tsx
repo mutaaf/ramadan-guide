@@ -7,7 +7,7 @@ import { useAI, useAIReady } from "@/lib/ai/hooks";
 import { BehaviorInsightInput, BehaviorInsightOutput } from "@/lib/ai/types";
 import { buildBehaviorInsightPrompts } from "@/lib/ai/prompts/behavior-insight";
 import { analyzeBehavior } from "@/lib/ai/behavior";
-import { useStore, DayEntry } from "@/store/useStore";
+import { useStore } from "@/store/useStore";
 import { getRamadanCountdown } from "@/lib/ramadan";
 
 export function ProactiveInsight() {

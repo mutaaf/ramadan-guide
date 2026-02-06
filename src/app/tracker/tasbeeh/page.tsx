@@ -14,6 +14,8 @@ export default function TasbeehPage() {
 
   const activeCounter = tasbeehCounters.find((c) => c.id === activeId) || tasbeehCounters[0];
   const progress = activeCounter ? (activeCounter.count / activeCounter.target) * 100 : 0;
+  // Used for future celebration animation
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isComplete = activeCounter && activeCounter.count >= activeCounter.target;
 
   const handleTap = () => {

@@ -31,11 +31,14 @@ export default function OnboardingStep2() {
   const [trainingIntensity, setTrainingIntensity] = useState<TrainingIntensity>(userProfile.trainingIntensity);
   const [mounted, setMounted] = useState(false);
 
+  // Sync local state with store after hydration
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     setMounted(true);
     setExperienceLevel(userProfile.experienceLevel);
     setFastingExperience(userProfile.fastingExperience);
     setTrainingIntensity(userProfile.trainingIntensity);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [userProfile]);
 
   const handleContinue = () => {

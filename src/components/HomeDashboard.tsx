@@ -18,7 +18,7 @@ import {
 } from "@/lib/prayer-times";
 
 export function HomeDashboard() {
-  const { userName, getDay, juzProgress, tasbeehCounters, getTasbeehTotalForDay } = useStore();
+  const { userName, getDay, juzProgress, getTasbeehTotalForDay } = useStore();
   const [prayerTimes, setPrayerTimes] = useState<PrayerTimes | null>(null);
   const [locationError, setLocationError] = useState(false);
   const [loading, setLoading] = useState(true);

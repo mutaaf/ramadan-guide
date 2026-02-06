@@ -15,7 +15,9 @@ export default function Home() {
   const { days, onboarded } = useStore();
   const [mounted, setMounted] = useState(false);
 
+  // Track hydration and update countdown
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     const interval = setInterval(() => {
       setCountdown(getRamadanCountdown());

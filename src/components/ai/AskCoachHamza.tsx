@@ -65,6 +65,7 @@ export function AskCoachHamza({ initialQuestion }: AskCoachHamzaProps = {}) {
   useEffect(() => {
     if (!pendingQuestion) return;
     const q = pendingQuestion;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPendingQuestion(null);
     lastUserQuestionRef.current = q;
 
@@ -177,8 +178,10 @@ export function AskCoachHamza({ initialQuestion }: AskCoachHamzaProps = {}) {
       initialTriggered.current = true;
       const q = initialQuestion.trim();
       if (q) {
+        /* eslint-disable react-hooks/set-state-in-effect */
         setMessages([{ id: `user-${Date.now()}`, role: "user", question: q }]);
         setPendingQuestion(q);
+        /* eslint-enable react-hooks/set-state-in-effect */
       }
     }
   }, [initialQuestion, ready]);

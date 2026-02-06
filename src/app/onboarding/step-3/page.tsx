@@ -30,10 +30,13 @@ export default function OnboardingStep3() {
   const [concerns, setConcerns] = useState<string[]>(userProfile.ramadanConcerns);
   const [mounted, setMounted] = useState(false);
 
+  // Sync local state with store after hydration
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     setMounted(true);
     setGoals(userProfile.primaryGoals);
     setConcerns(userProfile.ramadanConcerns);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [userProfile]);
 
   const toggleGoal = (value: string) => {

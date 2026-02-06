@@ -22,10 +22,13 @@ export default function OnboardingStep1() {
   const [sport, setSport] = useState<SportType | "">(userProfile.sport || "");
   const [mounted, setMounted] = useState(false);
 
+  // Sync local state with store after hydration
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     setMounted(true);
     setName(userProfile.userName || "");
     setSport(userProfile.sport || "");
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [userProfile.userName, userProfile.sport]);
 
   const canContinue = name.trim().length >= 2 && sport !== "";
