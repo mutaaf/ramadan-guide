@@ -7,6 +7,7 @@ import { Card } from "@/components/Card";
 import { useStore } from "@/store/useStore";
 import { getTodayString, getRamadanCountdown } from "@/lib/ramadan";
 import { MealRecommendation } from "@/components/ai/MealRecommendation";
+import { DeepDiveLink } from "@/components/ai/DeepDiveLink";
 import { MealPlanInput } from "@/lib/ai/types";
 
 function PlateChart() {
@@ -87,7 +88,7 @@ export default function NutritionPage() {
 
   return (
     <div>
-      <PageHeader title="Nutrition" subtitle="Fuel your fast" />
+      <PageHeader title="Nutrition" subtitle="Fuel your fast" back="/tracker" />
 
       <div className="px-6 pb-8">
         <Card className="mb-6">
@@ -147,6 +148,10 @@ export default function NutritionPage() {
 
         {/* AI Meal Recommendation */}
         <MealRecommendation input={mealInput} />
+
+        <div className="mt-4">
+          <DeepDiveLink topic="What are the best foods for Sahoor and Iftar for athletes?" />
+        </div>
       </div>
     </div>
   );

@@ -7,7 +7,9 @@ export type AIFeature =
   | "book-qa"
   | "weekly-analysis"
   | "training-advice"
-  | "reflection";
+  | "reflection"
+  | "voice-journal"
+  | "behavior-insight";
 
 // ── Cache ─────────────────────────────────────────────────────────────
 export interface CacheEntry {
@@ -26,6 +28,8 @@ export const FEATURE_TTL: Record<AIFeature, number> = {
   "weekly-analysis": 24 * 60 * 60 * 1000, // 24h
   "training-advice": 6 * 60 * 60 * 1000, // 6h
   reflection: 12 * 60 * 60 * 1000, // 12h
+  "voice-journal": 0, // no cache
+  "behavior-insight": 4 * 60 * 60 * 1000, // 4h
 };
 
 export const FEATURE_MODEL: Record<AIFeature, string> = {
@@ -35,6 +39,8 @@ export const FEATURE_MODEL: Record<AIFeature, string> = {
   "weekly-analysis": "gpt-4o",
   "training-advice": "gpt-4o-mini",
   reflection: "gpt-4o-mini",
+  "voice-journal": "gpt-4o-mini",
+  "behavior-insight": "gpt-4o-mini",
 };
 
 // ── Transport ─────────────────────────────────────────────────────────
@@ -152,4 +158,46 @@ export interface ReflectionOutput {
   duaaArabic: string;
   reflection: string;
   connection: string;
+}
+
+// ── Feature 7: Voice Journal ─────────────────────────────────────────
+export interface VoiceJournalInput {
+  transcript: string;
+}
+
+export interface VoiceJournalOutput {
+  prayers: Record<string, boolean>;
+  hoursOfSleep: number;
+  feelsRested: boolean;
+  mood: string;
+  trainingType: string;
+  sahoorMeal: string;
+  iftarMeal: string;
+  surahRead: string;
+  firstThought: string;
+  tomorrowGoals: string;
+  glassesOfWater: number;
+}
+
+// ── Feature 8: Behavior Insight ──────────────────────────────────────
+export interface BehaviorInsightInput {
+  hydrationTrend: string;
+  prayerConsistency: string;
+  sleepAverage: number;
+  sleepTrend: string;
+  moodPattern: string;
+  trainingFrequency: string;
+  streaks: string[];
+  concerns: string[];
+  achievements: string[];
+  userName: string;
+  sport: string;
+  dayOfRamadan: number;
+}
+
+export interface BehaviorInsightOutput {
+  headline: string;
+  insight: string;
+  actionItem: string;
+  motivation: string;
 }

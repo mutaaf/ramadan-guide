@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
 import { useStore } from "@/store/useStore";
 import { getTodayString, HYDRATION_OPTIONS } from "@/lib/ramadan";
+import { DeepDiveLink } from "@/components/ai/DeepDiveLink";
 
 function LiquidGauge({ glasses }: { glasses: number }) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -102,7 +103,7 @@ export default function HydrationPage() {
 
   return (
     <div>
-      <PageHeader title="Hydration" subtitle="Track your water intake" />
+      <PageHeader title="Hydration" subtitle="Track your water intake" back="/tracker" />
 
       <div className="px-6 pb-8">
         <Card className="mb-6">
@@ -137,8 +138,8 @@ export default function HydrationPage() {
               key={i}
               className="flex flex-col items-center gap-1 rounded-xl py-3 transition-all"
               style={{
-                background: i < day.glassesOfWater ? "rgba(59, 130, 246, 0.1)" : "var(--surface-1)",
-                border: i < day.glassesOfWater ? "1px solid rgba(59, 130, 246, 0.2)" : "1px solid transparent",
+                background: i < day.glassesOfWater ? "var(--selected-blue-bg)" : "var(--surface-1)",
+                border: i < day.glassesOfWater ? "1px solid var(--selected-blue-border)" : "1px solid transparent",
               }}
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill={i < day.glassesOfWater ? "#3b82f6" : "var(--ring-track)"}>
@@ -165,6 +166,10 @@ export default function HydrationPage() {
               </span>
             </Card>
           ))}
+        </div>
+
+        <div className="mt-4">
+          <DeepDiveLink topic="How do I stay properly hydrated while fasting during Ramadan?" />
         </div>
       </div>
     </div>

@@ -5,6 +5,8 @@ import * as d3 from "d3";
 import { motion } from "framer-motion";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
+import { DeepDiveLink } from "@/components/ai/DeepDiveLink";
+import { LearnNavigation, getLearnNavigation } from "@/components/LearnNavigation";
 import { FIVE_PILLARS } from "@/lib/ramadan";
 
 function PillarsChart() {
@@ -89,7 +91,7 @@ function PillarsChart() {
 export default function IslamPage() {
   return (
     <div>
-      <PageHeader title="What is Islam?" subtitle="Complete submission to the will of God" />
+      <PageHeader title="What is Islam?" subtitle="Complete submission to the will of God" back="/learn" />
 
       <div className="px-6 pb-8">
         <Card className="mb-4">
@@ -133,6 +135,12 @@ export default function IslamPage() {
             </Card>
           ))}
         </div>
+
+        <div className="mt-6">
+          <DeepDiveLink topic="Tell me more about the Five Pillars of Islam and how they connect to Ramadan" />
+        </div>
+
+        <LearnNavigation {...getLearnNavigation("islam")} />
       </div>
     </div>
   );

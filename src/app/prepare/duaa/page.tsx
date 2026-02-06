@@ -20,7 +20,7 @@ export default function DuaaPage() {
 
   return (
     <div>
-      <PageHeader title="Duaa" subtitle="Begin and end everything with prayer" />
+      <PageHeader title="Duaa" subtitle="Begin and end everything with prayer" back="/prepare" />
 
       <div className="px-6 pb-8">
         {/* Fasting Duaas */}

@@ -6,7 +6,7 @@ import { Card } from "@/components/Card";
 export default function AboutPage() {
   return (
     <div>
-      <PageHeader title="About" subtitle="Coach Hamza & this guide" />
+      <PageHeader title="About" subtitle="Coach Hamza & this guide" back="/more" />
 
       <div className="px-6 pb-8">
         <Card delay={0.1} className="mb-4">

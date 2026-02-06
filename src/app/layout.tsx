@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { BottomNav } from "@/components/BottomNav";
+import { GlobalHeader } from "@/components/GlobalHeader";
 import { CacheCleanup } from "@/components/ai/CacheCleanup";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({
   variable: "--font-geist-sans",
@@ -43,8 +45,10 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${inter.variable} antialiased bg-background text-foreground`}>
         <CacheCleanup />
+        <GlobalHeader />
         <main className="safe-bottom">{children}</main>
         <BottomNav />
+        <Analytics />
       </body>
     </html>
   );

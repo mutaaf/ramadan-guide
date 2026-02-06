@@ -7,6 +7,7 @@ import { useStore } from "@/store/useStore";
 import { getTodayString, getRamadanCountdown } from "@/lib/ramadan";
 import { TrainingAdvisor } from "@/components/ai/TrainingAdvisor";
 import { ReflectionPrompt } from "@/components/ai/ReflectionPrompt";
+import { VoiceJournalButton } from "@/components/VoiceJournalButton";
 import { TrainingAdviceInput, ReflectionInput } from "@/lib/ai/types";
 
 const PRAYERS = ["fajr", "dhur", "asr", "maghrib", "ishaa", "taraweeh"] as const;
@@ -59,6 +60,7 @@ export default function JournalPage() {
           day: "numeric",
           year: "numeric",
         })}
+        back="/tracker"
       />
 
       <div className="px-6 pb-8 space-y-4">
@@ -91,8 +93,8 @@ export default function JournalPage() {
                 onClick={() => togglePrayer(today, prayer)}
                 className="flex flex-col items-center gap-1 rounded-xl py-3 transition-all active:scale-[0.97]"
                 style={{
-                  background: day.prayers[prayer] ? "rgba(201, 168, 76, 0.12)" : "var(--surface-1)",
-                  border: day.prayers[prayer] ? "1px solid rgba(201, 168, 76, 0.3)" : "1px solid transparent",
+                  background: day.prayers[prayer] ? "var(--selected-gold-bg)" : "var(--surface-1)",
+                  border: day.prayers[prayer] ? "1px solid var(--selected-gold-border)" : "1px solid transparent",
                 }}
               >
                 <div
@@ -158,9 +160,9 @@ export default function JournalPage() {
                 onClick={() => updateDay(today, { mood })}
                 className="rounded-full px-4 py-2 text-xs font-medium transition-all"
                 style={{
-                  background: day.mood === mood ? "rgba(201, 168, 76, 0.15)" : "var(--surface-1)",
+                  background: day.mood === mood ? "var(--selected-gold-bg)" : "var(--surface-1)",
                   color: day.mood === mood ? "var(--accent-gold)" : "var(--muted)",
-                  border: day.mood === mood ? "1px solid rgba(201, 168, 76, 0.3)" : "1px solid transparent",
+                  border: day.mood === mood ? "1px solid var(--selected-gold-border)" : "1px solid transparent",
                 }}
               >
                 {mood}
@@ -205,9 +207,9 @@ export default function JournalPage() {
                 onClick={() => updateDay(today, { trainingType: type })}
                 className="rounded-full px-4 py-2 text-xs font-medium capitalize transition-all"
                 style={{
-                  background: day.trainingType === type ? "rgba(201, 168, 76, 0.15)" : "var(--surface-1)",
+                  background: day.trainingType === type ? "var(--selected-gold-bg)" : "var(--surface-1)",
                   color: day.trainingType === type ? "var(--accent-gold)" : "var(--muted)",
-                  border: day.trainingType === type ? "1px solid rgba(201, 168, 76, 0.3)" : "1px solid transparent",
+                  border: day.trainingType === type ? "1px solid var(--selected-gold-border)" : "1px solid transparent",
                 }}
               >
                 {type}
@@ -295,6 +297,9 @@ export default function JournalPage() {
         {/* AI Reflection & Duaa */}
         <ReflectionPrompt input={reflectionInput} />
       </div>
+
+      {/* Voice Journal FAB */}
+      <VoiceJournalButton date={today} />
     </div>
   );
 }

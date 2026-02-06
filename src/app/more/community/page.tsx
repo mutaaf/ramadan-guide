@@ -11,7 +11,7 @@ export default function CommunityPage() {
 
   return (
     <div>
-      <PageHeader title="Community" subtitle="Ramadan is about Community" />
+      <PageHeader title="Community" subtitle="Ramadan is about Community" back="/more" />
 
       <div className="px-6 pb-8">
         {/* Quote */}

@@ -6,7 +6,7 @@ import { Card } from "@/components/Card";
 export default function NotFastingPage() {
   return (
     <div>
-      <PageHeader title="Not Fasting?" subtitle="It's still the month of Ramadan" />
+      <PageHeader title="Not Fasting?" subtitle="It's still the month of Ramadan" back="/more" />
 
       <div className="px-6 pb-8">
         <Card delay={0.1} className="mb-4">

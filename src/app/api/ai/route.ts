@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { systemPrompt, userPrompt, model } = await req.json();
+    const { systemPrompt, userPrompt, model, stream } = await req.json();
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -12,6 +12,45 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Streaming mode
+    if (stream) {
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: model || "gpt-4o-mini",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          temperature: 0.7,
+          max_tokens: 1024,
+          stream: true,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        return NextResponse.json(
+          { error: (err as { error?: { message?: string } })?.error?.message ?? `OpenAI error: ${res.status}` },
+          { status: res.status }
+        );
+      }
+
+      // Pass-through the SSE stream
+      return new Response(res.body, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
+      });
+    }
+
+    // Non-streaming mode
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {

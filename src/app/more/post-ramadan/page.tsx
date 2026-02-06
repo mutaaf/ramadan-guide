@@ -14,7 +14,7 @@ const MAINTENANCE = [
 export default function PostRamadanPage() {
   return (
     <div>
-      <PageHeader title="Post-Ramadan" subtitle="Ramadan is the month of Transition" />
+      <PageHeader title="Post-Ramadan" subtitle="Ramadan is the month of Transition" back="/more" />
 
       <div className="px-6 pb-8">
         {/* Eid */}

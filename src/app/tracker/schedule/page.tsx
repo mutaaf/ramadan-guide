@@ -150,7 +150,7 @@ function RadialClock() {
 export default function SchedulePage() {
   return (
     <div>
-      <PageHeader title="Daily Schedule" subtitle="A Day of Ramadan during NFL Training Camp" />
+      <PageHeader title="Daily Schedule" subtitle="A Day of Ramadan during NFL Training Camp" back="/tracker" />
 
       <div className="px-6 pb-8">
         <Card className="mb-6">

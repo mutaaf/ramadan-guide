@@ -1,15 +1,28 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { AskCoachHamza } from "@/components/ai/AskCoachHamza";
 
-export default function AskPage() {
+function AskPageInner() {
+  const searchParams = useSearchParams();
+  const initialQuestion = searchParams.get("q") || undefined;
+
   return (
     <div className="flex flex-col" style={{ minHeight: "100dvh" }}>
-      <PageHeader title="Ask Coach Hamza" subtitle="Your Ramadan questions, answered" />
+      <PageHeader title="Ask Coach Hamza" subtitle="Your Ramadan questions, answered" back />
       <div className="flex-1 px-6 pb-6">
-        <AskCoachHamza />
+        <AskCoachHamza initialQuestion={initialQuestion} />
       </div>
     </div>
+  );
+}
+
+export default function AskPage() {
+  return (
+    <Suspense>
+      <AskPageInner />
+    </Suspense>
   );
 }

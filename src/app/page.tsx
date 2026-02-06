@@ -4,17 +4,31 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { GeometricPattern } from "@/components/GeometricPattern";
+import { HomeDashboard } from "@/components/HomeDashboard";
 import { getRamadanCountdown } from "@/lib/ramadan";
+import { useStore } from "@/store/useStore";
 
 export default function Home() {
   const [countdown, setCountdown] = useState(getRamadanCountdown());
+  const { days, onboarded } = useStore();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const interval = setInterval(() => {
       setCountdown(getRamadanCountdown());
     }, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  // Check if user has logged data (returning user)
+  const hasData = Object.keys(days).length > 0;
+  const isReturningUser = hasData || onboarded;
+
+  // Show dashboard for returning users (after hydration)
+  if (mounted && isReturningUser) {
+    return <HomeDashboard />;
+  }
 
   return (
     <div className="relative min-h-dvh flex flex-col">

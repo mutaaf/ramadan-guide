@@ -21,6 +21,7 @@ export default function TrackerPage() {
     { href: "/tracker/nutrition", title: "Nutrition", subtitle: "Meal planner", icon: "N", accent: "var(--accent-green)" },
     { href: "/tracker/schedule", title: "Daily Schedule", subtitle: "NFL Ramadan routine", icon: "S", accent: "var(--accent-teal)" },
     { href: "/tracker/quran", title: "Qur'an Progress", subtitle: "Juz tracker", icon: "Q", accent: "var(--accent-gold)" },
+    { href: "/tracker/tasbeeh", title: "Tasbeeh Counter", subtitle: "Dhikr tracker", icon: "T", accent: "var(--accent-gold)" },
   ];
 
   return (

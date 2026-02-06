@@ -5,6 +5,8 @@ import * as d3 from "d3";
 import { motion } from "framer-motion";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
+import { DeepDiveLink } from "@/components/ai/DeepDiveLink";
+import { LearnNavigation, getLearnNavigation } from "@/components/LearnNavigation";
 
 const themes = [
   { label: "Qur'an", color: "#c9a84c" },
@@ -111,7 +113,7 @@ function ThemeFlower() {
 export default function RamadanPage() {
   return (
     <div>
-      <PageHeader title="What is Ramadan?" subtitle="The Holiest Month of the Year" />
+      <PageHeader title="What is Ramadan?" subtitle="The Holiest Month of the Year" back="/learn" />
 
       <div className="px-6 pb-8">
         <Card className="mb-6">
@@ -167,6 +169,12 @@ export default function RamadanPage() {
             </Card>
           ))}
         </div>
+
+        <div className="mt-6">
+          <DeepDiveLink topic="How should athletes prepare for fasting during Ramadan?" />
+        </div>
+
+        <LearnNavigation {...getLearnNavigation("ramadan")} />
       </div>
     </div>
   );

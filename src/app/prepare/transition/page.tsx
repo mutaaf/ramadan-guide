@@ -11,7 +11,7 @@ export default function TransitionPage() {
 
   return (
     <div>
-      <PageHeader title="Transition Guide" subtitle="5 steps to prepare your heart" />
+      <PageHeader title="Transition Guide" subtitle="5 steps to prepare your heart" back="/prepare" />
 
       <div className="px-6 pb-8">
         {/* Stepper dots */}

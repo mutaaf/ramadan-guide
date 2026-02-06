@@ -13,7 +13,7 @@ export default function ChecklistPage() {
 
   return (
     <div>
-      <PageHeader title="Checklist" subtitle="Prepare for Ramadan" />
+      <PageHeader title="Checklist" subtitle="Prepare for Ramadan" back="/prepare" />
 
       <div className="px-6 pb-8">
         <div className="flex justify-center mb-6">

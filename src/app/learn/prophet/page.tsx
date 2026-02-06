@@ -2,6 +2,8 @@
 
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
+import { DeepDiveLink } from "@/components/ai/DeepDiveLink";
+import { LearnNavigation, getLearnNavigation } from "@/components/LearnNavigation";
 
 const traits = [
   { trait: "Truthful", desc: 'Known as "The Truthful" before Prophethood' },
@@ -16,7 +18,7 @@ const traits = [
 export default function ProphetPage() {
   return (
     <div>
-      <PageHeader title="Prophet Muhammad" subtitle="May the Peace and Blessings of Allah be upon Him" />
+      <PageHeader title="Prophet Muhammad" subtitle="May the Peace and Blessings of Allah be upon Him" back="/learn" />
 
       <div className="px-6 pb-8">
         <Card delay={0.1} className="mb-6">
@@ -69,6 +71,12 @@ export default function ProphetPage() {
             — Qur&apos;an 96:1-5
           </p>
         </Card>
+
+        <div className="mt-6">
+          <DeepDiveLink topic="Tell me more about Prophet Muhammad and his Sunnah" />
+        </div>
+
+        <LearnNavigation {...getLearnNavigation("prophet")} />
       </div>
     </div>
   );

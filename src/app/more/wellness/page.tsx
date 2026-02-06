@@ -23,7 +23,7 @@ const MENTAL_HEALTH_TIERS = [
 export default function WellnessPage() {
   return (
     <div>
-      <PageHeader title="Wellness" subtitle="Your body has a right over you" />
+      <PageHeader title="Wellness" subtitle="Your body has a right over you" back="/more" />
 
       <div className="px-6 pb-8">
         {/* Self-Care */}

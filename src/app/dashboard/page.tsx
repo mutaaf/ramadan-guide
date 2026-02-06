@@ -8,6 +8,7 @@ import { ProgressRing } from "@/components/ProgressRing";
 import { useStore, DayEntry } from "@/store/useStore";
 import { CHECKLIST_ITEMS, CHALLENGES, getRamadanCountdown, getTodayString } from "@/lib/ramadan";
 import { CoachInsight } from "@/components/ai/CoachInsight";
+import { ProactiveInsight } from "@/components/ai/ProactiveInsight";
 import { WeeklySummary } from "@/components/ai/WeeklySummary";
 import { DailyCoachingInput, WeeklyAnalysisInput } from "@/lib/ai/types";
 
@@ -81,12 +82,12 @@ function CalendarHeatmap({ days }: { days: Record<string, DayEntry> }) {
 }
 
 export default function DashboardPage() {
-  const { days, juzCompleted, checklist, challengesCompleted, userName, sport } = useStore();
+  const { days, juzProgress, checklist, challengesCompleted, userName, sport } = useStore();
 
   const dayEntries = Object.values(days);
   const totalDays = dayEntries.length;
   const fastedDays = dayEntries.filter((d) => d.fasted).length;
-  const juzDone = juzCompleted.filter(Boolean).length;
+  const juzDone = juzProgress.filter((p) => p === 100).length;
   const checklistDone = CHECKLIST_ITEMS.filter((c) => checklist[c.key]).length;
   const challengesDone = CHALLENGES.filter((c) => challengesCompleted[c.key]).length;
 
@@ -207,6 +208,9 @@ export default function DashboardPage() {
             <span className="text-[10px]" style={{ color: "var(--muted)" }}>More</span>
           </div>
         </Card>
+
+        {/* Proactive AI Insight */}
+        <ProactiveInsight />
 
         {/* AI Coach Insight */}
         <CoachInsight input={coachingInput} />

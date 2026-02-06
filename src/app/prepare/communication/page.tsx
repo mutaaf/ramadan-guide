@@ -112,7 +112,7 @@ function FlowChart() {
 export default function CommunicationPage() {
   return (
     <div>
-      <PageHeader title="Communication" subtitle="Athlete Fasting Communication Chain" />
+      <PageHeader title="Communication" subtitle="Athlete Fasting Communication Chain" back="/prepare" />
 
       <div className="px-6 pb-8">
         <Card className="mb-6">

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
+import { DeepDiveLink } from "@/components/ai/DeepDiveLink";
+import { LearnNavigation, getLearnNavigation } from "@/components/LearnNavigation";
 import { PRONUNCIATION_GUIDE } from "@/lib/ramadan";
 
 export default function PronunciationPage() {
@@ -10,7 +12,7 @@ export default function PronunciationPage() {
 
   return (
     <div>
-      <PageHeader title="Pronunciation" subtitle="23 key Islamic terms" />
+      <PageHeader title="Pronunciation" subtitle="23 key Islamic terms" back="/learn" />
 
       <div className="px-6 pb-8 space-y-2">
         {PRONUNCIATION_GUIDE.map((item, i) => (
@@ -55,6 +57,12 @@ export default function PronunciationPage() {
             )}
           </Card>
         ))}
+
+        <div className="mt-6">
+          <DeepDiveLink topic="Help me understand how to pronounce Islamic terms correctly" />
+        </div>
+
+        <LearnNavigation {...getLearnNavigation("pronunciation")} />
       </div>
     </div>
   );

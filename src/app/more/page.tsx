@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
 import { AISettingsModal } from "@/components/ai/AISettingsModal";
+import { CharitySection } from "@/components/CharitySection";
 
 const sections = [
   { href: "/ask", title: "Ask Coach Hamza", subtitle: "AI-powered Q&A about Ramadan", icon: "?" },
@@ -39,6 +40,8 @@ export default function MorePage() {
             <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </Card>
+
+        <CharitySection />
 
         {sections.map((s, i) => (
           <Link key={s.href} href={s.href}>

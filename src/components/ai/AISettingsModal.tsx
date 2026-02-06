@@ -69,13 +69,35 @@ export function AISettingsModal({ open, onClose }: AISettingsModalProps) {
               </button>
             </div>
 
-            {/* API Key */}
+            {/* API Route Toggle */}
             <div className="mb-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Use Server Route</p>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
+                    {useApiRoute ? "Using built-in server key (recommended)" : "Proxy through /api/ai"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setUseApiRoute(!useApiRoute)}
+                  className="relative h-7 w-12 rounded-full transition-colors"
+                  style={{ background: useApiRoute ? "var(--accent-gold)" : "var(--ring-track)" }}
+                >
+                  <div
+                    className="absolute top-0.5 h-6 w-6 rounded-full bg-white transition-all shadow-sm"
+                    style={{ left: useApiRoute ? 22 : 2 }}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* API Key */}
+            <div className="mb-5" style={{ opacity: useApiRoute ? 0.4 : 1, pointerEvents: useApiRoute ? "none" : "auto" }}>
               <label className="text-xs font-medium uppercase tracking-wider mb-2 block" style={{ color: "var(--accent-gold)" }}>
                 OpenAI API Key
               </label>
               <p className="text-xs mb-2" style={{ color: "var(--muted)" }}>
-                Your key stays in your browser — never sent to our servers.
+                {useApiRoute ? "Not needed — server key is active." : "Your key stays in your browser — never sent to our servers."}
               </p>
               <div className="relative">
                 <input
@@ -108,36 +130,14 @@ export function AISettingsModal({ open, onClose }: AISettingsModalProps) {
                     onClick={() => setAiModelPreference(model)}
                     className="flex-1 rounded-xl py-2.5 text-xs font-medium transition-all"
                     style={{
-                      background: aiModelPreference === model ? "rgba(201, 168, 76, 0.15)" : "var(--surface-1)",
+                      background: aiModelPreference === model ? "var(--selected-gold-bg)" : "var(--surface-1)",
                       color: aiModelPreference === model ? "var(--accent-gold)" : "var(--muted)",
-                      border: aiModelPreference === model ? "1px solid rgba(201, 168, 76, 0.3)" : "1px solid transparent",
+                      border: aiModelPreference === model ? "1px solid var(--selected-gold-border)" : "1px solid transparent",
                     }}
                   >
                     {model || "Auto"}
                   </button>
                 ))}
-              </div>
-            </div>
-
-            {/* API Route Toggle */}
-            <div className="mb-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">Use Server Route</p>
-                  <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
-                    Proxy through /api/ai instead of direct calls
-                  </p>
-                </div>
-                <button
-                  onClick={() => setUseApiRoute(!useApiRoute)}
-                  className="relative h-7 w-12 rounded-full transition-colors"
-                  style={{ background: useApiRoute ? "var(--accent-gold)" : "var(--ring-track)" }}
-                >
-                  <div
-                    className="absolute top-0.5 h-6 w-6 rounded-full bg-white transition-all shadow-sm"
-                    style={{ left: useApiRoute ? 22 : 2 }}
-                  />
-                </button>
               </div>
             </div>
 

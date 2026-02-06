@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
+import { DeepDiveLink } from "@/components/ai/DeepDiveLink";
+import { LearnNavigation, getLearnNavigation } from "@/components/LearnNavigation";
 
 function NightSky() {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -77,7 +79,7 @@ function NightSky() {
 export default function LaylaulQadrPage() {
   return (
     <div>
-      <PageHeader title="Laylatul Qadr" subtitle="Better than a thousand months" />
+      <PageHeader title="Laylatul Qadr" subtitle="Better than a thousand months" back="/learn" />
 
       <div className="px-6 pb-8">
         <Card className="mb-4 p-0 overflow-hidden">
@@ -106,6 +108,12 @@ export default function LaylaulQadrPage() {
             </Card>
           ))}
         </div>
+
+        <div className="mt-6">
+          <DeepDiveLink topic="How should I maximize my worship during Laylatul Qadr?" />
+        </div>
+
+        <LearnNavigation {...getLearnNavigation("laylatul-qadr")} />
       </div>
     </div>
   );
