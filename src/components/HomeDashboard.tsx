@@ -197,7 +197,7 @@ export function HomeDashboard() {
           >
             Today&apos;s Progress
           </p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2 md:gap-3 lg:gap-4">
             <Link href="/tracker/journal">
               <Card className="text-center py-3">
                 <p className="text-2xl font-bold">{prayerCount}/6</p>
@@ -237,7 +237,7 @@ export function HomeDashboard() {
           >
             Quick Actions
           </p>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-2 md:gap-3 lg:gap-4">
             {quickActions.map((action) => (
               <Link key={action.href} href={action.href}>
                 <Card className="flex flex-col items-center py-4">

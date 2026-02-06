@@ -134,7 +134,7 @@ body {
 
 @media (min-width: 768px) {
   .safe-bottom {
-    padding-bottom: 48px;
+    padding-bottom: 120px; /* Account for dock height + spacing */
   }
 }
 
@@ -222,30 +222,36 @@ li a,
     display: none;
   }
 
-  /* Adjust safe-bottom since no nav */
+  /* Adjust safe-bottom for dock nav */
   .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 24px);
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 120px);
   }
 }
 
 /* Desktop (1024px+) - wider content area with sidebar potential */
 @media (min-width: 1024px) {
   main {
-    max-width: 720px;
-    padding-left: 24px;
-    padding-right: 24px;
+    max-width: 800px;
+    padding-left: 32px;
+    padding-right: 32px;
   }
 
   /* Cards get more breathing room */
   .glass-card {
-    padding: 24px;
+    padding: 28px;
   }
 }
 
 /* Large desktop (1280px+) */
 @media (min-width: 1280px) {
   main {
-    max-width: 800px;
+    max-width: 900px;
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+
+  .glass-card {
+    padding: 32px;
   }
 }
 

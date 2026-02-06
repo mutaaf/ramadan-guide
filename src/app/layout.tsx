@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { BottomNav } from "@/components/BottomNav";
-import { DesktopNav } from "@/components/DesktopNav";
+import { DockNav } from "@/components/DockNav";
 import { GlobalHeader } from "@/components/GlobalHeader";
 import { CacheCleanup } from "@/components/ai/CacheCleanup";
 import { Analytics } from "@vercel/analytics/react";
@@ -46,9 +46,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} antialiased bg-background text-foreground`}>
         <CacheCleanup />
-        <DesktopNav />
         <GlobalHeader />
-        <main className="safe-bottom md:pt-14">{children}</main>
+        <main className="safe-bottom">{children}</main>
+        <DockNav />
         <BottomNav />
         <Analytics />
       </body>

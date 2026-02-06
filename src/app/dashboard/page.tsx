@@ -138,7 +138,7 @@ export default function DashboardPage() {
 
       <div className="px-6 pb-8">
         {/* Quick Stats Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-6">
           <Card delay={0.05}>
             <p className="text-2xl font-bold">{fastedDays}</p>
             <p className="text-xs" style={{ color: "var(--muted)" }}>Days Fasted</p>

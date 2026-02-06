@@ -25,11 +25,11 @@ export default function MorePage() {
   return (
     <div>
       <PageHeader title="More" subtitle="Resources, wellness, and community" />
-      <div className="px-6 pb-8 space-y-3">
+      <div className="px-6 lg:px-8 pb-8 space-y-3 lg:space-y-4">
         {/* AI Settings */}
-        <Card delay={0} className="flex items-center gap-4" onClick={() => setShowSettings(true)}>
+        <Card delay={0} className="flex items-center gap-4 lg:gap-5" onClick={() => setShowSettings(true)}>
           <div
-            className="flex h-11 w-11 items-center justify-center rounded-xl text-base font-bold shrink-0"
+            className="flex h-11 w-11 lg:h-12 lg:w-12 items-center justify-center rounded-xl text-base font-bold shrink-0"
             style={{ background: "rgba(201, 168, 76, 0.12)", color: "var(--accent-gold)" }}
           >
             AI
@@ -47,9 +47,9 @@ export default function MorePage() {
 
         {/* Download Book */}
         <a href={BOOK_PDF_URL} target="_blank" rel="noopener noreferrer">
-          <Card delay={0.12} className="flex items-center gap-4">
+          <Card delay={0.12} className="flex items-center gap-4 lg:gap-5">
             <div
-              className="flex h-11 w-11 items-center justify-center rounded-xl shrink-0"
+              className="flex h-11 w-11 lg:h-12 lg:w-12 items-center justify-center rounded-xl shrink-0"
               style={{ background: "linear-gradient(135deg, #c9a84c, #e8c75a)", color: "#000" }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -70,9 +70,9 @@ export default function MorePage() {
 
         {sections.map((s, i) => (
           <Link key={s.href} href={s.href}>
-            <Card delay={(i + 1) * 0.06} className="flex items-center gap-4">
+            <Card delay={(i + 1) * 0.06} className="flex items-center gap-4 lg:gap-5">
               <div
-                className="flex h-11 w-11 items-center justify-center rounded-xl text-base font-bold shrink-0"
+                className="flex h-11 w-11 lg:h-12 lg:w-12 items-center justify-center rounded-xl text-base font-bold shrink-0"
                 style={{ background: "rgba(201, 168, 76, 0.12)", color: "var(--accent-gold)" }}
               >
                 {s.icon}

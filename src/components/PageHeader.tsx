@@ -25,7 +25,7 @@ export function PageHeader({ title, subtitle, back }: PageHeaderProps) {
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="px-6 pt-16 pb-4"
+      className="px-6 lg:px-8 pt-16 pb-4 lg:pb-6"
     >
       {back && (
         <button
@@ -48,7 +48,7 @@ export function PageHeader({ title, subtitle, back }: PageHeaderProps) {
           Back
         </button>
       )}
-      <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+      <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">{title}</h1>
       {subtitle && (
         <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
           {subtitle}

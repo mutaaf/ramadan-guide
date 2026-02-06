@@ -49,12 +49,12 @@ export default function TrackerPage() {
           />
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 lg:space-y-4">
           {sections.map((s, i) => (
             <Link key={s.href} href={s.href}>
-              <Card delay={i * 0.06} className="flex items-center gap-4">
+              <Card delay={i * 0.06} className="flex items-center gap-4 lg:gap-5">
                 <div
-                  className="flex h-11 w-11 items-center justify-center rounded-xl text-base font-bold shrink-0"
+                  className="flex h-11 w-11 lg:h-12 lg:w-12 items-center justify-center rounded-xl text-base font-bold shrink-0"
                   style={{ background: `${s.accent}15`, color: s.accent }}
                 >
                   {s.icon}
