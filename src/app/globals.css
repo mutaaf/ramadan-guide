@@ -16,6 +16,7 @@
   --surface-1: #f5f5f7;
   --surface-2: #e8e8ed;
   --ring-track: #e8e8ed;
+  --toggle-track: #e5e5ea;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.08);
@@ -30,24 +31,26 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #000000;
+    /* Lighter, airier dark mode - inspired by Apple */
+    --background: #1a1a1c;
     --foreground: #f5f5f7;
-    --card: #1c1c1e;
-    --card-border: rgba(255, 255, 255, 0.08);
-    --muted: #86868b;
-    --glass: rgba(28, 28, 30, 0.72);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --nav-bg: rgba(0, 0, 0, 0.88);
-    --surface-1: #1c1c1e;
-    --surface-2: #2c2c2e;
-    --ring-track: #2c2c2e;
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.4);
-    --selected-gold-bg: rgba(201, 168, 76, 0.28);
-    --selected-gold-border: rgba(201, 168, 76, 0.45);
-    --selected-blue-bg: rgba(59, 130, 246, 0.25);
-    --selected-blue-border: rgba(59, 130, 246, 0.4);
+    --card: #252528;
+    --card-border: rgba(255, 255, 255, 0.06);
+    --muted: #98989d;
+    --glass: rgba(37, 37, 40, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --nav-bg: rgba(26, 26, 28, 0.92);
+    --surface-1: #2a2a2d;
+    --surface-2: #38383b;
+    --ring-track: #38383b;
+    --toggle-track: #4a4a4d;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.15);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.25);
+    --selected-gold-bg: rgba(201, 168, 76, 0.2);
+    --selected-gold-border: rgba(201, 168, 76, 0.35);
+    --selected-blue-bg: rgba(59, 130, 246, 0.18);
+    --selected-blue-border: rgba(59, 130, 246, 0.35);
   }
 }
 
@@ -67,6 +70,7 @@
   --color-surface-1: var(--surface-1);
   --color-surface-2: var(--surface-2);
   --color-ring-track: var(--ring-track);
+  --color-toggle-track: var(--toggle-track);
   --color-selected-gold-bg: var(--selected-gold-bg);
   --color-selected-gold-border: var(--selected-gold-border);
   --color-selected-blue-bg: var(--selected-blue-bg);
@@ -128,6 +132,12 @@ body {
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
 }
 
+@media (min-width: 768px) {
+  .safe-bottom {
+    padding-bottom: 48px;
+  }
+}
+
 .nav-safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -186,4 +196,62 @@ span a,
 li a,
 .inline-link {
   min-height: auto;
+}
+
+/* ============================================
+   TABLET & DESKTOP RESPONSIVE LAYOUT
+   Apple-inspired centered content with max-width
+   ============================================ */
+
+/* Tablet landscape and small desktop (768px - 1024px) */
+@media (min-width: 768px) {
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  main {
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  /* Hide mobile bottom nav on larger screens */
+  nav.fixed.bottom-0 {
+    display: none;
+  }
+
+  /* Adjust safe-bottom since no nav */
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 24px);
+  }
+}
+
+/* Desktop (1024px+) - wider content area with sidebar potential */
+@media (min-width: 1024px) {
+  main {
+    max-width: 720px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  /* Cards get more breathing room */
+  .glass-card {
+    padding: 24px;
+  }
+}
+
+/* Large desktop (1280px+) */
+@media (min-width: 1280px) {
+  main {
+    max-width: 800px;
+  }
+}
+
+/* Desktop navigation - horizontal top bar */
+@media (min-width: 768px) {
+  .desktop-nav {
+    display: flex;
+  }
 }

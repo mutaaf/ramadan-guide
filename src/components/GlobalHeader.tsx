@@ -3,7 +3,7 @@
 export function GlobalHeader() {
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 safe-top"
+      className="fixed top-0 left-0 right-0 z-50 safe-top md:hidden"
       style={{
         background: "var(--nav-bg)",
         backdropFilter: "blur(40px) saturate(180%)",

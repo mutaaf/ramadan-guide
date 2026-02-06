@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
+import { Toggle } from "@/components/Toggle";
 import { useStore } from "@/store/useStore";
 import { getTodayString, getRamadanCountdown } from "@/lib/ramadan";
 import { TrainingAdvisor } from "@/components/ai/TrainingAdvisor";
@@ -15,11 +16,27 @@ const MOODS = ["Relaxed", "Great", "Fun", "Tired", "Sad", "Angry"];
 const TRAINING_TYPES = ["practice", "weights", "game", "cardio", "rest", "other"] as const;
 const URINE_COLORS = ["#f5f5dc", "#ffffcc", "#ffff99", "#ffee66", "#ffd700", "#e6a800", "#cc8400", "#996300"];
 
+function formatDateForDisplay(dateStr: string): string {
+  const date = new Date(dateStr + "T12:00:00");
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatDateForInput(dateStr: string): string {
+  return dateStr; // Already in YYYY-MM-DD format
+}
+
 export default function JournalPage() {
   const { getDay, updateDay, togglePrayer, sport } = useStore();
   const today = getTodayString();
-  const day = getDay(today);
+  const [selectedDate, setSelectedDate] = useState(today);
+  const day = getDay(selectedDate);
   const { dayOfRamadan } = getRamadanCountdown();
+  const isToday = selectedDate === today;
 
   const trainingInput = useMemo((): TrainingAdviceInput | null => {
     if (!day.trainingType) return null;
@@ -54,30 +71,75 @@ export default function JournalPage() {
     <div>
       <PageHeader
         title="Journal"
-        subtitle={new Date().toLocaleDateString("en-US", {
-          weekday: "long",
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        })}
+        subtitle={formatDateForDisplay(selectedDate)}
         back="/tracker"
       />
 
       <div className="px-6 pb-8 space-y-4">
+        {/* Date Selector */}
+        <Card delay={0}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  const d = new Date(selectedDate + "T12:00:00");
+                  d.setDate(d.getDate() - 1);
+                  setSelectedDate(d.toISOString().split("T")[0]);
+                }}
+                className="flex items-center justify-center w-9 h-9 rounded-full transition-colors"
+                style={{ background: "var(--surface-1)" }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M10 4l-4 4 4 4" />
+                </svg>
+              </button>
+              <div className="text-center">
+                <p className="text-sm font-semibold">{isToday ? "Today" : formatDateForDisplay(selectedDate).split(",")[0]}</p>
+                <input
+                  type="date"
+                  value={formatDateForInput(selectedDate)}
+                  max={today}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="text-xs opacity-60 bg-transparent text-center cursor-pointer"
+                  style={{ color: "var(--muted)" }}
+                />
+              </div>
+              <button
+                onClick={() => {
+                  const d = new Date(selectedDate + "T12:00:00");
+                  d.setDate(d.getDate() + 1);
+                  const newDate = d.toISOString().split("T")[0];
+                  if (newDate <= today) setSelectedDate(newDate);
+                }}
+                disabled={selectedDate >= today}
+                className="flex items-center justify-center w-9 h-9 rounded-full transition-colors disabled:opacity-30"
+                style={{ background: "var(--surface-1)" }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M6 4l4 4-4 4" />
+                </svg>
+              </button>
+            </div>
+            {!isToday && (
+              <button
+                onClick={() => setSelectedDate(today)}
+                className="text-xs font-medium px-3 py-1.5 rounded-full"
+                style={{ background: "var(--selected-gold-bg)", color: "var(--accent-gold)" }}
+              >
+                Jump to Today
+              </button>
+            )}
+          </div>
+        </Card>
+
         {/* Fasting Toggle */}
         <Card delay={0.05}>
           <div className="flex items-center justify-between">
-            <p className="font-semibold text-sm">Fasting Today?</p>
-            <button
-              onClick={() => updateDay(today, { fasted: !day.fasted })}
-              className="relative h-8 w-14 rounded-full transition-colors"
-              style={{ background: day.fasted ? "var(--accent-gold)" : "var(--ring-track)" }}
-            >
-              <div
-                className="absolute top-1 h-6 w-6 rounded-full bg-white transition-all shadow-sm"
-                style={{ left: day.fasted ? 30 : 2 }}
-              />
-            </button>
+            <p className="font-semibold text-sm">Fasting {isToday ? "Today" : "This Day"}?</p>
+            <Toggle
+              checked={day.fasted}
+              onChange={(v) => updateDay(selectedDate, { fasted: v })}
+            />
           </div>
         </Card>
 
@@ -90,7 +152,7 @@ export default function JournalPage() {
             {PRAYERS.map((prayer) => (
               <button
                 key={prayer}
-                onClick={() => togglePrayer(today, prayer)}
+                onClick={() => togglePrayer(selectedDate, prayer)}
                 className="flex flex-col items-center gap-1 rounded-xl py-3 transition-all active:scale-[0.97]"
                 style={{
                   background: day.prayers[prayer] ? "var(--selected-gold-bg)" : "var(--surface-1)",
@@ -128,23 +190,19 @@ export default function JournalPage() {
               max="12"
               step="0.5"
               value={day.hoursOfSleep}
-              onChange={(e) => updateDay(today, { hoursOfSleep: parseFloat(e.target.value) })}
+              onChange={(e) => updateDay(selectedDate, { hoursOfSleep: parseFloat(e.target.value) })}
               className="flex-1 accent-amber-500"
             />
             <span className="text-sm font-semibold w-8 text-right">{day.hoursOfSleep}h</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm" style={{ color: "var(--muted)" }}>Feel Rested?</span>
-            <button
-              onClick={() => updateDay(today, { feelsRested: !day.feelsRested })}
-              className="relative h-7 w-12 rounded-full transition-colors"
-              style={{ background: day.feelsRested ? "var(--accent-green)" : "var(--ring-track)" }}
-            >
-              <div
-                className="absolute top-0.5 h-6 w-6 rounded-full bg-white transition-all shadow-sm"
-                style={{ left: day.feelsRested ? 22 : 2 }}
-              />
-            </button>
+            <Toggle
+              checked={day.feelsRested}
+              onChange={(v) => updateDay(selectedDate, { feelsRested: v })}
+              size="sm"
+              color="var(--accent-green)"
+            />
           </div>
         </Card>
 
@@ -157,7 +215,7 @@ export default function JournalPage() {
             {MOODS.map((mood) => (
               <button
                 key={mood}
-                onClick={() => updateDay(today, { mood })}
+                onClick={() => updateDay(selectedDate, { mood })}
                 className="rounded-full px-4 py-2 text-xs font-medium transition-all"
                 style={{
                   background: day.mood === mood ? "var(--selected-gold-bg)" : "var(--surface-1)",
@@ -180,7 +238,7 @@ export default function JournalPage() {
             {URINE_COLORS.map((color, i) => (
               <button
                 key={i}
-                onClick={() => updateDay(today, { urineColor: i + 1 })}
+                onClick={() => updateDay(selectedDate, { urineColor: i + 1 })}
                 className="flex-1 h-8 rounded-lg transition-all"
                 style={{
                   background: color,
@@ -204,7 +262,7 @@ export default function JournalPage() {
             {TRAINING_TYPES.map((type) => (
               <button
                 key={type}
-                onClick={() => updateDay(today, { trainingType: type })}
+                onClick={() => updateDay(selectedDate, { trainingType: type })}
                 className="rounded-full px-4 py-2 text-xs font-medium capitalize transition-all"
                 style={{
                   background: day.trainingType === type ? "var(--selected-gold-bg)" : "var(--surface-1)",
@@ -233,7 +291,7 @@ export default function JournalPage() {
                 type="text"
                 placeholder="What did you eat?"
                 value={day.sahoorMeal}
-                onChange={(e) => updateDay(today, { sahoorMeal: e.target.value })}
+                onChange={(e) => updateDay(selectedDate, { sahoorMeal: e.target.value })}
                 className="w-full mt-1 rounded-xl px-4 py-2.5 text-sm outline-none"
                 style={{ background: "var(--surface-1)", color: "var(--foreground)" }}
               />
@@ -244,7 +302,7 @@ export default function JournalPage() {
                 type="text"
                 placeholder="What did you eat?"
                 value={day.iftarMeal}
-                onChange={(e) => updateDay(today, { iftarMeal: e.target.value })}
+                onChange={(e) => updateDay(selectedDate, { iftarMeal: e.target.value })}
                 className="w-full mt-1 rounded-xl px-4 py-2.5 text-sm outline-none"
                 style={{ background: "var(--surface-1)", color: "var(--foreground)" }}
               />
@@ -259,12 +317,12 @@ export default function JournalPage() {
           </p>
           <div className="space-y-3">
             <div>
-              <label className="text-xs font-medium" style={{ color: "var(--muted)" }}>First Thought Today</label>
+              <label className="text-xs font-medium" style={{ color: "var(--muted)" }}>First Thought {isToday ? "Today" : "That Day"}</label>
               <input
                 type="text"
                 placeholder="Bismillah..."
                 value={day.firstThought}
-                onChange={(e) => updateDay(today, { firstThought: e.target.value })}
+                onChange={(e) => updateDay(selectedDate, { firstThought: e.target.value })}
                 className="w-full mt-1 rounded-xl px-4 py-2.5 text-sm outline-none"
                 style={{ background: "var(--surface-1)", color: "var(--foreground)" }}
               />
@@ -275,18 +333,18 @@ export default function JournalPage() {
                 type="text"
                 placeholder="e.g., Ya Seen"
                 value={day.surahRead}
-                onChange={(e) => updateDay(today, { surahRead: e.target.value })}
+                onChange={(e) => updateDay(selectedDate, { surahRead: e.target.value })}
                 className="w-full mt-1 rounded-xl px-4 py-2.5 text-sm outline-none"
                 style={{ background: "var(--surface-1)", color: "var(--foreground)" }}
               />
             </div>
             <div>
-              <label className="text-xs font-medium" style={{ color: "var(--muted)" }}>Tomorrow, InshaAllah</label>
+              <label className="text-xs font-medium" style={{ color: "var(--muted)" }}>{isToday ? "Tomorrow" : "Next Day"}, InshaAllah</label>
               <input
                 type="text"
                 placeholder="Goals for tomorrow..."
                 value={day.tomorrowGoals}
-                onChange={(e) => updateDay(today, { tomorrowGoals: e.target.value })}
+                onChange={(e) => updateDay(selectedDate, { tomorrowGoals: e.target.value })}
                 className="w-full mt-1 rounded-xl px-4 py-2.5 text-sm outline-none"
                 style={{ background: "var(--surface-1)", color: "var(--foreground)" }}
               />
@@ -294,12 +352,12 @@ export default function JournalPage() {
           </div>
         </Card>
 
-        {/* AI Reflection & Duaa */}
-        <ReflectionPrompt input={reflectionInput} />
+        {/* AI Reflection & Duaa - only show for today */}
+        {isToday && <ReflectionPrompt input={reflectionInput} />}
       </div>
 
-      {/* Voice Journal FAB */}
-      <VoiceJournalButton date={today} />
+      {/* Voice Journal FAB - only show for today */}
+      {isToday && <VoiceJournalButton date={selectedDate} />}
     </div>
   );
 }
