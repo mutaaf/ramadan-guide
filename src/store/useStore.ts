@@ -2,6 +2,66 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getTodayString } from "@/lib/ramadan";
 
+export type SportType = "football" | "basketball" | "soccer" | "track" | "swimming" | "mma" | "other";
+export type ExperienceLevel = "beginner" | "intermediate" | "experienced";
+export type FastingExperience = "first-time" | "some-years" | "many-years";
+export type TrainingIntensity = "recreational" | "competitive" | "professional";
+
+export interface UserProfile {
+  userName: string;
+  sport: SportType | "";
+  experienceLevel: ExperienceLevel;
+  fastingExperience: FastingExperience;
+  trainingIntensity: TrainingIntensity;
+  primaryGoals: string[];  // ["spiritual-growth", "maintain-fitness", "improve-prayer", "read-quran"]
+  ramadanConcerns: string[];  // ["energy", "hydration", "performance", "sleep"]
+}
+
+export interface MemoryNote {
+  date: string;
+  context: string;
+  insight: string;
+  source: "ai-conversation" | "journal" | "manual";
+}
+
+export interface UserMemory {
+  // Discovered preferences
+  preferredMealTypes: string[];
+  dietaryRestrictions: string[];
+  sleepSchedule: string;
+
+  // Interaction insights
+  frequentTopics: string[];
+  strugglingAreas: string[];
+  achievements: string[];
+
+  // Notes from conversations
+  notes: MemoryNote[];
+
+  interactionCount: number;
+}
+
+export const createDefaultUserProfile = (): UserProfile => ({
+  userName: "",
+  sport: "",
+  experienceLevel: "beginner",
+  fastingExperience: "first-time",
+  trainingIntensity: "recreational",
+  primaryGoals: [],
+  ramadanConcerns: [],
+});
+
+export const createDefaultUserMemory = (): UserMemory => ({
+  preferredMealTypes: [],
+  dietaryRestrictions: [],
+  sleepSchedule: "",
+  frequentTopics: [],
+  strugglingAreas: [],
+  achievements: [],
+  notes: [],
+  interactionCount: 0,
+});
+
 export interface TasbeehCounter {
   id: string;
   name: string;
@@ -95,6 +155,10 @@ interface RamadanStore {
   sport: string;
   onboarded: boolean;
 
+  // User profile and memory
+  userProfile: UserProfile;
+  userMemory: UserMemory;
+
   checklist: Record<string, boolean>;
   days: Record<string, DayEntry>;
   juzProgress: number[];  // 0-100 for each Juz
@@ -128,6 +192,12 @@ interface RamadanStore {
   resetAllTasbeeh: () => void;
   getTasbeehTotalForDay: (date: string) => number;
 
+  // User profile and memory actions
+  updateUserProfile: (data: Partial<UserProfile>) => void;
+  updateUserMemory: (data: Partial<UserMemory>) => void;
+  addMemoryNote: (note: Omit<MemoryNote, "date">) => void;
+  incrementInteractionCount: () => void;
+
   setApiKey: (key: string) => void;
   setAiModelPreference: (model: string) => void;
   setUseApiRoute: (v: boolean) => void;
@@ -139,6 +209,9 @@ export const useStore = create<RamadanStore>()(
       userName: "",
       sport: "",
       onboarded: false,
+
+      userProfile: createDefaultUserProfile(),
+      userMemory: createDefaultUserMemory(),
 
       checklist: {},
       days: {},
@@ -281,10 +354,42 @@ export const useStore = create<RamadanStore>()(
             [key]: !s.challengesCompleted[key],
           },
         })),
+
+      updateUserProfile: (data) =>
+        set((s) => ({
+          userProfile: { ...s.userProfile, ...data },
+          // Also sync userName and sport to legacy fields
+          userName: data.userName ?? s.userName,
+          sport: data.sport ?? s.sport,
+        })),
+
+      updateUserMemory: (data) =>
+        set((s) => ({
+          userMemory: { ...s.userMemory, ...data },
+        })),
+
+      addMemoryNote: (note) =>
+        set((s) => ({
+          userMemory: {
+            ...s.userMemory,
+            notes: [
+              ...s.userMemory.notes,
+              { ...note, date: getTodayString() },
+            ].slice(-50), // Keep last 50 notes
+          },
+        })),
+
+      incrementInteractionCount: () =>
+        set((s) => ({
+          userMemory: {
+            ...s.userMemory,
+            interactionCount: s.userMemory.interactionCount + 1,
+          },
+        })),
     }),
     {
       name: "ramadan-guide-storage",
-      version: 2,
+      version: 3,
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Record<string, unknown>;
         if (version === 0) {
@@ -300,6 +405,30 @@ export const useStore = create<RamadanStore>()(
           // Initialize tasbeeh state
           state.tasbeehCounters = DEFAULT_TASBEEH_COUNTERS.map((c) => ({ ...c }));
           state.tasbeehHistory = {};
+        }
+        if (version < 3) {
+          // Initialize userProfile from existing fields
+          state.userProfile = {
+            userName: (state.userName as string) || "",
+            sport: (state.sport as string) || "",
+            experienceLevel: "beginner",
+            fastingExperience: "first-time",
+            trainingIntensity: "recreational",
+            primaryGoals: [],
+            ramadanConcerns: [],
+          };
+
+          // Initialize userMemory
+          state.userMemory = {
+            preferredMealTypes: [],
+            dietaryRestrictions: [],
+            sleepSchedule: "",
+            frequentTopics: [],
+            strugglingAreas: [],
+            achievements: [],
+            notes: [],
+            interactionCount: 0,
+          };
         }
         return state as unknown as RamadanStore;
       },

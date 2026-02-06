@@ -3,12 +3,14 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { GeometricPattern } from "@/components/GeometricPattern";
 import { HomeDashboard } from "@/components/HomeDashboard";
 import { getRamadanCountdown } from "@/lib/ramadan";
 import { useStore } from "@/store/useStore";
 
 export default function Home() {
+  const router = useRouter();
   const [countdown, setCountdown] = useState(getRamadanCountdown());
   const { days, onboarded } = useStore();
   const [mounted, setMounted] = useState(false);
@@ -25,9 +27,21 @@ export default function Home() {
   const hasData = Object.keys(days).length > 0;
   const isReturningUser = hasData || onboarded;
 
+  // Redirect new users to onboarding
+  useEffect(() => {
+    if (mounted && !isReturningUser) {
+      router.push("/onboarding");
+    }
+  }, [mounted, isReturningUser, router]);
+
   // Show dashboard for returning users (after hydration)
   if (mounted && isReturningUser) {
     return <HomeDashboard />;
+  }
+
+  // Show loading while checking or redirecting
+  if (mounted && !isReturningUser) {
+    return null; // Will redirect
   }
 
   return (

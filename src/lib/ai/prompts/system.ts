@@ -1,3 +1,8 @@
+import { formatSportProtocolForAI } from "@/lib/content/sport-protocols";
+import { formatHadithsForAI } from "@/lib/content/hadiths";
+import { formatQuranGuideForAI } from "@/lib/content/quran-guide";
+import { formatStoriesForAI } from "@/lib/content/stories";
+
 // Comprehensive learning content for AI to reference
 const LEARNING_CONTENT = `
 ## FIVE PILLARS OF ISLAM
@@ -126,3 +131,37 @@ ${LEARNING_CONTENT}
 - Be culturally sensitive and respectful of Islamic traditions
 - Encourage without being pushy — every person's Ramadan is valid
 `;
+
+// Extended content for AI with sport-specific protocols, hadiths, quran guide, and stories
+const EXTENDED_CONTENT = `
+${formatHadithsForAI()}
+
+${formatQuranGuideForAI()}
+
+${formatStoriesForAI()}
+`;
+
+// Build the full system prompt with optional user context and sport-specific guidance
+export function buildEnhancedSystemPrompt(options?: {
+  userContext?: string;
+  sport?: string;
+}): string {
+  const { userContext, sport } = options || {};
+
+  let prompt = COACH_HAMZA_SYSTEM_PROMPT;
+
+  // Add sport-specific protocol if user has a sport
+  if (sport) {
+    prompt += `\n\n## User's Sport-Specific Guidance\n${formatSportProtocolForAI(sport)}`;
+  }
+
+  // Add user context if available
+  if (userContext) {
+    prompt += `\n\n## User Context\n${userContext}`;
+  }
+
+  // Add extended content for richer responses
+  prompt += `\n\n${EXTENDED_CONTENT}`;
+
+  return prompt;
+}

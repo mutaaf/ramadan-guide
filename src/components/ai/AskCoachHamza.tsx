@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/Card";
 import { useAIReady, useAIStream } from "@/lib/ai/hooks";
 import { BookQAOutput } from "@/lib/ai/types";
 import { buildBookQAPrompts } from "@/lib/ai/prompts/book-qa";
+import { useStore } from "@/store/useStore";
+import { analyzeConversation, buildUserContext, updateMemoryFromConversation } from "@/lib/ai/memory";
+
+const BOOK_PDF_URL = "https://drive.google.com/file/d/14dZVQGAeIvKDSNWyuHHARwkusKmgVue4/view";
 
 interface Message {
   id: string;
@@ -26,23 +30,59 @@ export function AskCoachHamza({ initialQuestion }: AskCoachHamzaProps = {}) {
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const streamIdRef = useRef<string | null>(null);
+  const lastUserQuestionRef = useRef<string>("");
 
   const { text: streamText, loading, error, generate: streamGenerate, reset: streamReset } = useAIStream();
   const initialTriggered = useRef(false);
+
+  // Get user profile and memory from store
+  const {
+    userProfile,
+    userMemory,
+    days,
+    updateUserMemory,
+    addMemoryNote,
+    incrementInteractionCount,
+  } = useStore();
+
+  // Build user context for personalized responses
+  const userContext = useMemo(() => {
+    // Get last 7 days of entries
+    const today = new Date();
+    const recentDays = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split("T")[0];
+      if (days[dateStr]) {
+        recentDays.push(days[dateStr]);
+      }
+    }
+    return buildUserContext(userProfile, userMemory, recentDays);
+  }, [userProfile, userMemory, days]);
 
   // Auto-trigger streaming when pendingQuestion is set
   useEffect(() => {
     if (!pendingQuestion) return;
     const q = pendingQuestion;
     setPendingQuestion(null);
+    lastUserQuestionRef.current = q;
 
     const id = `coach-${Date.now()}`;
     streamIdRef.current = id;
     setMessages((prev) => [...prev, { id, role: "coach", streamText: "" }]);
 
-    const { systemPrompt, userPrompt } = buildBookQAPrompts({ question: q });
+    // Build prompts with user context for personalized responses
+    const { systemPrompt, userPrompt } = buildBookQAPrompts({
+      question: q,
+      userContext,
+      sport: userProfile.sport || undefined,
+    });
     streamGenerate(systemPrompt, userPrompt);
-  }, [pendingQuestion, streamGenerate]);
+
+    // Increment interaction count
+    incrementInteractionCount();
+  }, [pendingQuestion, streamGenerate, userContext, userProfile.sport, incrementInteractionCount]);
 
   // Update streaming message as text comes in
   useEffect(() => {
@@ -74,6 +114,8 @@ export function AskCoachHamza({ initialQuestion }: AskCoachHamzaProps = {}) {
       }
     }
 
+    const answerText = parsed?.answer || streamText;
+
     if (parsed) {
       setMessages((prev) =>
         prev.map((m) =>
@@ -99,8 +141,28 @@ export function AskCoachHamza({ initialQuestion }: AskCoachHamzaProps = {}) {
       );
     }
 
+    // Process conversation for memory learning
+    if (lastUserQuestionRef.current && answerText) {
+      const analysis = analyzeConversation(lastUserQuestionRef.current, answerText);
+
+      // Update memory with learned preferences
+      const memoryUpdates = updateMemoryFromConversation(userMemory, analysis);
+      if (Object.keys(memoryUpdates).length > 0) {
+        updateUserMemory(memoryUpdates);
+      }
+
+      // Save note if significant insight was found
+      if (analysis.shouldSaveNote && analysis.noteContent) {
+        addMemoryNote({
+          context: lastUserQuestionRef.current.slice(0, 100),
+          insight: analysis.noteContent,
+          source: "ai-conversation",
+        });
+      }
+    }
+
     streamReset();
-  }, [loading, streamText, streamReset]);
+  }, [loading, streamText, streamReset, userMemory, updateUserMemory, addMemoryNote]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -317,6 +379,26 @@ export function AskCoachHamza({ initialQuestion }: AskCoachHamzaProps = {}) {
             style={{ color: "#e55" }}
           >
             {error}
+          </div>
+        )}
+
+        {/* Book Download Link */}
+        {messages.length > 0 && (
+          <div className="mt-6 pt-4 text-center" style={{ borderTop: "1px solid var(--card-border)" }}>
+            <a
+              href={BOOK_PDF_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-xs transition-opacity hover:opacity-80"
+              style={{ color: "var(--accent-gold)" }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="7,10 12,15 17,10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Download the complete book (PDF)
+            </a>
           </div>
         )}
       </div>

@@ -72,7 +72,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 nav-safe-bottom md:hidden" style={{ background: "var(--nav-bg)", backdropFilter: "blur(40px) saturate(180%)", WebkitBackdropFilter: "blur(40px) saturate(180%)" }}>
+    <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-50 nav-safe-bottom md:hidden" style={{ background: "var(--nav-bg)", backdropFilter: "blur(40px) saturate(180%)", WebkitBackdropFilter: "blur(40px) saturate(180%)" }}>
       <div className="border-t" style={{ borderColor: "var(--card-border)" }}>
         <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-1.5">
           {tabs.map((tab) => {

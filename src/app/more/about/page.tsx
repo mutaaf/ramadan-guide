@@ -9,6 +9,36 @@ export default function AboutPage() {
       <PageHeader title="About" subtitle="Coach Hamza & this guide" back="/more" />
 
       <div className="px-6 pb-8">
+        {/* Download Book Card */}
+        <Card delay={0.05} className="mb-4">
+          <div className="text-center">
+            <p className="text-xs font-medium uppercase tracking-wider mb-3" style={{ color: "var(--accent-gold)" }}>
+              Free Download
+            </p>
+            <h3 className="text-lg font-bold mb-2">Get the Complete Book</h3>
+            <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>
+              Download Coach Hamza&apos;s Guide for Athletes...in Ramadan as a free PDF.
+            </p>
+            <a
+              href="https://drive.google.com/file/d/14dZVQGAeIvKDSNWyuHHARwkusKmgVue4/view"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-black transition-all active:scale-[0.97]"
+              style={{
+                background: "linear-gradient(135deg, #c9a84c, #e8c75a, #c9a84c)",
+                boxShadow: "0 4px 20px rgba(201, 168, 76, 0.3)",
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="7,10 12,15 17,10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Download Free PDF
+            </a>
+          </div>
+        </Card>
+
         <Card delay={0.1} className="mb-4">
           <div className="text-center mb-4">
             <div
