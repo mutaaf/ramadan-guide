@@ -16,6 +16,7 @@ import {
   getCachedLocation,
   setCachedLocation,
 } from "@/lib/prayer-times";
+import { DailyWisdom } from "@/components/DailyWisdom";
 
 export function HomeDashboard() {
   const { userName, getDay, juzProgress, getTasbeehTotalForDay } = useStore();
@@ -88,7 +89,7 @@ export function HomeDashboard() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="px-6 pt-6 pb-4"
+        className="px-6 pt-16 pb-4"
       >
         <p className="text-sm" style={{ color: "var(--muted)" }}>
           {greeting}
@@ -315,19 +316,7 @@ export function HomeDashboard() {
           transition={{ delay: 0.5 }}
         >
           <Card>
-            <p
-              className="text-xs font-medium uppercase tracking-wider mb-2"
-              style={{ color: "var(--accent-gold)" }}
-            >
-              Daily Reminder
-            </p>
-            <p className="text-sm leading-relaxed italic" style={{ color: "var(--muted)" }}>
-              &ldquo;When Ramadan begins, the gates of Paradise are opened, the gates of Hell are
-              closed, and the devils are chained.&rdquo;
-            </p>
-            <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>
-              — Sahih al-Bukhari
-            </p>
+            <DailyWisdom context="home" labelText="Daily Reminder" />
           </Card>
         </motion.div>
       </div>

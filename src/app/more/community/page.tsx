@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
 import { useStore } from "@/store/useStore";
 import { CHALLENGES } from "@/lib/ramadan";
+import { DailyWisdom } from "@/components/DailyWisdom";
 
 export default function CommunityPage() {
   const { challengesCompleted, toggleChallenge } = useStore();
@@ -16,12 +17,7 @@ export default function CommunityPage() {
       <div className="px-6 pb-8">
         {/* Quote */}
         <Card delay={0.05} className="mb-6">
-          <p className="text-sm leading-relaxed italic text-center" style={{ color: "var(--muted)" }}>
-            &ldquo;Service to others is the rent you pay for your room here on earth.&rdquo;
-          </p>
-          <p className="text-xs mt-2 text-center font-medium" style={{ color: "var(--accent-gold)" }}>
-            — Muhammad Ali
-          </p>
+          <DailyWisdom context="community" showLabel={false} />
         </Card>
 
         {/* Challenges */}

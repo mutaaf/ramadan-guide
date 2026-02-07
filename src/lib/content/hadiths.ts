@@ -185,3 +185,26 @@ ${h.athleteRelevance ? `**For Athletes:** ${h.athleteRelevance}` : ""}
 `).join("\n")}
 `;
 }
+
+// Get a hadith by ID
+export function getHadithById(id: string): Hadith | undefined {
+  return HADITHS.find((h) => h.id === id);
+}
+
+// Get hadiths by multiple themes
+export function getHadithsByThemes(themes: Hadith["theme"][]): Hadith[] {
+  return HADITHS.filter((h) => themes.includes(h.theme));
+}
+
+// Get daily hadith with date-based selection for stability
+export function getDailyHadith(seed?: string): Hadith {
+  const today = seed || new Date().toISOString().split("T")[0];
+  let hash = 0;
+  for (let i = 0; i < today.length; i++) {
+    const char = today.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash;
+  }
+  const index = Math.abs(hash) % HADITHS.length;
+  return HADITHS[index];
+}

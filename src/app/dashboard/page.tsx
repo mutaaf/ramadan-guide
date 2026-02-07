@@ -11,6 +11,7 @@ import { CoachInsight } from "@/components/ai/CoachInsight";
 import { ProactiveInsight } from "@/components/ai/ProactiveInsight";
 import { WeeklySummary } from "@/components/ai/WeeklySummary";
 import { DailyCoachingInput, WeeklyAnalysisInput } from "@/lib/ai/types";
+import { DailyWisdom } from "@/components/DailyWisdom";
 
 function SleepChart({ days }: { days: DayEntry[] }) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -431,12 +432,7 @@ export default function DashboardPage() {
 
         {/* Motivational */}
         <Card delay={0.35}>
-          <p className="text-sm leading-relaxed italic text-center" style={{ color: "var(--muted)" }}>
-            &ldquo;Allah&apos;s promise is true. Allah&apos;s plan is perfect. Allah is always right on time.&rdquo;
-          </p>
-          <p className="text-xs mt-2 text-center font-medium" style={{ color: "var(--accent-gold)" }}>
-            — Coach Hamza
-          </p>
+          <DailyWisdom context="dashboard" showLabel={false} />
         </Card>
       </div>
     </div>

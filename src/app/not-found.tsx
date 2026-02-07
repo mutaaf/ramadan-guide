@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { DailyWisdom } from "@/components/DailyWisdom";
 
 export default function NotFound() {
   return (
@@ -65,10 +66,9 @@ export default function NotFound() {
           </Link>
         </div>
 
-        <p className="mt-8 text-sm" style={{ color: "var(--muted)" }}>
-          "And whoever relies upon Allah — then He is sufficient for him." —
-          Qur'an 65:3
-        </p>
+        <div className="mt-8">
+          <DailyWisdom context="not-found" variant="simple" />
+        </div>
       </motion.div>
     </div>
   );

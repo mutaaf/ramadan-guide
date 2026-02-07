@@ -5,6 +5,7 @@ import * as d3 from "d3";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
 import { useStore } from "@/store/useStore";
+import { DailyWisdom } from "@/components/DailyWisdom";
 
 function JuzRing({ progress }: { progress: number[] }) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -192,12 +193,7 @@ export default function QuranPage() {
         </Card>
 
         <Card delay={0.15} className="mb-4">
-          <p className="text-xs font-medium uppercase tracking-wider mb-2" style={{ color: "var(--accent-gold)" }}>
-            From the Book
-          </p>
-          <p className="text-sm leading-relaxed italic" style={{ color: "var(--muted)" }}>
-            &ldquo;Make no mistake about it, Ramadan is THE MONTH OF THE QUR&apos;AN.&rdquo;
-          </p>
+          <DailyWisdom context="quran" labelText="From the Book" />
         </Card>
 
         {/* Grid of Juz */}

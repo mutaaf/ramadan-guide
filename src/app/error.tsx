@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { motion } from "framer-motion";
+import { DailyWisdom } from "@/components/DailyWisdom";
 
 export default function Error({
   error,
@@ -71,9 +72,9 @@ export default function Error({
           </button>
         </div>
 
-        <p className="mt-8 text-sm" style={{ color: "var(--muted)" }}>
-          "Indeed, with hardship comes ease." — Qur'an 94:6
-        </p>
+        <div className="mt-8">
+          <DailyWisdom context="error" variant="simple" />
+        </div>
       </motion.div>
     </div>
   );
