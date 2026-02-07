@@ -144,7 +144,14 @@ function RadialClock() {
       .text("NFL Ramadan Day");
   }, []);
 
-  return <svg ref={svgRef} className="w-full max-w-sm mx-auto" />;
+  return (
+    <div
+      role="img"
+      aria-label="24-hour radial clock showing a typical Ramadan day during NFL training camp, with activities color-coded by category: sleep, meals, prayers, training, and rest periods."
+    >
+      <svg ref={svgRef} className="w-full max-w-sm mx-auto" aria-hidden="true" />
+    </div>
+  );
 }
 
 export default function SchedulePage() {

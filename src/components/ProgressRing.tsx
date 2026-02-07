@@ -79,9 +79,18 @@ export function ProgressRing({
     prevProgress.current = progress;
   }, [progress, size, strokeWidth, color]);
 
+  const percentComplete = Math.round(progress * 100);
+
   return (
-    <div className="relative inline-flex items-center justify-center">
-      <svg ref={svgRef} width={size} height={size} />
+    <div
+      className="relative inline-flex items-center justify-center"
+      role="progressbar"
+      aria-valuenow={percentComplete}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label={`${label || "Progress"}: ${percentComplete}% complete${sublabel ? `, ${sublabel}` : ""}`}
+    >
+      <svg ref={svgRef} width={size} height={size} aria-hidden="true" />
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         {label && (
           <span className="text-lg font-semibold">{label}</span>

@@ -6,6 +6,7 @@ import { DockNav } from "@/components/DockNav";
 import { GlobalHeader } from "@/components/GlobalHeader";
 import { CacheCleanup } from "@/components/ai/CacheCleanup";
 import { Analytics } from "@vercel/analytics/react";
+import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 
 const inter = Inter({
   variable: "--font-geist-sans",
@@ -13,15 +14,78 @@ const inter = Inter({
   display: "swap",
 });
 
+const siteUrl = "https://ramadan-guide.vercel.app";
+
 export const metadata: Metadata = {
-  title: "Coach Hamza's Ramadan Guide",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Coach Hamza's Ramadan Guide",
+    template: "%s | Ramadan Guide",
+  },
   description:
-    "An interactive guide for athletes fasting during Ramadan — by Hamza Abdullah, retired NFL player.",
+    "An interactive guide for athletes fasting during Ramadan — by Hamza Abdullah, retired NFL player. Track prayers, hydration, nutrition, and more.",
+  keywords: [
+    "Ramadan",
+    "fasting",
+    "athletes",
+    "Muslim",
+    "Islam",
+    "Hamza Abdullah",
+    "NFL",
+    "hydration",
+    "nutrition",
+    "prayer tracker",
+    "Quran",
+  ],
+  authors: [{ name: "Hamza Abdullah", url: "https://probigbros.com" }],
+  creator: "Hamza Abdullah",
+  publisher: "Pro Big Bros LLC",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Ramadan Guide",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteUrl,
+    siteName: "Coach Hamza's Ramadan Guide",
+    title: "Coach Hamza's Ramadan Guide for Athletes",
+    description:
+      "An interactive guide for athletes fasting during Ramadan — by Hamza Abdullah, retired NFL player.",
+    images: [
+      {
+        url: "/icon-512.png",
+        width: 512,
+        height: 512,
+        alt: "Ramadan Guide Logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Coach Hamza's Ramadan Guide",
+    description:
+      "An interactive guide for athletes fasting during Ramadan — by Hamza Abdullah, retired NFL player.",
+    images: ["/icon-512.png"],
+    creator: "@ProBigBros",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/icon-192.png",
   },
 };
 
@@ -42,8 +106,41 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "Coach Hamza's Ramadan Guide",
+    description:
+      "An interactive guide for athletes fasting during Ramadan — by Hamza Abdullah, retired NFL player.",
+    url: siteUrl,
+    applicationCategory: "HealthApplication",
+    operatingSystem: "Any",
+    author: {
+      "@type": "Person",
+      name: "Hamza Abdullah",
+      jobTitle: "Retired NFL Player",
+      url: "https://probigbros.com",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Pro Big Bros LLC",
+      url: "https://probigbros.com",
+    },
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+  };
+
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className={`${inter.variable} antialiased bg-background text-foreground`}>
         <CacheCleanup />
         <GlobalHeader />
@@ -51,6 +148,7 @@ export default function RootLayout({
         <DockNav />
         <BottomNav />
         <Analytics />
+        <ServiceWorkerRegistration />
       </body>
     </html>
   );

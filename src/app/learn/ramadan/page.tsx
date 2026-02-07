@@ -107,7 +107,14 @@ function ThemeFlower() {
       .attr("opacity", 1);
   }, []);
 
-  return <svg ref={svgRef} className="w-full max-w-xs mx-auto" />;
+  return (
+    <div
+      role="img"
+      aria-label="Ramadan themes shown as a flower with 8 petals representing: Qur'an, Mercy, Forgiveness, Guidance, Fasting, Charity, Love, and Transition."
+    >
+      <svg ref={svgRef} className="w-full max-w-xs mx-auto" aria-hidden="true" />
+    </div>
+  );
 }
 
 export default function RamadanPage() {

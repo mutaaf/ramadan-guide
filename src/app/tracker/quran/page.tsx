@@ -93,7 +93,17 @@ function JuzRing({ progress }: { progress: number[] }) {
       .text("of 30 Juz");
   }, [progress]);
 
-  return <svg ref={svgRef} className="w-full max-w-xs mx-auto" />;
+  const completedJuz = progress.filter((p) => p === 100).length;
+  const partialJuz = progress.filter((p) => p > 0 && p < 100).length;
+
+  return (
+    <div
+      role="img"
+      aria-label={`Quran progress ring showing ${completedJuz} of 30 Juz completed${partialJuz > 0 ? `, ${partialJuz} in progress` : ""}.`}
+    >
+      <svg ref={svgRef} className="w-full max-w-xs mx-auto" aria-hidden="true" />
+    </div>
+  );
 }
 
 function ProgressModal({

@@ -12,6 +12,184 @@ import { ProactiveInsight } from "@/components/ai/ProactiveInsight";
 import { WeeklySummary } from "@/components/ai/WeeklySummary";
 import { DailyCoachingInput, WeeklyAnalysisInput } from "@/lib/ai/types";
 
+function SleepChart({ days }: { days: DayEntry[] }) {
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    if (!svgRef.current || days.length === 0) return;
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove();
+
+    const w = 300;
+    const h = 100;
+    const padding = { top: 10, right: 10, bottom: 20, left: 30 };
+
+    svg.attr("viewBox", `0 0 ${w} ${h}`);
+
+    const recentDays = days.slice(0, 7).reverse();
+    const maxSleep = 12;
+
+    const xScale = d3
+      .scaleBand()
+      .domain(recentDays.map((_, i) => i.toString()))
+      .range([padding.left, w - padding.right])
+      .padding(0.3);
+
+    const yScale = d3
+      .scaleLinear()
+      .domain([0, maxSleep])
+      .range([h - padding.bottom, padding.top]);
+
+    // Y axis
+    svg
+      .append("line")
+      .attr("x1", padding.left)
+      .attr("y1", padding.top)
+      .attr("x2", padding.left)
+      .attr("y2", h - padding.bottom)
+      .attr("stroke", "var(--card-border)")
+      .attr("stroke-width", 1);
+
+    // X axis
+    svg
+      .append("line")
+      .attr("x1", padding.left)
+      .attr("y1", h - padding.bottom)
+      .attr("x2", w - padding.right)
+      .attr("y2", h - padding.bottom)
+      .attr("stroke", "var(--card-border)")
+      .attr("stroke-width", 1);
+
+    // Bars
+    recentDays.forEach((day, i) => {
+      const xPos = xScale(i.toString()) ?? 0;
+      const barHeight = yScale(0) - yScale(day.hoursOfSleep);
+      svg
+        .append("rect")
+        .attr("x", xPos)
+        .attr("y", yScale(0))
+        .attr("width", xScale.bandwidth())
+        .attr("height", 0)
+        .attr("rx", 3)
+        .attr("fill", day.hoursOfSleep >= 7 ? "var(--accent-green)" : day.hoursOfSleep >= 5 ? "var(--accent-gold)" : "#ef4444")
+        .attr("opacity", 0.7)
+        .transition()
+        .delay(i * 50)
+        .duration(400)
+        .attr("y", yScale(day.hoursOfSleep))
+        .attr("height", barHeight);
+
+      // Day label
+      svg
+        .append("text")
+        .attr("x", xPos + xScale.bandwidth() / 2)
+        .attr("y", h - 5)
+        .attr("text-anchor", "middle")
+        .attr("fill", "var(--muted)")
+        .attr("font-size", "8px")
+        .text(`D${days.length - i}`);
+    });
+
+    // Y axis label
+    svg
+      .append("text")
+      .attr("x", 5)
+      .attr("y", h / 2)
+      .attr("text-anchor", "middle")
+      .attr("fill", "var(--muted)")
+      .attr("font-size", "8px")
+      .attr("transform", `rotate(-90, 10, ${h / 2})`)
+      .text("Hours");
+  }, [days]);
+
+  if (days.length === 0) return null;
+
+  return (
+    <div
+      role="img"
+      aria-label={`Sleep pattern chart showing hours of sleep for the last ${Math.min(days.length, 7)} days.`}
+    >
+      <svg ref={svgRef} className="w-full max-w-[300px] mx-auto" aria-hidden="true" />
+    </div>
+  );
+}
+
+function HydrationTrend({ days }: { days: DayEntry[] }) {
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    if (!svgRef.current || days.length < 2) return;
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove();
+
+    const w = 300;
+    const h = 80;
+    const padding = { top: 10, right: 10, bottom: 15, left: 25 };
+
+    svg.attr("viewBox", `0 0 ${w} ${h}`);
+
+    const recentDays = days.slice(0, 14).reverse();
+
+    const xScale = d3
+      .scaleLinear()
+      .domain([0, recentDays.length - 1])
+      .range([padding.left, w - padding.right]);
+
+    const yScale = d3
+      .scaleLinear()
+      .domain([0, 8])
+      .range([h - padding.bottom, padding.top]);
+
+    // Grid line at 8 glasses (goal)
+    svg
+      .append("line")
+      .attr("x1", padding.left)
+      .attr("y1", yScale(8))
+      .attr("x2", w - padding.right)
+      .attr("y2", yScale(8))
+      .attr("stroke", "var(--accent-blue)")
+      .attr("stroke-width", 1)
+      .attr("stroke-dasharray", "4,4")
+      .attr("opacity", 0.3);
+
+    // Line
+    const line = d3
+      .line<DayEntry>()
+      .x((_, i) => xScale(i))
+      .y((d) => yScale(d.glassesOfWater))
+      .curve(d3.curveMonotoneX);
+
+    svg
+      .append("path")
+      .datum(recentDays)
+      .attr("fill", "none")
+      .attr("stroke", "var(--accent-blue)")
+      .attr("stroke-width", 2)
+      .attr("d", line);
+
+    // Dots
+    recentDays.forEach((day, i) => {
+      svg
+        .append("circle")
+        .attr("cx", xScale(i))
+        .attr("cy", yScale(day.glassesOfWater))
+        .attr("r", 3)
+        .attr("fill", day.glassesOfWater >= 8 ? "var(--accent-blue)" : "var(--accent-gold)");
+    });
+  }, [days]);
+
+  if (days.length < 2) return null;
+
+  return (
+    <div
+      role="img"
+      aria-label={`Hydration trend line chart showing glasses of water consumed over ${Math.min(days.length, 14)} days.`}
+    >
+      <svg ref={svgRef} className="w-full max-w-[300px] mx-auto" aria-hidden="true" />
+    </div>
+  );
+}
+
 function CalendarHeatmap({ days }: { days: Record<string, DayEntry> }) {
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -78,7 +256,16 @@ function CalendarHeatmap({ days }: { days: Record<string, DayEntry> }) {
     }
   }, [days]);
 
-  return <svg ref={svgRef} className="w-full max-w-[220px] mx-auto" />;
+  const completedDays = Object.keys(days).length;
+
+  return (
+    <div
+      role="img"
+      aria-label={`30-day Ramadan calendar showing progress. ${completedDays} days logged.`}
+    >
+      <svg ref={svgRef} className="w-full max-w-[220px] mx-auto" aria-hidden="true" />
+    </div>
+  );
 }
 
 export default function DashboardPage() {
@@ -208,6 +395,30 @@ export default function DashboardPage() {
             <span className="text-[10px]" style={{ color: "var(--muted)" }}>More</span>
           </div>
         </Card>
+
+        {/* Sleep & Hydration Charts */}
+        {dayEntries.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <Card delay={0.35}>
+              <p className="text-xs font-medium uppercase tracking-wider mb-3" style={{ color: "var(--accent-gold)" }}>
+                Sleep Pattern
+              </p>
+              <SleepChart days={sortedDays} />
+              <p className="text-[10px] text-center mt-2" style={{ color: "var(--muted)" }}>
+                Last 7 days
+              </p>
+            </Card>
+            <Card delay={0.4}>
+              <p className="text-xs font-medium uppercase tracking-wider mb-3" style={{ color: "var(--accent-gold)" }}>
+                Hydration Trend
+              </p>
+              <HydrationTrend days={sortedDays} />
+              <p className="text-[10px] text-center mt-2" style={{ color: "var(--muted)" }}>
+                Goal: 8 glasses/day
+              </p>
+            </Card>
+          </div>
+        )}
 
         {/* Proactive AI Insight */}
         <ProactiveInsight />

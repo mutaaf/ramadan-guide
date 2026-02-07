@@ -72,6 +72,8 @@ export function GeometricPattern() {
       ref={svgRef}
       className="pointer-events-none absolute inset-0 h-full w-full"
       preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+      role="presentation"
     />
   );
 }

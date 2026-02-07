@@ -85,7 +85,14 @@ function PillarsChart() {
     });
   }, []);
 
-  return <svg ref={svgRef} className="w-full max-w-sm mx-auto" />;
+  return (
+    <div
+      role="img"
+      aria-label="Five Pillars of Islam shown as columns: Shahada (Declaration of Faith), Salah (Prayer), Zakah (Charity), Sawm (Fasting), and Hajj (Pilgrimage)."
+    >
+      <svg ref={svgRef} className="w-full max-w-sm mx-auto" aria-hidden="true" />
+    </div>
+  );
 }
 
 export default function IslamPage() {

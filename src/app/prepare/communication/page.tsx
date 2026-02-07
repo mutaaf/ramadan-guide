@@ -106,7 +106,14 @@ function FlowChart() {
     });
   }, []);
 
-  return <svg ref={svgRef} className="w-full max-w-sm mx-auto" />;
+  return (
+    <div
+      role="img"
+      aria-label="Communication chain flowchart showing 6 steps: 1. Athlete decides to fast, 2. Speaks with parents/advisors, 3. Speaks with doctors and trainers, 4. Speaks with coaches, 5. Team researches other athletes, 6. Create Ramadan plan together."
+    >
+      <svg ref={svgRef} className="w-full max-w-sm mx-auto" aria-hidden="true" />
+    </div>
+  );
 }
 
 export default function CommunicationPage() {

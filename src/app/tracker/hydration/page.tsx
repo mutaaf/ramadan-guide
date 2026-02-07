@@ -93,7 +93,16 @@ function LiquidGauge({ glasses }: { glasses: number }) {
       .text(`${glasses * 16}oz / 128oz`);
   }, [glasses]);
 
-  return <svg ref={svgRef} className="mx-auto" style={{ width: 160, height: 200 }} />;
+  const percentFilled = Math.round((glasses / 8) * 100);
+
+  return (
+    <div
+      role="img"
+      aria-label={`Water bottle showing ${percentFilled}% hydration. ${glasses} of 8 glasses consumed, ${glasses * 16} of 128 ounces.`}
+    >
+      <svg ref={svgRef} className="mx-auto" style={{ width: 160, height: 200 }} aria-hidden="true" />
+    </div>
+  );
 }
 
 export default function HydrationPage() {

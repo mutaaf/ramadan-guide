@@ -73,7 +73,14 @@ function NightSky() {
       .attr("opacity", 0.8);
   }, []);
 
-  return <svg ref={svgRef} className="w-full rounded-2xl overflow-hidden" />;
+  return (
+    <div
+      role="img"
+      aria-label="Night sky illustration with a crescent moon and stars, representing Laylatul Qadr - The Night of Power."
+    >
+      <svg ref={svgRef} className="w-full rounded-2xl overflow-hidden" aria-hidden="true" />
+    </div>
+  );
 }
 
 export default function LaylaulQadrPage() {

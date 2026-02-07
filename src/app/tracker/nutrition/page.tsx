@@ -66,7 +66,14 @@ function PlateChart() {
       .attr("opacity", 1);
   }, []);
 
-  return <svg ref={svgRef} className="mx-auto" style={{ width: 240, height: 240 }} />;
+  return (
+    <div
+      role="img"
+      aria-label="Balanced plate chart showing recommended meal proportions: 35% vegetables, 35% protein, and 30% carbohydrates."
+    >
+      <svg ref={svgRef} className="mx-auto" style={{ width: 240, height: 240 }} aria-hidden="true" />
+    </div>
+  );
 }
 
 const sahoorFoods = ["Dates", "Watermelon", "Grapes", "Orange", "Apple", "Banana", "Avocado"];
