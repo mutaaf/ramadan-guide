@@ -1,6 +1,16 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getTodayString } from "@/lib/ramadan";
+import type {
+  HealthPatterns,
+  SmartPromptSettings,
+  QuickLogEngagement,
+} from "@/lib/health/types";
+import {
+  DEFAULT_HEALTH_PATTERNS,
+  DEFAULT_SMART_PROMPT_SETTINGS,
+  DEFAULT_QUICK_LOG_ENGAGEMENT,
+} from "@/lib/health/types";
 
 export type SportType = "football" | "basketball" | "soccer" | "track" | "swimming" | "mma" | "other";
 export type ExperienceLevel = "beginner" | "intermediate" | "experienced";
@@ -174,6 +184,12 @@ interface RamadanStore {
   aiModelPreference: string;
   useApiRoute: boolean;
 
+  // Health patterns and smart prompts
+  healthPatterns: HealthPatterns;
+  smartPromptSettings: SmartPromptSettings;
+  quickLogEngagement: QuickLogEngagement;
+  entrySources: Record<string, Record<string, 'manual' | 'voice-journal' | 'quick-log' | 'smart-default'>>;
+
   setUser: (name: string, sport: string) => void;
   setOnboarded: (v: boolean) => void;
   toggleChecklist: (key: string) => void;
@@ -201,6 +217,13 @@ interface RamadanStore {
   setApiKey: (key: string) => void;
   setAiModelPreference: (model: string) => void;
   setUseApiRoute: (v: boolean) => void;
+
+  // Health pattern actions
+  updateHealthPatterns: (patterns: HealthPatterns) => void;
+  updateSmartPromptSettings: (settings: Partial<SmartPromptSettings>) => void;
+  recordQuickLogAcceptance: (accepted: boolean) => void;
+  setEntrySource: (date: string, field: string, source: 'manual' | 'voice-journal' | 'quick-log' | 'smart-default') => void;
+  getEntrySource: (date: string, field: string) => 'manual' | 'voice-journal' | 'quick-log' | 'smart-default' | 'empty';
 }
 
 export const useStore = create<RamadanStore>()(
@@ -225,6 +248,12 @@ export const useStore = create<RamadanStore>()(
       apiKey: "",
       aiModelPreference: "",
       useApiRoute: true,
+
+      // Health patterns and smart prompts
+      healthPatterns: DEFAULT_HEALTH_PATTERNS,
+      smartPromptSettings: DEFAULT_SMART_PROMPT_SETTINGS,
+      quickLogEngagement: DEFAULT_QUICK_LOG_ENGAGEMENT,
+      entrySources: {},
 
       setUser: (name, sport) => set({ userName: name, sport }),
       setOnboarded: (v) => set({ onboarded: v }),
@@ -386,10 +415,55 @@ export const useStore = create<RamadanStore>()(
             interactionCount: s.userMemory.interactionCount + 1,
           },
         })),
+
+      // Health pattern actions
+      updateHealthPatterns: (patterns) =>
+        set({ healthPatterns: patterns }),
+
+      updateSmartPromptSettings: (settings) =>
+        set((s) => ({
+          smartPromptSettings: { ...s.smartPromptSettings, ...settings },
+        })),
+
+      recordQuickLogAcceptance: (accepted) =>
+        set((s) => {
+          const { quickLogEngagement } = s;
+          const totalSuggestions = quickLogEngagement.totalSuggestions + 1;
+          const acceptedSuggestions = quickLogEngagement.acceptedSuggestions + (accepted ? 1 : 0);
+          const acceptanceRate = totalSuggestions > 0
+            ? Math.round((acceptedSuggestions / totalSuggestions) * 100)
+            : 0;
+
+          return {
+            quickLogEngagement: {
+              ...quickLogEngagement,
+              totalSuggestions,
+              acceptedSuggestions,
+              acceptanceRate,
+              daysWithQuickLog: quickLogEngagement.daysWithQuickLog + 1,
+            },
+          };
+        }),
+
+      setEntrySource: (date, field, source) =>
+        set((s) => ({
+          entrySources: {
+            ...s.entrySources,
+            [date]: {
+              ...s.entrySources[date],
+              [field]: source,
+            },
+          },
+        })),
+
+      getEntrySource: (date, field) => {
+        const state = get();
+        return state.entrySources[date]?.[field] || 'empty';
+      },
     }),
     {
       name: "ramadan-guide-storage",
-      version: 3,
+      version: 4,
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Record<string, unknown>;
         if (version === 0) {
@@ -429,6 +503,13 @@ export const useStore = create<RamadanStore>()(
             notes: [],
             interactionCount: 0,
           };
+        }
+        if (version < 4) {
+          // Initialize health patterns and smart prompt settings
+          state.healthPatterns = DEFAULT_HEALTH_PATTERNS;
+          state.smartPromptSettings = DEFAULT_SMART_PROMPT_SETTINGS;
+          state.quickLogEngagement = DEFAULT_QUICK_LOG_ENGAGEMENT;
+          state.entrySources = {};
         }
         return state as unknown as RamadanStore;
       },

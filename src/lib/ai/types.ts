@@ -236,6 +236,19 @@ export interface AIInsightsInput {
   userName: string;
   sport: string;
   dayOfRamadan: number;
+
+  // Health patterns (from smart health data entry)
+  healthPatterns?: {
+    sleepConsistency: number;       // 0-100 score (low variance = high)
+    hydrationTrend: 'improving' | 'stable' | 'declining';
+    dataCompleteness: number;       // % of days with health data (0-100)
+  };
+
+  // Quick log engagement metrics
+  quickLogEngagement?: {
+    acceptanceRate: number;         // % suggestions accepted
+    daysWithQuickLog: number;
+  };
 }
 
 export interface AIInsightsOutput {

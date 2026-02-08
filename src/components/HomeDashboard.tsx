@@ -18,6 +18,7 @@ import {
 } from "@/lib/prayer-times";
 import { DailyWisdom } from "@/components/DailyWisdom";
 import { AIInsights } from "@/components/ai/AIInsights";
+import { QuickLogWidget } from "@/components/health/QuickLogWidget";
 
 export function HomeDashboard() {
   const { userName, getDay, juzProgress, getTasbeehTotalForDay } = useStore();
@@ -186,6 +187,9 @@ export function HomeDashboard() {
             ) : null}
           </Card>
         </motion.div>
+
+        {/* Quick Check-in Widget */}
+        <QuickLogWidget />
 
         {/* Today's Progress */}
         <motion.div

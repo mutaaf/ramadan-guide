@@ -43,6 +43,23 @@ QUR'AN:
 - Juz completed: ${input.juzCompleted}/30
 - Pace: ${input.juzPace}
 
+${
+  input.healthPatterns
+    ? `HEALTH PATTERNS:
+- Sleep consistency: ${input.healthPatterns.sleepConsistency}% (higher = more consistent)
+- Hydration trend: ${input.healthPatterns.hydrationTrend}
+- Data completeness: ${input.healthPatterns.dataCompleteness}% of days logged`
+    : ""
+}
+
+${
+  input.quickLogEngagement && input.quickLogEngagement.daysWithQuickLog > 0
+    ? `QUICK LOG ENGAGEMENT:
+- Smart suggestion acceptance rate: ${input.quickLogEngagement.acceptanceRate}%
+- Days using quick log: ${input.quickLogEngagement.daysWithQuickLog}`
+    : ""
+}
+
 RECENT MOODS: ${input.recentMoods.join(", ") || "Not tracked"}
 ACHIEVEMENTS: ${input.recentAchievements.join(", ") || "Building momentum"}
 

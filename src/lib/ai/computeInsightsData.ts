@@ -1,13 +1,17 @@
 import { DayEntry } from "@/store/useStore";
 import { analyzeBehavior } from "./behavior";
 import { AIInsightsInput } from "./types";
+import type { HealthPatterns, QuickLogEngagement } from "@/lib/health/types";
+import { computeHealthMetrics } from "@/lib/health/patternDetector";
 
 export function computeInsightsData(
   days: Record<string, DayEntry>,
   userName: string,
   sport: string,
   juzProgress: number[],
-  dayOfRamadan: number
+  dayOfRamadan: number,
+  healthPatterns?: HealthPatterns,
+  quickLogEngagement?: QuickLogEngagement
 ): AIInsightsInput | null {
   const dayArray = Object.values(days).filter((d) => d.date);
   if (dayArray.length < 3) return null; // Need minimum data
@@ -97,6 +101,11 @@ export function computeInsightsData(
     .map((d) => d.mood)
     .filter(Boolean);
 
+  // Compute health metrics if patterns are available
+  const healthMetrics = healthPatterns
+    ? computeHealthMetrics(days, healthPatterns)
+    : undefined;
+
   return {
     daysTracked: sorted.length,
     avgSleep,
@@ -113,5 +122,12 @@ export function computeInsightsData(
     userName,
     sport,
     dayOfRamadan,
+    healthPatterns: healthMetrics,
+    quickLogEngagement: quickLogEngagement
+      ? {
+          acceptanceRate: quickLogEngagement.acceptanceRate,
+          daysWithQuickLog: quickLogEngagement.daysWithQuickLog,
+        }
+      : undefined,
   };
 }
