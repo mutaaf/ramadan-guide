@@ -12,6 +12,12 @@ const withSerwist = withSerwistInit({
 const nextConfig: NextConfig = {
   // Use webpack for builds since Serwist doesn't fully support Turbopack yet
   turbopack: {},
+  env: {
+    NEXT_PUBLIC_BUILD_DATE: new Date().toISOString(),
+    NEXT_PUBLIC_BUILD_HASH:
+      process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ||
+      require("crypto").randomBytes(4).toString("hex"),
+  },
 };
 
 export default withSerwist(nextConfig);

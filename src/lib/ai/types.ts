@@ -9,7 +9,8 @@ export type AIFeature =
   | "training-advice"
   | "reflection"
   | "voice-journal"
-  | "behavior-insight";
+  | "behavior-insight"
+  | "ai-insights";
 
 // ── Cache ─────────────────────────────────────────────────────────────
 export interface CacheEntry {
@@ -30,6 +31,7 @@ export const FEATURE_TTL: Record<AIFeature, number> = {
   reflection: 12 * 60 * 60 * 1000, // 12h
   "voice-journal": 0, // no cache
   "behavior-insight": 4 * 60 * 60 * 1000, // 4h
+  "ai-insights": 6 * 60 * 60 * 1000, // 6h
 };
 
 export const FEATURE_MODEL: Record<AIFeature, string> = {
@@ -41,6 +43,7 @@ export const FEATURE_MODEL: Record<AIFeature, string> = {
   reflection: "gpt-4o-mini",
   "voice-journal": "gpt-4o-mini",
   "behavior-insight": "gpt-4o-mini",
+  "ai-insights": "gpt-4o-mini",
 };
 
 // ── Transport ─────────────────────────────────────────────────────────
@@ -200,4 +203,48 @@ export interface BehaviorInsightOutput {
   insight: string;
   actionItem: string;
   motivation: string;
+}
+
+// ── Feature 9: AI Insights (Dashboard) ────────────────────────────────
+export interface AIInsightsInput {
+  // Aggregated metrics
+  daysTracked: number;
+  avgSleep: number;
+  avgHydration: number;
+  avgPrayers: number;
+
+  // Correlations
+  sleepPrayerCorrelation: {
+    highSleepPrayerRate: number;  // % Fajr on 7+ sleep days
+    lowSleepPrayerRate: number;   // % Fajr on <7 sleep days
+  } | null;
+
+  // Streaks
+  currentPrayerStreak: number;
+  currentFastingStreak: number;
+  currentFajrStreak: number;
+
+  // Qur'an progress
+  juzCompleted: number;
+  juzPace: "ahead" | "on-track" | "behind";
+
+  // Recent patterns
+  recentMoods: string[];
+  recentAchievements: string[];
+
+  // User context
+  userName: string;
+  sport: string;
+  dayOfRamadan: number;
+}
+
+export interface AIInsightsOutput {
+  headline: string;      // "Your Sleep-Prayer Connection"
+  insight: string;       // The personalized observation
+  metric?: {
+    label: string;       // "Fajr Streak"
+    value: string;       // "12 days"
+    trend: "up" | "down" | "stable";
+  };
+  celebration?: string;  // Optional achievement callout
 }

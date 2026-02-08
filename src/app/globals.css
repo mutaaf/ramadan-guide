@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  --header-height: 48px;
   --background: #ffffff;
   --foreground: #1d1d1f;
   --card: #ffffff;
@@ -126,6 +127,10 @@ body {
 /* Safe area handling for PWA */
 .safe-top {
   padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pt-header {
+  padding-top: calc(env(safe-area-inset-top, 0px) + var(--header-height) + 16px);
 }
 
 .safe-bottom {

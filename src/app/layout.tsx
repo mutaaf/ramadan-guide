@@ -7,6 +7,7 @@ import { GlobalHeader } from "@/components/GlobalHeader";
 import { CacheCleanup } from "@/components/ai/CacheCleanup";
 import { Analytics } from "@vercel/analytics/react";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 const inter = Inter({
   variable: "--font-geist-sans",
@@ -149,6 +150,7 @@ export default function RootLayout({
         <BottomNav />
         <Analytics />
         <ServiceWorkerRegistration />
+        <InstallPrompt />
       </body>
     </html>
   );

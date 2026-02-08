@@ -17,6 +17,7 @@ import {
   setCachedLocation,
 } from "@/lib/prayer-times";
 import { DailyWisdom } from "@/components/DailyWisdom";
+import { AIInsights } from "@/components/ai/AIInsights";
 
 export function HomeDashboard() {
   const { userName, getDay, juzProgress, getTasbeehTotalForDay } = useStore();
@@ -89,7 +90,7 @@ export function HomeDashboard() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="px-6 pt-16 pb-4"
+        className="px-6 pt-header pb-4"
       >
         <p className="text-sm" style={{ color: "var(--muted)" }}>
           {greeting}
@@ -224,6 +225,15 @@ export function HomeDashboard() {
               </Card>
             </Link>
           </div>
+        </motion.div>
+
+        {/* AI Insights */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+        >
+          <AIInsights />
         </motion.div>
 
         {/* Quick Actions */}

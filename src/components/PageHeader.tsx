@@ -25,7 +25,7 @@ export function PageHeader({ title, subtitle, back }: PageHeaderProps) {
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="px-6 lg:px-8 pt-16 pb-4 lg:pb-6"
+      className="px-6 lg:px-8 pt-header pb-4 lg:pb-6"
     >
       {back && (
         <button

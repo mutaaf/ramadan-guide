@@ -127,6 +127,26 @@ export default function AboutPage() {
           </p>
         </Card>
 
+        <Card delay={0.4} className="mb-4">
+          <p className="text-xs font-medium uppercase tracking-wider mb-2" style={{ color: "var(--accent-gold)" }}>
+            App Info
+          </p>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: "var(--muted)" }}>Version</span>
+              <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>
+                {process.env.NEXT_PUBLIC_BUILD_HASH || "dev"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: "var(--muted)" }}>Last Updated</span>
+              <span className="text-xs" style={{ color: "var(--muted)" }}>
+                {new Date(process.env.NEXT_PUBLIC_BUILD_DATE || Date.now()).toLocaleDateString()}
+              </span>
+            </div>
+          </div>
+        </Card>
+
         <div className="text-center mt-6">
           <p className="text-xs" style={{ color: "var(--muted)" }}>
             Copyright &copy; 2024 Hamza Abdullah. All rights reserved.
