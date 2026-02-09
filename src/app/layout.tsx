@@ -21,11 +21,11 @@ const siteUrl = "https://ramadan-guide.vercel.app";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Coach Hamza's Ramadan Guide",
-    template: "%s | Ramadan Guide",
+    default: "Your Personal Ramadan Coach",
+    template: "%s | Ramadan Coach",
   },
   description:
-    "An interactive guide for athletes fasting during Ramadan — by Hamza Abdullah, retired NFL player. Track prayers, hydration, nutrition, and more.",
+    "Your personal Ramadan coach for athletes — by Coach Hamza Abdullah, retired NFL player. Track prayers, hydration, nutrition, and build your personalized routine.",
   keywords: [
     "Ramadan",
     "fasting",
@@ -38,6 +38,7 @@ export const metadata: Metadata = {
     "nutrition",
     "prayer tracker",
     "Quran",
+    "Ramadan coach",
   ],
   authors: [{ name: "Hamza Abdullah", url: "https://probigbros.com" }],
   creator: "Hamza Abdullah",
@@ -46,30 +47,30 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Ramadan Guide",
+    title: "Ramadan Coach",
   },
   openGraph: {
     type: "website",
     locale: "en_US",
     url: siteUrl,
-    siteName: "Coach Hamza's Ramadan Guide",
-    title: "Coach Hamza's Ramadan Guide for Athletes",
+    siteName: "Your Personal Ramadan Coach",
+    title: "Your Personal Ramadan Coach - by Coach Hamza",
     description:
-      "An interactive guide for athletes fasting during Ramadan — by Hamza Abdullah, retired NFL player.",
+      "Your personal Ramadan coach for athletes — by Coach Hamza Abdullah, retired NFL player.",
     images: [
       {
         url: "/icon-512.png",
         width: 512,
         height: 512,
-        alt: "Ramadan Guide Logo",
+        alt: "Your Personal Ramadan Coach Logo",
       },
     ],
   },
   twitter: {
     card: "summary",
-    title: "Coach Hamza's Ramadan Guide",
+    title: "Your Personal Ramadan Coach",
     description:
-      "An interactive guide for athletes fasting during Ramadan — by Hamza Abdullah, retired NFL player.",
+      "Your personal Ramadan coach for athletes — by Coach Hamza Abdullah, retired NFL player.",
     images: ["/icon-512.png"],
     creator: "@ProBigBros",
   },
@@ -111,16 +112,16 @@ export default function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "Coach Hamza's Ramadan Guide",
+    name: "Your Personal Ramadan Coach",
     description:
-      "An interactive guide for athletes fasting during Ramadan — by Hamza Abdullah, retired NFL player.",
+      "Your personal Ramadan coach for athletes — by Coach Hamza Abdullah, retired NFL player.",
     url: siteUrl,
     applicationCategory: "HealthApplication",
     operatingSystem: "Any",
     author: {
       "@type": "Person",
       name: "Hamza Abdullah",
-      jobTitle: "Retired NFL Player",
+      jobTitle: "Retired NFL Player & Ramadan Coach",
       url: "https://probigbros.com",
     },
     publisher: {

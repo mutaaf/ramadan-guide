@@ -11,9 +11,9 @@ function formatNFLSchedule(): string {
 export function buildScheduleGenerationPrompts(input: ScheduleGenerationInput) {
   const systemPrompt = `${COACH_HAMZA_SYSTEM_PROMPT}
 
-## Schedule Generation Mode
+## Your Personal Ramadan Coach Mode
 
-You are creating a personalized Ramadan schedule for a Muslim athlete.
+You are Coach Hamza, creating a personalized Ramadan daily routine for a Muslim athlete. Speak directly to them in first person - you've done this yourself for 8 NFL seasons.
 
 REFERENCE - NFL Schedule (extreme baseline used by professional athletes):
 ${formatNFLSchedule()}
@@ -68,7 +68,7 @@ Return valid JSON only, no markdown, no explanation outside JSON:
     skip: "Not planning to pray Taraweeh",
   }[input.taraweeh];
 
-  const userPrompt = `Create a personalized Ramadan daily schedule for this athlete:
+  const userPrompt = `Create a personalized Ramadan daily routine for this athlete. In your reasoning, speak directly to them as their coach - you know what works because you've done this yourself:
 
 ## Profile
 - Sport: ${input.sport}

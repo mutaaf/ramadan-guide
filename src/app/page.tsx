@@ -82,10 +82,10 @@ export default function Home() {
             transition={{ delay: 0.35, duration: 0.7 }}
             className="text-4xl font-bold tracking-tight leading-tight"
           >
-            Coach Hamza&apos;s
+            Your Personal
             <br />
             <span className="bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 bg-clip-text text-transparent">
-              Ramadan Guide
+              Ramadan Coach
             </span>
             <br />
             <span className="text-xl font-normal" style={{ color: "var(--muted)" }}>
@@ -100,7 +100,7 @@ export default function Home() {
             className="mt-4 text-sm"
             style={{ color: "var(--muted)" }}
           >
-            By Hamza Abdullah — Retired NFL Player
+            With Coach Hamza Abdullah — Retired NFL Player
           </motion.p>
 
           {/* Countdown */}

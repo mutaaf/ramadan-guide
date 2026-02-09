@@ -183,8 +183,8 @@ export default function SchedulePage() {
 
   const activeSchedule = showCustom && customSchedule ? customScheduleItems : NFL_SCHEDULE;
   const subtitle = showCustom && customSchedule
-    ? "Your personalized Ramadan routine"
-    : "A Day of Ramadan during NFL Training Camp";
+    ? "Your personalized daily routine from Coach Hamza"
+    : "Coach Hamza's NFL Training Camp Schedule";
 
   return (
     <div>
@@ -203,7 +203,7 @@ export default function SchedulePage() {
                 color: showCustom ? "var(--accent-gold)" : "var(--muted)",
               }}
             >
-              My Schedule
+              My Routine
             </button>
             <button
               onClick={() => setShowCustom(false)}
@@ -214,7 +214,7 @@ export default function SchedulePage() {
                 color: !showCustom ? "var(--accent-gold)" : "var(--muted)",
               }}
             >
-              NFL Baseline
+              Coach&apos;s NFL Schedule
             </button>
           </div>
         )}
@@ -230,7 +230,7 @@ export default function SchedulePage() {
             style={{ background: "var(--selected-gold-bg)", border: "1px solid var(--accent-gold)" }}
           >
             <p className="text-xs font-medium mb-1" style={{ color: "var(--accent-gold)" }}>
-              Coach Hamza&apos;s Notes
+              Coach Hamza
             </p>
             <p className="text-sm" style={{ color: "var(--foreground)" }}>
               {customSchedule.reasoning}
@@ -297,7 +297,7 @@ export default function SchedulePage() {
                 border: customSchedule ? "1px solid var(--card-border)" : "none",
               }}
             >
-              {customSchedule ? "Edit My Schedule" : "Create Your Schedule"}
+              {customSchedule ? "Edit My Routine" : "Build My Routine"}
             </button>
           </Link>
 
@@ -310,7 +310,7 @@ export default function SchedulePage() {
               className="w-full rounded-xl py-3 text-sm font-medium transition-all active:scale-[0.98]"
               style={{ color: "#ef4444" }}
             >
-              Delete My Schedule
+              Delete My Routine
             </button>
           )}
         </div>

@@ -18,7 +18,7 @@ export function GlobalHeader() {
           className="text-sm font-semibold tracking-tight text-center"
           style={{ color: "var(--accent-gold)" }}
         >
-          Coach Hamza&apos;s Ramadan Guide
+          Your Personal Ramadan Coach
         </p>
       </div>
     </header>

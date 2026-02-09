@@ -1,7 +1,7 @@
 {
-  "name": "Coach Hamza's Ramadan Guide for Athletes",
-  "short_name": "Ramadan Guide",
-  "description": "Interactive guide for athletes fasting during Ramadan — by Hamza Abdullah",
+  "name": "Your Personal Ramadan Coach - by Coach Hamza",
+  "short_name": "Ramadan Coach",
+  "description": "Your personal Ramadan coach for athletes — by Hamza Abdullah, retired NFL player",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

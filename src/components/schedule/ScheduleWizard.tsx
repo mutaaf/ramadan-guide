@@ -369,10 +369,11 @@ export function ScheduleWizard() {
                 >
                   <span role="img" aria-hidden="true">*</span>
                 </div>
-                <h1 className="text-2xl font-bold mb-2">Build Your Schedule</h1>
+                <h1 className="text-2xl font-bold mb-2">Your Ramadan Coach</h1>
                 <p className="text-sm" style={{ color: "var(--muted)" }}>
-                  Assalamu Alaikum! I&apos;m Coach Hamza. Let&apos;s create a personalized Ramadan
-                  schedule that works for your unique life.
+                  Assalamu Alaikum! I&apos;m Coach Hamza, your personal Ramadan guide.
+                  Let me help you build a daily routine that balances your faith,
+                  training, and life commitments.
                 </p>
               </div>
 
@@ -381,18 +382,19 @@ export function ScheduleWizard() {
                 style={{ background: "var(--surface-1)", border: "1px solid var(--card-border)" }}
               >
                 <p className="text-xs font-medium mb-2" style={{ color: "var(--accent-gold)" }}>
-                  Reference: NFL Training Camp
+                  Inspired by NFL Training Camp
                 </p>
                 <p className="text-xs" style={{ color: "var(--muted)" }}>
-                  We&apos;ll use the NFL athlete&apos;s schedule as an extreme baseline, then adapt
-                  it to fit your actual commitments and goals.
+                  I fasted during 8 NFL seasons while training at the highest level.
+                  I&apos;ll use that experience as a baseline and adapt it to YOUR life,
+                  InshaAllah.
                 </p>
                 <Link
                   href="/tracker/schedule"
                   className="inline-block mt-3 text-xs font-medium underline"
                   style={{ color: "var(--accent-gold)" }}
                 >
-                  View NFL Schedule
+                  View My NFL Schedule
                 </Link>
               </div>
             </div>
@@ -402,7 +404,7 @@ export function ScheduleWizard() {
               className="w-full rounded-full py-3.5 text-sm font-semibold text-black transition-all active:scale-[0.98]"
               style={{ background: "linear-gradient(135deg, #c9a84c, #e8c75a, #c9a84c)" }}
             >
-              Start Building
+              Let&apos;s Get Started
             </button>
           </motion.div>
         )}
@@ -420,9 +422,9 @@ export function ScheduleWizard() {
 
             <div className="flex-1 space-y-6">
               <div>
-                <h1 className="text-xl font-bold mb-1">Daily Commitments</h1>
+                <h1 className="text-xl font-bold mb-1">Your Daily Life</h1>
                 <p className="text-sm" style={{ color: "var(--muted)" }}>
-                  What&apos;s your main daily commitment?
+                  Tell me about your main daily commitment so I can work around it.
                 </p>
               </div>
 
@@ -499,9 +501,9 @@ export function ScheduleWizard() {
 
             <div className="flex-1 space-y-6">
               <div>
-                <h1 className="text-xl font-bold mb-1">Training Preferences</h1>
+                <h1 className="text-xl font-bold mb-1">Your Training</h1>
                 <p className="text-sm" style={{ color: "var(--muted)" }}>
-                  When do you prefer to train?
+                  When do you like to get your training in? I&apos;ll help you time it right.
                 </p>
               </div>
 
@@ -582,9 +584,9 @@ export function ScheduleWizard() {
 
             <div className="flex-1 space-y-6">
               <div>
-                <h1 className="text-xl font-bold mb-1">Sleep Goals</h1>
+                <h1 className="text-xl font-bold mb-1">Your Rest</h1>
                 <p className="text-sm" style={{ color: "var(--muted)" }}>
-                  Rest is sacred for performance
+                  Sleep is sacred, both for your body and your ibadah. Let&apos;s protect it.
                 </p>
               </div>
 
@@ -601,9 +603,9 @@ export function ScheduleWizard() {
                 style={{ background: "rgba(99, 102, 241, 0.1)" }}
               >
                 <p className="text-xs" style={{ color: "var(--muted)" }}>
-                  <strong style={{ color: "var(--foreground)" }}>Coach Hamza tip:</strong> Naps
-                  are part of the Sunnah. If your total sleep goal seems hard, plan for a 30-60
-                  min nap after Dhuhr.
+                  <strong style={{ color: "var(--foreground)" }}>My tip:</strong> Naps are part of
+                  the Sunnah! If your total sleep seems hard to achieve, I&apos;ll add a 30-60 min
+                  Qaylulah (afternoon nap) after Dhuhr. That&apos;s what got me through NFL camp.
                 </p>
               </div>
             </div>
@@ -640,9 +642,9 @@ export function ScheduleWizard() {
 
             <div className="flex-1 space-y-6">
               <div>
-                <h1 className="text-xl font-bold mb-1">Spiritual Goals</h1>
+                <h1 className="text-xl font-bold mb-1">Your Ibadah</h1>
                 <p className="text-sm" style={{ color: "var(--muted)" }}>
-                  The heart of your Ramadan
+                  This is the heart of Ramadan. Let&apos;s make sure your worship is protected.
                 </p>
               </div>
 
@@ -726,9 +728,9 @@ export function ScheduleWizard() {
 
             <div className="flex-1 space-y-6">
               <div>
-                <h1 className="text-xl font-bold mb-1">Special Considerations</h1>
+                <h1 className="text-xl font-bold mb-1">Anything Else?</h1>
                 <p className="text-sm" style={{ color: "var(--muted)" }}>
-                  Anything else I should know? (Optional)
+                  Tell me anything else that affects your day. The more I know, the better I can help.
                 </p>
               </div>
 
@@ -796,7 +798,7 @@ export function ScheduleWizard() {
                 className="flex-1 rounded-full py-3 text-sm font-semibold text-black transition-all active:scale-[0.98] disabled:opacity-50"
                 style={{ background: "linear-gradient(135deg, #c9a84c, #e8c75a, #c9a84c)" }}
               >
-                Generate My Schedule
+                Build My Routine
               </button>
             </div>
           </motion.div>
@@ -822,9 +824,9 @@ export function ScheduleWizard() {
                 style={{ borderColor: "var(--accent-gold)", borderTopColor: "transparent" }}
               />
             </div>
-            <h2 className="text-xl font-bold mb-2">Creating Your Schedule</h2>
+            <h2 className="text-xl font-bold mb-2">Building Your Routine</h2>
             <p className="text-sm" style={{ color: "var(--muted)" }}>
-              Coach Hamza is designing a personalized routine just for you...
+              I&apos;m putting together a personalized schedule just for you, InshaAllah...
             </p>
 
             {error && (

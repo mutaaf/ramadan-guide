@@ -43,9 +43,9 @@ export function SchedulePreview({ schedule, onSave, onRegenerate, onBack }: Sche
     <div className="flex-1 flex flex-col">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-xl font-bold mb-1">Your Schedule</h1>
+        <h1 className="text-xl font-bold mb-1">Your Ramadan Routine</h1>
         <p className="text-sm" style={{ color: "var(--muted)" }}>
-          Review and customize your personalized Ramadan routine
+          Here&apos;s what I&apos;ve put together for you. Tap any block to adjust it.
         </p>
       </div>
 
@@ -58,7 +58,7 @@ export function SchedulePreview({ schedule, onSave, onRegenerate, onBack }: Sche
           style={{ background: "var(--selected-gold-bg)", border: "1px solid var(--accent-gold)" }}
         >
           <p className="text-xs font-medium mb-1" style={{ color: "var(--accent-gold)" }}>
-            Coach Hamza&apos;s Notes
+            My Thoughts
           </p>
           <p className="text-sm" style={{ color: "var(--foreground)" }}>
             {schedule.reasoning}
@@ -173,7 +173,7 @@ export function SchedulePreview({ schedule, onSave, onRegenerate, onBack }: Sche
           className="w-full rounded-full py-3.5 text-sm font-semibold text-black transition-all active:scale-[0.98]"
           style={{ background: "linear-gradient(135deg, #c9a84c, #e8c75a, #c9a84c)" }}
         >
-          Save My Schedule
+          Save My Routine
         </button>
       </div>
 

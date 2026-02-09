@@ -10,7 +10,7 @@ import { CharitySection } from "@/components/CharitySection";
 const BOOK_PDF_URL = "https://drive.google.com/file/d/14dZVQGAeIvKDSNWyuHHARwkusKmgVue4/view";
 
 const sections = [
-  { href: "/ask", title: "Ask Coach Hamza", subtitle: "AI-powered Q&A about Ramadan", icon: "?" },
+  { href: "/ask", title: "Ask Coach Hamza", subtitle: "Your personal Ramadan Q&A", icon: "?" },
   { href: "/prepare", title: "Prepare", subtitle: "Checklist, transition, duaa", icon: "P" },
   { href: "/more/wellness", title: "Wellness", subtitle: "Health, self-care, mental health", icon: "W" },
   { href: "/more/community", title: "Community", subtitle: "Challenges & accountability", icon: "C" },
@@ -60,7 +60,7 @@ export default function MorePage() {
             </div>
             <div className="flex-1">
               <p className="font-semibold text-[15px]">Download the Book</p>
-              <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Free PDF of Coach Hamza&apos;s Guide</p>
+              <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Free PDF — the book behind the app</p>
             </div>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--muted)" }}>
               <path d="M4 1l6 7-6 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
