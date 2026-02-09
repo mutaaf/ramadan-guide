@@ -200,7 +200,7 @@ export default function QuranPage() {
         <div className="text-xs font-medium uppercase tracking-wider mb-3 px-1" style={{ color: "var(--accent-gold)" }}>
           Tap to toggle • Long-press for partial
         </div>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 sm:gap-3">
           {juzProgress.map((pct, i) => (
             <JuzButton
               key={i}
@@ -239,32 +239,56 @@ function JuzButton({
   onTap: () => void;
   onLongPress: () => void;
 }) {
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const pressedRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressedRef = useRef(false);
+  const isTouchRef = useRef(false);
 
-  const handleStart = () => {
-    pressedRef.current = false;
+  const clearTimer = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault(); // Prevent synthetic mouse events
+    isTouchRef.current = true;
+    longPressedRef.current = false;
+
     timerRef.current = setTimeout(() => {
-      pressedRef.current = true;
+      longPressedRef.current = true;
       onLongPress();
       if (navigator.vibrate) navigator.vibrate(30);
     }, 500);
   };
 
-  const handleEnd = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    if (!pressedRef.current) {
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    clearTimer();
+    if (!longPressedRef.current) {
       onTap();
     }
+    // Reset touch flag after a short delay
+    setTimeout(() => { isTouchRef.current = false; }, 100);
   };
 
-  const handleCancel = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
+  const handleMouseDown = () => {
+    // Ignore mouse events if we just had a touch event
+    if (isTouchRef.current) return;
+
+    longPressedRef.current = false;
+    timerRef.current = setTimeout(() => {
+      longPressedRef.current = true;
+      onLongPress();
+    }, 500);
+  };
+
+  const handleMouseUp = () => {
+    if (isTouchRef.current) return;
+
+    clearTimer();
+    if (!longPressedRef.current) {
+      onTap();
     }
   };
 
@@ -273,13 +297,13 @@ function JuzButton({
 
   return (
     <button
-      onMouseDown={handleStart}
-      onMouseUp={handleEnd}
-      onMouseLeave={handleCancel}
-      onTouchStart={handleStart}
-      onTouchEnd={handleEnd}
-      onTouchCancel={handleCancel}
-      className="flex flex-col items-center justify-center rounded-xl py-3 transition-all active:scale-[0.95] relative overflow-hidden"
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={clearTimer}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={clearTimer}
+      className="flex flex-col items-center justify-center rounded-xl py-4 min-h-[60px] transition-all active:scale-[0.95] relative overflow-hidden touch-manipulation"
       style={{
         background: done
           ? "var(--selected-gold-bg)"
@@ -290,12 +314,12 @@ function JuzButton({
       }}
     >
       <span
-        className="text-sm font-bold"
+        className="text-base font-bold"
         style={{ color: done || partial ? "var(--accent-gold)" : "var(--muted)" }}
       >
         {index + 1}
       </span>
-      <span className="text-[9px] mt-0.5" style={{ color: "var(--muted)" }}>
+      <span className="text-[10px] mt-0.5" style={{ color: "var(--muted)" }}>
         {partial ? `${progress}%` : "Juz"}
       </span>
     </button>

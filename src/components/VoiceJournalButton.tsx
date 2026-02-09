@@ -6,7 +6,7 @@ import { VoiceRecorder } from "./VoiceRecorder";
 import { useAI, useAIReady } from "@/lib/ai/hooks";
 import { VoiceJournalInput, VoiceJournalOutput } from "@/lib/ai/types";
 import { buildVoiceJournalPrompts } from "@/lib/ai/prompts/voice-journal";
-import { useStore, DayEntry } from "@/store/useStore";
+import { useStore, DayEntry, createEmptyDay } from "@/store/useStore";
 
 interface VoiceJournalButtonProps {
   date: string;
@@ -16,7 +16,7 @@ type Stage = "idle" | "recording" | "transcript" | "parsed" | "done";
 
 export function VoiceJournalButton({ date }: VoiceJournalButtonProps) {
   const ready = useAIReady();
-  const { updateDay, togglePrayer, getDay } = useStore();
+  const { updateDay, togglePrayer, days } = useStore();
   const [stage, setStage] = useState<Stage>("idle");
   const [transcriptText, setTranscriptText] = useState("");
   const [journalInput, setJournalInput] = useState<VoiceJournalInput | null>(
@@ -56,7 +56,7 @@ export function VoiceJournalButton({ date }: VoiceJournalButtonProps) {
 
   const handleConfirm = () => {
     if (!parsed) return;
-    const day = getDay(date);
+    const day = days[date] ?? createEmptyDay(date);
 
     // Build update data
     const update: Partial<DayEntry> = {};

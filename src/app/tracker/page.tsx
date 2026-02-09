@@ -4,13 +4,13 @@ import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
 import { ProgressRing } from "@/components/ProgressRing";
-import { useStore } from "@/store/useStore";
+import { useStore, createEmptyDay } from "@/store/useStore";
 import { getTodayString } from "@/lib/ramadan";
 
 export default function TrackerPage() {
-  const { getDay } = useStore();
+  const { days } = useStore();
   const today = getTodayString();
-  const day = getDay(today);
+  const day = days[today] ?? createEmptyDay(today);
   const prayerCount = Object.values(day.prayers).filter(Boolean).length;
   const prayerProgress = prayerCount / 6;
   const hydrationProgress = day.glassesOfWater / 8;
@@ -52,7 +52,7 @@ export default function TrackerPage() {
         <div className="space-y-3 lg:space-y-4">
           {sections.map((s, i) => (
             <Link key={s.href} href={s.href}>
-              <Card delay={i * 0.06} className="flex items-center gap-4 lg:gap-5">
+              <Card asLink delay={i * 0.06} className="flex items-center gap-4 lg:gap-5">
                 <div
                   className="flex h-11 w-11 lg:h-12 lg:w-12 items-center justify-center rounded-xl text-base font-bold shrink-0"
                   style={{ background: `${s.accent}15`, color: s.accent }}

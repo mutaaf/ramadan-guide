@@ -4,7 +4,7 @@ import { useEffect, useRef, useMemo } from "react";
 import * as d3 from "d3";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
-import { useStore } from "@/store/useStore";
+import { useStore, createEmptyDay } from "@/store/useStore";
 import { getTodayString, getRamadanCountdown } from "@/lib/ramadan";
 import { MealRecommendation } from "@/components/ai/MealRecommendation";
 import { DeepDiveLink } from "@/components/ai/DeepDiveLink";
@@ -80,9 +80,9 @@ const sahoorFoods = ["Dates", "Watermelon", "Grapes", "Orange", "Apple", "Banana
 const iftarFoods = ["Dates", "Cucumbers", "Salad", "Soup", "Kebab", "Pita", "Sambusas"];
 
 export default function NutritionPage() {
-  const { sport, getDay } = useStore();
+  const { sport, days } = useStore();
   const today = getTodayString();
-  const day = getDay(today);
+  const day = days[today] ?? createEmptyDay(today);
   const { dayOfRamadan } = getRamadanCountdown();
 
   const mealInput = useMemo((): MealPlanInput => ({

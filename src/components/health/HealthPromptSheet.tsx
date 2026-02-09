@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CircularSlider } from "@/components/ui/CircularSlider";
-import { useStore } from "@/store/useStore";
+import { useStore, createEmptyDay } from "@/store/useStore";
 import { useSmartPrompts, triggerHaptic } from "@/hooks/useSmartPrompts";
 import { useHealthPatterns } from "@/hooks/useHealthPatterns";
 import { getTodayString } from "@/lib/ramadan";
@@ -310,9 +310,9 @@ export function HealthPromptSheet({ prayerTimes }: HealthPromptSheetProps) {
   } = useSmartPrompts(prayerTimes);
 
   const { patterns } = useHealthPatterns();
-  const { getDay, updateDay, setEntrySource, recordQuickLogAcceptance } = useStore();
+  const { days, updateDay, setEntrySource, recordQuickLogAcceptance } = useStore();
   const today = getTodayString();
-  const todayEntry = getDay(today);
+  const todayEntry = days[today] ?? createEmptyDay(today);
 
   const handleSave = useCallback((data: {
     sleepHours: number;

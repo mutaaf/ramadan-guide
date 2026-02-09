@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
-import { useStore } from "@/store/useStore";
+import { useStore, createEmptyDay } from "@/store/useStore";
 import { getTodayString, HYDRATION_OPTIONS } from "@/lib/ramadan";
 import { DeepDiveLink } from "@/components/ai/DeepDiveLink";
 
@@ -106,9 +106,9 @@ function LiquidGauge({ glasses }: { glasses: number }) {
 }
 
 export default function HydrationPage() {
-  const { getDay, addGlass, removeGlass } = useStore();
+  const { days, addGlass, removeGlass } = useStore();
   const today = getTodayString();
-  const day = getDay(today);
+  const day = days[today] ?? createEmptyDay(today);
 
   return (
     <div>

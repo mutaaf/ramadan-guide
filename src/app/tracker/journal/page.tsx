@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
 import { Toggle } from "@/components/Toggle";
-import { useStore } from "@/store/useStore";
+import { useStore, createEmptyDay } from "@/store/useStore";
 import { getTodayString, getRamadanCountdown } from "@/lib/ramadan";
 import { TrainingAdvisor } from "@/components/ai/TrainingAdvisor";
 import { ReflectionPrompt } from "@/components/ai/ReflectionPrompt";
@@ -31,10 +31,10 @@ function formatDateForInput(dateStr: string): string {
 }
 
 export default function JournalPage() {
-  const { getDay, updateDay, togglePrayer, sport } = useStore();
+  const { days, updateDay, togglePrayer, sport } = useStore();
   const today = getTodayString();
   const [selectedDate, setSelectedDate] = useState(today);
-  const day = getDay(selectedDate);
+  const day = days[selectedDate] ?? createEmptyDay(selectedDate);
   const { dayOfRamadan } = getRamadanCountdown();
   const isToday = selectedDate === today;
 

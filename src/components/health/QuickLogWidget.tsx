@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/Card";
 import { SleepQuickEntry } from "./SleepQuickEntry";
 import { HydrationQuickEntry } from "./HydrationQuickEntry";
-import { useStore } from "@/store/useStore";
+import { useStore, createEmptyDay } from "@/store/useStore";
 import { useHealthPatterns, useSmartSuggestions, useApplySmartDefault } from "@/hooks/useHealthPatterns";
 import { getTodayString } from "@/lib/ramadan";
 import { triggerHaptic } from "@/hooks/useSmartPrompts";
@@ -22,10 +22,10 @@ export function QuickLogWidget() {
   const { patterns } = useHealthPatterns();
   const suggestions = useSmartSuggestions();
   const { applyDefault, dismissSuggestion } = useApplySmartDefault();
-  const { getDay, updateDay } = useStore();
+  const { days, updateDay } = useStore();
 
   const today = getTodayString();
-  const todayEntry = getDay(today);
+  const todayEntry = days[today] ?? createEmptyDay(today);
 
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [restedState, setRestedState] = useState<RestedState>(

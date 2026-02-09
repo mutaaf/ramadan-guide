@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Card } from "@/components/Card";
-import { useStore } from "@/store/useStore";
+import { useStore, createEmptyDay } from "@/store/useStore";
 import { getTodayString } from "@/lib/ramadan";
 import {
   PrayerTimes,
@@ -21,13 +21,13 @@ import { AIInsights } from "@/components/ai/AIInsights";
 import { QuickLogWidget } from "@/components/health/QuickLogWidget";
 
 export function HomeDashboard() {
-  const { userName, getDay, juzProgress, getTasbeehTotalForDay } = useStore();
+  const { userName, days, juzProgress, getTasbeehTotalForDay } = useStore();
   const [prayerTimes, setPrayerTimes] = useState<PrayerTimes | null>(null);
   const [locationError, setLocationError] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const today = getTodayString();
-  const day = getDay(today);
+  const day = days[today] ?? createEmptyDay(today);
   const prayerCount = Object.values(day.prayers).filter(Boolean).length;
   const juzDone = juzProgress.filter((p) => p === 100).length;
   const tasbeehTotal = getTasbeehTotalForDay(today);
@@ -205,7 +205,7 @@ export function HomeDashboard() {
           </p>
           <div className="grid grid-cols-3 gap-2 md:gap-3 lg:gap-4">
             <Link href="/tracker/journal">
-              <Card className="text-center py-3">
+              <Card asLink className="text-center py-3">
                 <p className="text-2xl font-bold">{prayerCount}/6</p>
                 <p className="text-[10px] mt-0.5" style={{ color: "var(--muted)" }}>
                   Prayers
@@ -213,7 +213,7 @@ export function HomeDashboard() {
               </Card>
             </Link>
             <Link href="/tracker/hydration">
-              <Card className="text-center py-3">
+              <Card asLink className="text-center py-3">
                 <p className="text-2xl font-bold">{day.glassesOfWater}/8</p>
                 <p className="text-[10px] mt-0.5" style={{ color: "var(--muted)" }}>
                   Glasses
@@ -221,7 +221,7 @@ export function HomeDashboard() {
               </Card>
             </Link>
             <Link href="/tracker/tasbeeh">
-              <Card className="text-center py-3">
+              <Card asLink className="text-center py-3">
                 <p className="text-2xl font-bold">{tasbeehTotal}</p>
                 <p className="text-[10px] mt-0.5" style={{ color: "var(--muted)" }}>
                   Dhikr
@@ -255,7 +255,7 @@ export function HomeDashboard() {
           <div className="grid grid-cols-4 gap-2 md:gap-3 lg:gap-4">
             {quickActions.map((action) => (
               <Link key={action.href} href={action.href}>
-                <Card className="flex flex-col items-center py-4">
+                <Card asLink className="flex flex-col items-center py-4">
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold mb-1"
                     style={{ background: "var(--selected-gold-bg)", color: "var(--accent-gold)" }}
@@ -278,7 +278,7 @@ export function HomeDashboard() {
           transition={{ delay: 0.4 }}
         >
           <Link href="/tracker/quran">
-            <Card className="flex items-center gap-4">
+            <Card asLink className="flex items-center gap-4">
               <div
                 className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold shrink-0"
                 style={{ background: "var(--selected-gold-bg)", color: "var(--accent-gold)" }}
