@@ -10,7 +10,8 @@ export type AIFeature =
   | "reflection"
   | "voice-journal"
   | "behavior-insight"
-  | "ai-insights";
+  | "ai-insights"
+  | "schedule-generation";
 
 // ── Cache ─────────────────────────────────────────────────────────────
 export interface CacheEntry {
@@ -32,6 +33,7 @@ export const FEATURE_TTL: Record<AIFeature, number> = {
   "voice-journal": 0, // no cache
   "behavior-insight": 4 * 60 * 60 * 1000, // 4h
   "ai-insights": 6 * 60 * 60 * 1000, // 6h
+  "schedule-generation": 0, // no cache - always fresh
 };
 
 export const FEATURE_MODEL: Record<AIFeature, string> = {
@@ -44,6 +46,7 @@ export const FEATURE_MODEL: Record<AIFeature, string> = {
   "voice-journal": "gpt-4o-mini",
   "behavior-insight": "gpt-4o-mini",
   "ai-insights": "gpt-4o-mini",
+  "schedule-generation": "gpt-4o-mini",
 };
 
 // ── Transport ─────────────────────────────────────────────────────────
@@ -260,4 +263,37 @@ export interface AIInsightsOutput {
     trend: "up" | "down" | "stable";
   };
   celebration?: string;  // Optional achievement callout
+}
+
+// ── Feature 10: Schedule Generation ────────────────────────────────────
+export interface ScheduleGenerationInput {
+  sport: string;
+  trainingIntensity: string;
+  occupation: "student" | "working" | "athlete" | "flexible";
+  workHours?: string;
+  preferredTime: "morning" | "afternoon" | "evening" | "flexible";
+  sessionLength: string;
+  wakeTime: string;
+  sleepHours: number;
+  quranMinutes: number;
+  taraweeh: "masjid" | "home" | "sometimes" | "skip";
+  specialNotes?: string;
+  // Prayer times from user's location
+  fajr: string;
+  dhuhr: string;
+  asr: string;
+  maghrib: string;
+  isha: string;
+}
+
+export interface ScheduleGenerationOutput {
+  blocks: {
+    startTime: string;  // "06:00"
+    endTime: string;    // "07:00"
+    activity: string;
+    category: string;
+    isFixed: boolean;
+  }[];
+  reasoning: string;
+  tips: string[];
 }

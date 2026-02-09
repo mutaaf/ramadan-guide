@@ -144,6 +144,19 @@ export const SELF_CARE_TIPS = [
   "Take naps",
 ];
 
+export const SCHEDULE_CATEGORY_COLORS: Record<string, string> = {
+  sleep: "#6366f1",
+  meal: "#c9a84c",
+  prayer: "#2d6a4f",
+  quran: "#c9a84c",
+  training: "#ef4444",
+  rest: "#8b5cf6",
+  work: "#64748b",
+  meeting: "#64748b",
+  travel: "#94a3b8",
+  other: "#94a3b8",
+};
+
 export const NFL_SCHEDULE = [
   { time: "4:30 AM", activity: "Wake Up", category: "sleep" },
   { time: "4:45 AM", activity: "Sahoor", category: "meal" },

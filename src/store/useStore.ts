@@ -129,6 +129,40 @@ export interface MaintenanceEntry {
   dhikrMinutes: number;
 }
 
+// ── Custom Schedule Types ───────────────────────────────────────────────
+export type ScheduleCategory =
+  | "sleep" | "meal" | "prayer" | "quran"
+  | "training" | "work" | "rest" | "other";
+
+export interface ScheduleBlock {
+  id: string;
+  startTime: string;
+  endTime: string;
+  activity: string;
+  category: ScheduleCategory;
+  isFixed: boolean;
+}
+
+export interface ScheduleWizardAnswers {
+  occupation: "student" | "working" | "athlete" | "flexible";
+  workHours?: string;
+  preferredTrainingTime: "morning" | "afternoon" | "evening" | "flexible";
+  sessionLength: string;
+  wakeTime: string;
+  sleepHours: number;
+  quranMinutes: number;
+  taraweeh: "masjid" | "home" | "sometimes" | "skip";
+  specialNotes?: string;
+}
+
+export interface CustomSchedule {
+  blocks: ScheduleBlock[];
+  createdAt: number;
+  wizardAnswers: ScheduleWizardAnswers;
+  reasoning?: string;
+  tips?: string[];
+}
+
 const defaultPrayers = {
   fajr: false,
   dhur: false,
@@ -224,6 +258,14 @@ interface RamadanStore {
   recordQuickLogAcceptance: (accepted: boolean) => void;
   setEntrySource: (date: string, field: string, source: 'manual' | 'voice-journal' | 'quick-log' | 'smart-default') => void;
   getEntrySource: (date: string, field: string) => 'manual' | 'voice-journal' | 'quick-log' | 'smart-default' | 'empty';
+
+  // Custom schedule actions
+  customSchedule: CustomSchedule | null;
+  setCustomSchedule: (schedule: CustomSchedule) => void;
+  updateScheduleBlock: (blockId: string, data: Partial<ScheduleBlock>) => void;
+  addScheduleBlock: (block: ScheduleBlock) => void;
+  removeScheduleBlock: (blockId: string) => void;
+  clearCustomSchedule: () => void;
 }
 
 export const useStore = create<RamadanStore>()(
@@ -254,6 +296,9 @@ export const useStore = create<RamadanStore>()(
       smartPromptSettings: DEFAULT_SMART_PROMPT_SETTINGS,
       quickLogEngagement: DEFAULT_QUICK_LOG_ENGAGEMENT,
       entrySources: {},
+
+      // Custom schedule
+      customSchedule: null,
 
       setUser: (name, sport) => set({ userName: name, sport }),
       setOnboarded: (v) => set({ onboarded: v }),
@@ -460,10 +505,54 @@ export const useStore = create<RamadanStore>()(
         const state = get();
         return state.entrySources[date]?.[field] || 'empty';
       },
+
+      // Custom schedule actions
+      setCustomSchedule: (schedule) =>
+        set({ customSchedule: schedule }),
+
+      updateScheduleBlock: (blockId, data) =>
+        set((s) => {
+          if (!s.customSchedule) return s;
+          return {
+            customSchedule: {
+              ...s.customSchedule,
+              blocks: s.customSchedule.blocks.map((block) =>
+                block.id === blockId ? { ...block, ...data } : block
+              ),
+            },
+          };
+        }),
+
+      addScheduleBlock: (block) =>
+        set((s) => {
+          if (!s.customSchedule) return s;
+          return {
+            customSchedule: {
+              ...s.customSchedule,
+              blocks: [...s.customSchedule.blocks, block].sort((a, b) =>
+                a.startTime.localeCompare(b.startTime)
+              ),
+            },
+          };
+        }),
+
+      removeScheduleBlock: (blockId) =>
+        set((s) => {
+          if (!s.customSchedule) return s;
+          return {
+            customSchedule: {
+              ...s.customSchedule,
+              blocks: s.customSchedule.blocks.filter((b) => b.id !== blockId),
+            },
+          };
+        }),
+
+      clearCustomSchedule: () =>
+        set({ customSchedule: null }),
     }),
     {
       name: "ramadan-guide-storage",
-      version: 4,
+      version: 5,
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Record<string, unknown>;
         if (version === 0) {
@@ -510,6 +599,10 @@ export const useStore = create<RamadanStore>()(
           state.smartPromptSettings = DEFAULT_SMART_PROMPT_SETTINGS;
           state.quickLogEngagement = DEFAULT_QUICK_LOG_ENGAGEMENT;
           state.entrySources = {};
+        }
+        if (version < 5) {
+          // Initialize custom schedule
+          state.customSchedule = null;
         }
         return state as unknown as RamadanStore;
       },
