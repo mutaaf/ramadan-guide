@@ -12,9 +12,15 @@ export function buildTrainingAdvicePrompts(input: TrainingAdviceInput) {
   if (input.mood === "Tired" || input.mood === "Sad" || input.mood === "Angry")
     flags.push(`MOOD: ${input.mood}`);
 
-  const userPrompt = `Generate training advice for this fasting athlete.
+  const phaseLabel = input.phase === "pre-ramadan"
+    ? "Pre-Ramadan preparation"
+    : input.phase === "post-ramadan"
+      ? "Post-Ramadan maintenance"
+      : `Day ${input.dayOfRamadan} of Ramadan`;
 
-## Today's Status (Day ${input.dayOfRamadan} of Ramadan)
+  const userPrompt = `Generate training advice for this ${input.fasted ? "fasting " : ""}athlete.
+
+## Today's Status (${phaseLabel})
 - Sport: ${input.sport || "General athletics"}
 - Training planned: ${input.trainingType || "none"}
 - Sleep: ${input.hoursOfSleep} hours, Feels rested: ${input.feelsRested}

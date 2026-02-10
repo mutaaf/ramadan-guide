@@ -6,12 +6,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { GeometricPattern } from "@/components/GeometricPattern";
 import { HomeDashboard } from "@/components/HomeDashboard";
-import { getRamadanCountdown } from "@/lib/ramadan";
+import { getRamadanCountdown, getPhaseInfo } from "@/lib/ramadan";
 import { useStore } from "@/store/useStore";
 
 export default function Home() {
   const router = useRouter();
   const [countdown, setCountdown] = useState(getRamadanCountdown());
+  const [phaseInfo, setPhaseInfo] = useState(getPhaseInfo());
   const { days, onboarded } = useStore();
   const [mounted, setMounted] = useState(false);
 
@@ -21,6 +22,7 @@ export default function Home() {
     setMounted(true);
     const interval = setInterval(() => {
       setCountdown(getRamadanCountdown());
+      setPhaseInfo(getPhaseInfo());
     }, 60000);
     return () => clearInterval(interval);
   }, []);
@@ -103,21 +105,21 @@ export default function Home() {
             With Coach Hamza Abdullah — Retired NFL Player
           </motion.p>
 
-          {/* Countdown */}
+          {/* Countdown - Phase Aware */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8, duration: 0.6 }}
             className="mt-10 glass-card px-6 py-4 inline-block"
           >
-            {countdown.active ? (
+            {phaseInfo.phase === "ramadan" ? (
               <div>
                 <p className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--accent-gold)" }}>
                   Ramadan Day {countdown.dayOfRamadan}
                 </p>
                 <p className="text-2xl font-bold mt-1">Ramadan Mubarak</p>
               </div>
-            ) : (
+            ) : phaseInfo.phase === "pre-ramadan" ? (
               <div>
                 <p className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--accent-gold)" }}>
                   Ramadan begins in
@@ -129,6 +131,16 @@ export default function Home() {
                   <span className="text-lg font-light" style={{ color: "var(--muted)" }}>:</span>
                   <CountdownUnit value={countdown.minutes} label="Min" />
                 </div>
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--accent-gold)" }}>
+                  Maintain Your Habits
+                </p>
+                <p className="text-lg font-bold mt-1">Next Ramadan in {phaseInfo.daysUntilRamadan} days</p>
+                <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>
+                  {phaseInfo.daysSinceRamadan} days since Ramadan ended
+                </p>
               </div>
             )}
           </motion.div>

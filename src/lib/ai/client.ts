@@ -114,15 +114,40 @@ async function fetchViaApiRoute(
 }
 
 function parseJSONResponse<T>(text: string): T {
-  // Try direct parse first
+  // 1. Try direct parse first
   try {
     return JSON.parse(text) as T;
   } catch {
-    // Try to extract JSON from markdown code blocks
-    const match = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (match) {
-      return JSON.parse(match[1].trim()) as T;
+    // 2. Try to extract JSON from markdown code blocks
+    const markdownMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (markdownMatch) {
+      try {
+        return JSON.parse(markdownMatch[1].trim()) as T;
+      } catch {
+        // Continue to next strategy
+      }
     }
+
+    // 3. Try finding a JSON object in the text
+    const objectMatch = text.match(/\{[\s\S]*\}/);
+    if (objectMatch) {
+      try {
+        return JSON.parse(objectMatch[0]) as T;
+      } catch {
+        // Continue to next strategy
+      }
+    }
+
+    // 4. Try finding a JSON array in the text
+    const arrayMatch = text.match(/\[[\s\S]*\]/);
+    if (arrayMatch) {
+      try {
+        return JSON.parse(arrayMatch[0]) as T;
+      } catch {
+        // Fall through to error
+      }
+    }
+
     throw new Error("Failed to parse AI response as JSON");
   }
 }

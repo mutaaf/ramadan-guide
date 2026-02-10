@@ -28,7 +28,8 @@ export function HomeDashboard() {
 
   const today = getTodayString();
   const day = days[today] ?? createEmptyDay(today);
-  const prayerCount = Object.values(day.prayers).filter(Boolean).length;
+  // Count only the 5 obligatory daily prayers (not Taraweeh)
+  const dailyPrayerCount = [day.prayers.fajr, day.prayers.dhur, day.prayers.asr, day.prayers.maghrib, day.prayers.ishaa].filter(Boolean).length;
   const juzDone = juzProgress.filter((p) => p === 100).length;
   const tasbeehTotal = getTasbeehTotalForDay(today);
 
@@ -206,7 +207,7 @@ export function HomeDashboard() {
           <div className="grid grid-cols-3 gap-2 md:gap-3 lg:gap-4">
             <Link href="/tracker/journal">
               <Card asLink className="text-center py-3">
-                <p className="text-2xl font-bold">{prayerCount}/6</p>
+                <p className="text-2xl font-bold">{dailyPrayerCount}/5</p>
                 <p className="text-[10px] mt-0.5" style={{ color: "var(--muted)" }}>
                   Prayers
                 </p>

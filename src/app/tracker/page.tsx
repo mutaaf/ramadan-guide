@@ -11,8 +11,9 @@ export default function TrackerPage() {
   const { days } = useStore();
   const today = getTodayString();
   const day = days[today] ?? createEmptyDay(today);
-  const prayerCount = Object.values(day.prayers).filter(Boolean).length;
-  const prayerProgress = prayerCount / 6;
+  // Count only the 5 obligatory daily prayers (not Taraweeh)
+  const dailyPrayerCount = [day.prayers.fajr, day.prayers.dhur, day.prayers.asr, day.prayers.maghrib, day.prayers.ishaa].filter(Boolean).length;
+  const prayerProgress = dailyPrayerCount / 5;
   const hydrationProgress = day.glassesOfWater / 8;
 
   const sections = [
@@ -36,7 +37,7 @@ export default function TrackerPage() {
             size={80}
             strokeWidth={6}
             color="var(--accent-gold)"
-            label={`${prayerCount}/6`}
+            label={`${dailyPrayerCount}/5`}
             sublabel="Prayers"
           />
           <ProgressRing

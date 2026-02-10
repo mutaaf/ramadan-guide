@@ -219,8 +219,9 @@ function CalendarHeatmap({ days }: { days: Record<string, DayEntry> }) {
       const entry = dayEntries[i];
       let score = 0;
       if (entry) {
-        const prayers = Object.values(entry.prayers).filter(Boolean).length;
-        score += prayers / 6 * 0.4;
+        // Count only the 5 obligatory daily prayers for scoring
+        const prayers = [entry.prayers.fajr, entry.prayers.dhur, entry.prayers.asr, entry.prayers.maghrib, entry.prayers.ishaa].filter(Boolean).length;
+        score += prayers / 5 * 0.4;
         score += (entry.glassesOfWater / 8) * 0.3;
         score += entry.fasted ? 0.2 : 0;
         score += entry.surahRead ? 0.1 : 0;

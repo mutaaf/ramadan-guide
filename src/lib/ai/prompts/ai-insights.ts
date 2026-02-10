@@ -13,18 +13,24 @@ You are generating a single, powerful insight that makes the user feel truly kno
 - The headline should be intriguing (e.g., "Your Sleep-Prayer Connection")
 - Make it feel like a personal observation, not generic advice`;
 
+  const phaseLabel = input.phase === "pre-ramadan"
+    ? "Pre-Ramadan preparation"
+    : input.phase === "post-ramadan"
+      ? "Post-Ramadan maintenance"
+      : `Day ${input.dayOfRamadan} of Ramadan`;
+
   const userPrompt = `Generate a personalized insight for this athlete:
 
 USER DATA:
 - Name: ${input.userName || "Athlete"}
 - Sport: ${input.sport || "General athletics"}
-- Day of Ramadan: ${input.dayOfRamadan}
+- Phase: ${phaseLabel}
 - Days tracked: ${input.daysTracked}
 
 METRICS:
 - Average sleep: ${input.avgSleep.toFixed(1)} hours
 - Average hydration: ${input.avgHydration.toFixed(1)} glasses
-- Average prayers: ${input.avgPrayers.toFixed(1)}/6 daily
+- Average prayers: ${input.avgPrayers.toFixed(1)}/5 daily
 
 ${
   input.sleepPrayerCorrelation

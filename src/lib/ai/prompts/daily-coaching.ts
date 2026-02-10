@@ -17,9 +17,15 @@ export function buildDailyCoachingPrompts(input: DailyCoachingInput) {
     .filter(([, v]) => v)
     .map(([k]) => k);
 
-  const userPrompt = `Generate personalized daily coaching for this Ramadan athlete.
+  const phaseContext = input.phase === "pre-ramadan"
+    ? "Pre-Ramadan preparation phase"
+    : input.phase === "post-ramadan"
+      ? "Post-Ramadan maintenance phase"
+      : `Day ${input.dayOfRamadan} of Ramadan`;
 
-## Today's Data (Day ${input.dayOfRamadan} of Ramadan)
+  const userPrompt = `Generate personalized daily coaching for this athlete.
+
+## Today's Data (${phaseContext})
 - Name: ${input.userName || "Athlete"}
 - Sport: ${input.sport || "General athletics"}
 - Sleep: ${input.today.hoursOfSleep} hours, Rested: ${input.today.feelsRested}

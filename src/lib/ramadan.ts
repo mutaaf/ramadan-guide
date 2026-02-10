@@ -7,6 +7,101 @@ const RAMADAN_DATES: Record<number, { start: string; end: string }> = {
   2027: { start: "2027-02-07", end: "2027-03-08" },
 };
 
+// App phases for year-round tracking
+export type AppPhase = "pre-ramadan" | "ramadan" | "post-ramadan";
+
+export interface PhaseInfo {
+  phase: AppPhase;
+  dayOfRamadan: number;      // 1-30 during Ramadan, 0 otherwise
+  daysUntilRamadan: number;  // Days until next Ramadan starts
+  daysSinceRamadan: number;  // Days since Ramadan ended (0 if before/during)
+  currentYear: number;
+  ramadanYear: number;       // Which year's Ramadan we're tracking toward/in
+  ramadanStartDate: string;  // YYYY-MM-DD format
+  ramadanEndDate: string;    // YYYY-MM-DD format
+}
+
+export function getPhaseInfo(): PhaseInfo {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+
+  // Check current year and next year for relevant Ramadan dates
+  for (const y of [currentYear, currentYear + 1]) {
+    const dates = RAMADAN_DATES[y];
+    if (!dates) continue;
+
+    const start = new Date(dates.start + "T00:00:00");
+    const end = new Date(dates.end + "T23:59:59");
+
+    // Currently in Ramadan
+    if (now >= start && now <= end) {
+      const dayOfRamadan = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      return {
+        phase: "ramadan",
+        dayOfRamadan,
+        daysUntilRamadan: 0,
+        daysSinceRamadan: 0,
+        currentYear,
+        ramadanYear: y,
+        ramadanStartDate: dates.start,
+        ramadanEndDate: dates.end,
+      };
+    }
+
+    // Before this Ramadan (pre-ramadan)
+    if (now < start) {
+      const diff = start.getTime() - now.getTime();
+      const daysUntil = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      return {
+        phase: "pre-ramadan",
+        dayOfRamadan: 0,
+        daysUntilRamadan: daysUntil,
+        daysSinceRamadan: 0,
+        currentYear,
+        ramadanYear: y,
+        ramadanStartDate: dates.start,
+        ramadanEndDate: dates.end,
+      };
+    }
+
+    // After this Ramadan - check if next year's Ramadan is closer
+    if (now > end) {
+      const nextYearDates = RAMADAN_DATES[y + 1];
+      if (nextYearDates) {
+        const nextStart = new Date(nextYearDates.start + "T00:00:00");
+        const diffToNext = nextStart.getTime() - now.getTime();
+        const diffSinceEnd = now.getTime() - end.getTime();
+        const daysUntil = Math.ceil(diffToNext / (1000 * 60 * 60 * 24));
+        const daysSince = Math.floor(diffSinceEnd / (1000 * 60 * 60 * 24));
+
+        return {
+          phase: "post-ramadan",
+          dayOfRamadan: 0,
+          daysUntilRamadan: daysUntil,
+          daysSinceRamadan: daysSince,
+          currentYear,
+          ramadanYear: y + 1, // Tracking toward next year
+          ramadanStartDate: nextYearDates.start,
+          ramadanEndDate: nextYearDates.end,
+        };
+      }
+    }
+  }
+
+  // Fallback for years not in our dates
+  const fallback = RAMADAN_DATES[2025];
+  return {
+    phase: "post-ramadan",
+    dayOfRamadan: 0,
+    daysUntilRamadan: 0,
+    daysSinceRamadan: 0,
+    currentYear,
+    ramadanYear: 2025,
+    ramadanStartDate: fallback.start,
+    ramadanEndDate: fallback.end,
+  };
+}
+
 export function getRamadanDates(year?: number) {
   const now = new Date();
   const y = year ?? now.getFullYear();
@@ -20,29 +115,38 @@ export function getRamadanCountdown(): {
   active: boolean;
   dayOfRamadan: number;
 } {
+  const phaseInfo = getPhaseInfo();
+
+  if (phaseInfo.phase === "ramadan") {
+    return {
+      days: 0,
+      hours: 0,
+      minutes: 0,
+      active: true,
+      dayOfRamadan: phaseInfo.dayOfRamadan,
+    };
+  }
+
+  if (phaseInfo.phase === "pre-ramadan") {
+    const now = new Date();
+    const start = new Date(phaseInfo.ramadanStartDate + "T00:00:00");
+    const diff = start.getTime() - now.getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    return { days, hours, minutes, active: false, dayOfRamadan: 0 };
+  }
+
+  // Post-ramadan - count down to next Ramadan
   const now = new Date();
-  const year = now.getFullYear();
+  const nextStart = new Date(phaseInfo.ramadanStartDate + "T00:00:00");
+  const diff = nextStart.getTime() - now.getTime();
 
-  // Check current year and next year
-  for (const y of [year, year + 1]) {
-    const dates = RAMADAN_DATES[y];
-    if (!dates) continue;
-
-    const start = new Date(dates.start + "T00:00:00");
-    const end = new Date(dates.end + "T23:59:59");
-
-    if (now >= start && now <= end) {
-      const dayOfRamadan = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-      return { days: 0, hours: 0, minutes: 0, active: true, dayOfRamadan };
-    }
-
-    if (now < start) {
-      const diff = start.getTime() - now.getTime();
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      return { days, hours, minutes, active: false, dayOfRamadan: 0 };
-    }
+  if (diff > 0) {
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    return { days, hours, minutes, active: false, dayOfRamadan: 0 };
   }
 
   return { days: 0, hours: 0, minutes: 0, active: false, dayOfRamadan: 0 };

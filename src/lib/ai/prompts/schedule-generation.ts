@@ -39,7 +39,10 @@ CATEGORIES (use exactly these strings):
 - "rest" - breaks, recovery, relaxation
 - "other" - everything else
 
-Return valid JSON only, no markdown, no explanation outside JSON:
+CRITICAL: Return ONLY valid JSON. No markdown code blocks, no explanation text, no text before or after the JSON.
+Your entire response must be valid JSON starting with { and ending with }
+
+Response format:
 {
   "blocks": [
     {

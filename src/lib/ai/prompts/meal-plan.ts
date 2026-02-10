@@ -11,13 +11,25 @@ export function buildMealPlanPrompts(input: MealPlanInput) {
         ? "moderately hydrated"
         : "dehydrated — needs extra focus on fluids";
 
-  const userPrompt = `Generate a personalized Ramadan meal plan for this athlete.
+  const phaseLabel = input.phase === "pre-ramadan"
+    ? "Pre-Ramadan preparation"
+    : input.phase === "post-ramadan"
+      ? "Post-Ramadan maintenance"
+      : `Day ${input.dayOfRamadan} of Ramadan`;
+
+  const mealPlanType = input.phase === "ramadan"
+    ? "Ramadan meal plan (fasting)"
+    : input.phase === "pre-ramadan"
+      ? "pre-Ramadan nutrition plan (preparing for fasting)"
+      : "post-Ramadan nutrition plan (maintaining healthy habits)";
+
+  const userPrompt = `Generate a personalized ${mealPlanType} for this athlete.
 
 ## Athlete Profile
 - Sport: ${input.sport || "General athletics"}
 - Training today: ${input.trainingType || "rest"}
 - Hydration: ${input.glassesOfWater}/8 glasses, Urine color ${input.hydrationLevel}/8 (${hydrationStatus})
-- Day ${input.dayOfRamadan} of Ramadan
+- Phase: ${phaseLabel}
 
 ## Coach Hamza's Nutrition Rules
 - Sahoor: Slow-release energy — dates, fruits, complex carbs, protein

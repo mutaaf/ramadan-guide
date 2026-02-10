@@ -5,13 +5,13 @@ import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
 import { Toggle } from "@/components/Toggle";
 import { useStore, createEmptyDay } from "@/store/useStore";
-import { getTodayString, getRamadanCountdown } from "@/lib/ramadan";
+import { getTodayString, getRamadanCountdown, getPhaseInfo } from "@/lib/ramadan";
 import { TrainingAdvisor } from "@/components/ai/TrainingAdvisor";
 import { ReflectionPrompt } from "@/components/ai/ReflectionPrompt";
 import { VoiceJournalButton } from "@/components/VoiceJournalButton";
 import { TrainingAdviceInput, ReflectionInput } from "@/lib/ai/types";
 
-const PRAYERS = ["fajr", "dhur", "asr", "maghrib", "ishaa", "taraweeh"] as const;
+const DAILY_PRAYERS = ["fajr", "dhur", "asr", "maghrib", "ishaa"] as const;
 const MOODS = ["Relaxed", "Great", "Fun", "Tired", "Sad", "Angry"];
 const TRAINING_TYPES = ["practice", "weights", "game", "cardio", "rest", "other"] as const;
 const URINE_COLORS = ["#f5f5dc", "#ffffcc", "#ffff99", "#ffee66", "#ffd700", "#e6a800", "#cc8400", "#996300"];
@@ -36,6 +36,8 @@ export default function JournalPage() {
   const [selectedDate, setSelectedDate] = useState(today);
   const day = days[selectedDate] ?? createEmptyDay(selectedDate);
   const { dayOfRamadan } = getRamadanCountdown();
+  const phaseInfo = getPhaseInfo();
+  const isRamadan = phaseInfo.phase === "ramadan";
   const isToday = selectedDate === today;
 
   const trainingInput = useMemo((): TrainingAdviceInput | null => {
@@ -135,7 +137,14 @@ export default function JournalPage() {
         {/* Fasting Toggle */}
         <Card delay={0.05}>
           <div className="flex items-center justify-between">
-            <p className="font-semibold text-sm">Fasting {isToday ? "Today" : "This Day"}?</p>
+            <div>
+              <p className="font-semibold text-sm">Fasting {isToday ? "Today" : "This Day"}?</p>
+              {!isRamadan && (
+                <p className="text-[10px] mt-0.5" style={{ color: "var(--muted)" }}>
+                  Optional - Sunnah fasting
+                </p>
+              )}
+            </div>
             <Toggle
               checked={day.fasted}
               onChange={(v) => updateDay(selectedDate, { fasted: v })}
@@ -146,10 +155,10 @@ export default function JournalPage() {
         {/* Prayer Tracker */}
         <Card delay={0.1}>
           <p className="text-xs font-medium uppercase tracking-wider mb-3" style={{ color: "var(--accent-gold)" }}>
-            Salah
+            Daily Prayers (5)
           </p>
           <div className="grid grid-cols-3 gap-2">
-            {PRAYERS.map((prayer) => (
+            {DAILY_PRAYERS.map((prayer) => (
               <button
                 key={prayer}
                 onClick={() => togglePrayer(selectedDate, prayer)}
@@ -175,6 +184,41 @@ export default function JournalPage() {
               </button>
             ))}
           </div>
+
+          {/* Taraweeh - Ramadan Only */}
+          {dayOfRamadan > 0 && (
+            <>
+              <div className="flex items-center gap-2 mt-4 mb-2">
+                <div className="h-px flex-1" style={{ background: "var(--card-border)" }} />
+                <span className="text-[10px] uppercase tracking-wider px-2" style={{ color: "var(--muted)" }}>
+                  Ramadan Night Prayer
+                </span>
+                <div className="h-px flex-1" style={{ background: "var(--card-border)" }} />
+              </div>
+              <button
+                onClick={() => togglePrayer(selectedDate, "taraweeh")}
+                className="w-full flex items-center justify-center gap-2 rounded-xl py-3 transition-all active:scale-[0.97]"
+                style={{
+                  background: day.prayers.taraweeh ? "var(--selected-gold-bg)" : "var(--surface-1)",
+                  border: day.prayers.taraweeh ? "1px solid var(--selected-gold-border)" : "1px solid transparent",
+                }}
+              >
+                <div
+                  className="h-5 w-5 rounded-full flex items-center justify-center"
+                  style={{
+                    background: day.prayers.taraweeh ? "var(--accent-gold)" : "var(--ring-track)",
+                  }}
+                >
+                  {day.prayers.taraweeh && (
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M2 5l2 2 4-4" stroke="#000" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  )}
+                </div>
+                <span className="text-xs font-medium">Taraweeh</span>
+              </button>
+            </>
+          )}
         </Card>
 
         {/* Sleep */}
@@ -279,34 +323,63 @@ export default function JournalPage() {
         {/* AI Training Advisor */}
         <TrainingAdvisor input={trainingInput} />
 
-        {/* Meals */}
+        {/* Meals - Sahoor/Iftar shown during Ramadan, regular meals otherwise */}
         <Card delay={0.35}>
           <p className="text-xs font-medium uppercase tracking-wider mb-3" style={{ color: "var(--accent-gold)" }}>
-            Meals
+            {isRamadan ? "Meals" : "Nutrition"}
           </p>
           <div className="space-y-3">
-            <div>
-              <label className="text-xs font-medium" style={{ color: "var(--muted)" }}>Sahoor</label>
-              <input
-                type="text"
-                placeholder="What did you eat?"
-                value={day.sahoorMeal}
-                onChange={(e) => updateDay(selectedDate, { sahoorMeal: e.target.value })}
-                className="w-full mt-1 rounded-xl px-4 py-2.5 text-sm outline-none"
-                style={{ background: "var(--surface-1)", color: "var(--foreground)" }}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium" style={{ color: "var(--muted)" }}>Iftar</label>
-              <input
-                type="text"
-                placeholder="What did you eat?"
-                value={day.iftarMeal}
-                onChange={(e) => updateDay(selectedDate, { iftarMeal: e.target.value })}
-                className="w-full mt-1 rounded-xl px-4 py-2.5 text-sm outline-none"
-                style={{ background: "var(--surface-1)", color: "var(--foreground)" }}
-              />
-            </div>
+            {isRamadan ? (
+              <>
+                <div>
+                  <label className="text-xs font-medium" style={{ color: "var(--muted)" }}>Sahoor</label>
+                  <input
+                    type="text"
+                    placeholder="What did you eat?"
+                    value={day.sahoorMeal}
+                    onChange={(e) => updateDay(selectedDate, { sahoorMeal: e.target.value })}
+                    className="w-full mt-1 rounded-xl px-4 py-2.5 text-sm outline-none"
+                    style={{ background: "var(--surface-1)", color: "var(--foreground)" }}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium" style={{ color: "var(--muted)" }}>Iftar</label>
+                  <input
+                    type="text"
+                    placeholder="What did you eat?"
+                    value={day.iftarMeal}
+                    onChange={(e) => updateDay(selectedDate, { iftarMeal: e.target.value })}
+                    className="w-full mt-1 rounded-xl px-4 py-2.5 text-sm outline-none"
+                    style={{ background: "var(--surface-1)", color: "var(--foreground)" }}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <label className="text-xs font-medium" style={{ color: "var(--muted)" }}>Breakfast</label>
+                  <input
+                    type="text"
+                    placeholder="What did you eat?"
+                    value={day.sahoorMeal}
+                    onChange={(e) => updateDay(selectedDate, { sahoorMeal: e.target.value })}
+                    className="w-full mt-1 rounded-xl px-4 py-2.5 text-sm outline-none"
+                    style={{ background: "var(--surface-1)", color: "var(--foreground)" }}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium" style={{ color: "var(--muted)" }}>Dinner</label>
+                  <input
+                    type="text"
+                    placeholder="What did you eat?"
+                    value={day.iftarMeal}
+                    onChange={(e) => updateDay(selectedDate, { iftarMeal: e.target.value })}
+                    className="w-full mt-1 rounded-xl px-4 py-2.5 text-sm outline-none"
+                    style={{ background: "var(--surface-1)", color: "var(--foreground)" }}
+                  />
+                </div>
+              </>
+            )}
           </div>
         </Card>
 

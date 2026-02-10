@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useStore } from "@/store/useStore";
-import { getRamadanCountdown } from "@/lib/ramadan";
+import { getPhaseInfo } from "@/lib/ramadan";
 import {
   ContentContext,
   ContentItem,
@@ -26,7 +26,8 @@ export function DailyWisdom({
   labelText,
 }: DailyWisdomProps) {
   const { days, juzProgress, userName } = useStore();
-  const { dayOfRamadan } = getRamadanCountdown();
+  const phaseInfo = getPhaseInfo();
+  const { dayOfRamadan } = phaseInfo;
 
   const content = useMemo((): ContentItem => {
     return selectContent(context, days, juzProgress, dayOfRamadan, userName);

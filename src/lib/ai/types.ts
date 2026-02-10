@@ -1,4 +1,5 @@
 import { DayEntry } from "@/store/useStore";
+import { AppPhase } from "@/lib/ramadan";
 
 // ── Feature identifiers ──────────────────────────────────────────────
 export type AIFeature =
@@ -70,6 +71,7 @@ export interface DailyCoachingInput {
   userName: string;
   sport: string;
   dayOfRamadan: number;
+  phase?: AppPhase;
 }
 
 export interface DailyCoachingOutput {
@@ -86,6 +88,7 @@ export interface MealPlanInput {
   hydrationLevel: number; // urineColor 1-8
   glassesOfWater: number;
   dayOfRamadan: number;
+  phase?: AppPhase;
 }
 
 export interface MealPlanOutput {
@@ -140,6 +143,7 @@ export interface TrainingAdviceInput {
   sport: string;
   dayOfRamadan: number;
   fasted: boolean;
+  phase?: AppPhase;
 }
 
 export interface TrainingAdviceOutput {
@@ -157,6 +161,7 @@ export interface ReflectionInput {
   firstThought: string;
   dayOfRamadan: number;
   prayersCompleted: string[];
+  phase?: AppPhase;
 }
 
 export interface ReflectionOutput {
@@ -239,6 +244,7 @@ export interface AIInsightsInput {
   userName: string;
   sport: string;
   dayOfRamadan: number;
+  phase?: AppPhase;
 
   // Health patterns (from smart health data entry)
   healthPatterns?: {

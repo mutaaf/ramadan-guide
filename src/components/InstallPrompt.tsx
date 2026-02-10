@@ -11,6 +11,7 @@ interface BeforeInstallPromptEvent extends Event {
 type Platform = "ios" | "android" | "desktop" | "installed";
 
 const DISMISS_KEY = "install-prompt-dismissed";
+const BANNER_DISMISS_KEY = "install-banner-dismissed";
 const VISIT_COUNT_KEY = "install-prompt-visits";
 const DISMISS_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -35,8 +36,20 @@ function isDismissed(): boolean {
   return Date.now() - dismissedAt < DISMISS_DURATION_MS;
 }
 
+function isBannerDismissed(): boolean {
+  if (typeof window === "undefined") return true;
+  const dismissed = localStorage.getItem(BANNER_DISMISS_KEY);
+  if (!dismissed) return false;
+  const dismissedAt = parseInt(dismissed, 10);
+  return Date.now() - dismissedAt < DISMISS_DURATION_MS;
+}
+
 function setDismissed(): void {
   localStorage.setItem(DISMISS_KEY, Date.now().toString());
+}
+
+function setBannerDismissed(): void {
+  localStorage.setItem(BANNER_DISMISS_KEY, Date.now().toString());
 }
 
 function getVisitCount(): number {
@@ -50,7 +63,174 @@ function incrementVisitCount(): number {
   return count;
 }
 
-export function InstallPrompt() {
+// Shared hook for install prompt logic
+function useInstallPrompt() {
+  const [platform, setPlatform] = useState<Platform>("desktop");
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+
+  useEffect(() => {
+    const detectedPlatform = getPlatform();
+    setPlatform(detectedPlatform);
+
+    if (detectedPlatform === "installed" || detectedPlatform === "desktop") return;
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstall = useCallback(async () => {
+    if (!deferredPrompt) return false;
+
+    await deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+
+    if (outcome === "accepted") {
+      setDismissed();
+      setBannerDismissed();
+    }
+    setDeferredPrompt(null);
+    return outcome === "accepted";
+  }, [deferredPrompt]);
+
+  return { platform, deferredPrompt, handleInstall };
+}
+
+// Compact banner for onboarding
+export function InstallBanner() {
+  const { platform, deferredPrompt, handleInstall } = useInstallPrompt();
+  const [show, setShow] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+
+  useEffect(() => {
+    if (platform === "installed" || platform === "desktop") return;
+    if (isBannerDismissed()) return;
+    setShow(true);
+  }, [platform]);
+
+  const handleDismiss = useCallback(() => {
+    setBannerDismissed();
+    setShow(false);
+  }, []);
+
+  const onInstall = useCallback(async () => {
+    const accepted = await handleInstall();
+    if (accepted) {
+      setShow(false);
+    }
+  }, [handleInstall]);
+
+  if (!show || platform === "installed" || platform === "desktop") return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="rounded-2xl overflow-hidden mb-4"
+      style={{ background: "var(--surface-1)", border: "1px solid var(--card-border)" }}
+    >
+      <div className="px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: "var(--selected-gold-bg)" }}
+          >
+            <span className="text-lg">🌙</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold">Install for the best experience</p>
+            <p className="text-xs" style={{ color: "var(--muted)" }}>
+              Your progress will be saved
+            </p>
+          </div>
+          <button
+            onClick={handleDismiss}
+            className="p-1.5 rounded-full"
+            style={{ background: "var(--surface-2)" }}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 3l8 8M11 3l-8 8" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+
+        {platform === "android" && deferredPrompt ? (
+          <button
+            onClick={onInstall}
+            className="w-full mt-3 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
+            style={{
+              background: "linear-gradient(135deg, #c9a84c, #e8c75a, #c9a84c)",
+              color: "#000",
+            }}
+          >
+            Install App
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => setShowInstructions(!showInstructions)}
+              className="w-full mt-3 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-[0.98]"
+              style={{
+                background: "var(--selected-gold-bg)",
+                color: "var(--accent-gold)",
+              }}
+            >
+              {showInstructions ? "Hide Instructions" : "How to Install"}
+            </button>
+
+            <AnimatePresence>
+              {showInstructions && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-3 space-y-2">
+                    {platform === "ios" ? (
+                      <>
+                        <BannerStep number={1} text="Tap the Share button" icon={<ShareIcon />} />
+                        <BannerStep number={2} text='Tap "Add to Home Screen"' />
+                        <BannerStep number={3} text='Tap "Add"' />
+                      </>
+                    ) : (
+                      <>
+                        <BannerStep number={1} text="Tap the menu button" icon={<MenuIcon />} />
+                        <BannerStep number={2} text='Tap "Add to Home Screen"' />
+                      </>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+function BannerStep({ number, text, icon }: { number: number; text: string; icon?: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2 text-xs" style={{ color: "var(--muted)" }}>
+      <span
+        className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
+        style={{ background: "var(--selected-gold-bg)", color: "var(--accent-gold)" }}
+      >
+        {number}
+      </span>
+      {icon && <span className="shrink-0">{icon}</span>}
+      <span>{text}</span>
+    </div>
+  );
+}
+
+export function InstallPrompt({ forceShow = false }: { forceShow?: boolean }) {
   const [show, setShow] = useState(false);
   const [platform, setPlatform] = useState<Platform>("desktop");
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -83,9 +263,6 @@ export function InstallPrompt() {
     // Don't show if already installed or on desktop
     if (detectedPlatform === "installed" || detectedPlatform === "desktop") return;
 
-    // Don't show if dismissed recently
-    if (isDismissed()) return;
-
     // Listen for beforeinstallprompt (Android)
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
@@ -93,6 +270,15 @@ export function InstallPrompt() {
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    // If forceShow is true, show immediately (bypass timing logic)
+    if (forceShow) {
+      setShow(true);
+      return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    }
+
+    // Don't show if dismissed recently (only when not forcing)
+    if (isDismissed()) return;
 
     // Increment visit count
     const visits = incrementVisitCount();
@@ -112,7 +298,7 @@ export function InstallPrompt() {
         window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       };
     }
-  }, []);
+  }, [forceShow]);
 
   // Don't render anything for installed or desktop
   if (platform === "installed" || platform === "desktop") return null;

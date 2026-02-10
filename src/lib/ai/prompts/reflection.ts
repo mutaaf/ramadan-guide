@@ -4,9 +4,19 @@ import { ReflectionInput } from "../types";
 export function buildReflectionPrompts(input: ReflectionInput) {
   const systemPrompt = COACH_HAMZA_SYSTEM_PROMPT;
 
-  const userPrompt = `Generate a personalized duaa and reflection for this day of Ramadan.
+  const phaseContext = input.phase === "pre-ramadan"
+    ? "Pre-Ramadan preparation - building spiritual habits before the blessed month"
+    : input.phase === "post-ramadan"
+      ? "Post-Ramadan maintenance - continuing the spiritual momentum after Ramadan"
+      : input.dayOfRamadan <= 10
+        ? "First 10 days (Mercy)"
+        : input.dayOfRamadan <= 20
+          ? "Second 10 days (Forgiveness)"
+          : "Last 10 days (Salvation from Hellfire)";
 
-## Today's Spiritual State (Day ${input.dayOfRamadan} of Ramadan)
+  const userPrompt = `Generate a personalized duaa and reflection.
+
+## Today's Spiritual State (${input.phase === "ramadan" ? `Day ${input.dayOfRamadan} of Ramadan` : input.phase === "pre-ramadan" ? "Pre-Ramadan Preparation" : "Post-Ramadan Maintenance"})
 - Mood: ${input.mood || "not shared"}
 - Surah read: ${input.surahRead || "not logged yet"}
 - First thought today: ${input.firstThought || "not shared"}
@@ -17,7 +27,7 @@ export function buildReflectionPrompts(input: ReflectionInput) {
 - Use authentic Islamic duas (provide transliteration, not Arabic script)
 - Make the reflection personal to their day and spiritual state
 - If they read a specific surah, reference themes from that surah
-- Day of Ramadan context: ${input.dayOfRamadan <= 10 ? "First 10 days (Mercy)" : input.dayOfRamadan <= 20 ? "Second 10 days (Forgiveness)" : "Last 10 days (Salvation from Hellfire)"}
+- Context: ${phaseContext}
 
 Respond in this exact JSON format:
 {

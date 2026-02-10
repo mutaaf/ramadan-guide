@@ -191,15 +191,16 @@ export function buildUserContext(
   if (recentDays.length > 0) {
     const avgWater = recentDays.reduce((sum, d) => sum + d.glassesOfWater, 0) / recentDays.length;
     const avgSleep = recentDays.reduce((sum, d) => sum + d.hoursOfSleep, 0) / recentDays.length;
+    // Count only the 5 obligatory daily prayers (not Taraweeh)
     const prayerCount = recentDays.reduce((sum, d) => {
-      return sum + Object.values(d.prayers).filter(Boolean).length;
+      return sum + [d.prayers.fajr, d.prayers.dhur, d.prayers.asr, d.prayers.maghrib, d.prayers.ishaa].filter(Boolean).length;
     }, 0);
     const avgPrayers = prayerCount / recentDays.length;
 
     parts.push(`\nRecent Activity (last ${recentDays.length} days):`);
     parts.push(`- Average water intake: ${avgWater.toFixed(1)} glasses`);
     parts.push(`- Average sleep: ${avgSleep.toFixed(1)} hours`);
-    parts.push(`- Average prayers completed: ${avgPrayers.toFixed(1)}/6`);
+    parts.push(`- Average prayers completed: ${avgPrayers.toFixed(1)}/5`);
 
     // Common training types
     const trainingTypes = recentDays
