@@ -2,6 +2,12 @@
 
 > A comprehensive reference document for developers and AI agents working on this codebase.
 
+**See Also:**
+- [CLAUDE.md](./CLAUDE.md) - High-level overview for AI assistants
+- [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) - Deep technical documentation
+- [docs/DECISIONS.md](./docs/DECISIONS.md) - Architecture decision records (ADRs)
+- [docs/CHANGELOG.md](./docs/CHANGELOG.md) - Version history and changes
+
 ---
 
 ## Quick Reference
@@ -50,12 +56,14 @@ const getDay = useStore((s) => s.getDay);
 | 4 | Qur'an Progress | Done | `src/app/tracker/quran/` |
 | 5 | Tasbeeh Counter | Done | `src/app/tracker/tasbeeh/` |
 | 6 | Journal & Voice Journal | Done | `src/app/tracker/journal/`, `src/components/VoiceRecorder.tsx` |
-| 7 | AI Coach (9 modules) | Done | `src/lib/ai/`, `src/components/ai/` |
+| 7 | AI Coach (10 modules) | Done | `src/lib/ai/`, `src/components/ai/` |
 | 8 | Smart Health Data Entry | Done | `src/lib/health/`, `src/components/health/` |
 | 9 | Demo Insights | Done | `src/lib/ai/demoInsights.ts`, `src/components/ai/AIInsights.tsx` |
 | 10 | Learning Modules | Done | `src/app/learn/` |
 | 11 | Dashboard Analytics | Done | `src/app/dashboard/` |
 | 12 | PWA & Offline | Done | `src/app/sw.ts`, `next.config.ts` |
+| 13 | AI Schedule Builder | Done | `src/components/schedule/`, `src/lib/ai/prompts/schedule-generation.ts` |
+| 14 | Phase-Aware System | Done | `src/lib/ramadan.ts` (pre/during/post Ramadan) |
 
 ---
 
@@ -93,7 +101,7 @@ interface RamadanStore {
 }
 ```
 
-**Migration Strategy:** Version-based migrations in `useStore.ts` (current: v4).
+**Migration Strategy:** Version-based migrations in `useStore.ts` (current: v5).
 
 ### AI Integration Flow
 
@@ -117,7 +125,7 @@ interface RamadanStore {
        └────────────┘            └────────────┘
 ```
 
-**9 AI Features:**
+**10 AI Features:**
 1. `daily-coaching` - Daily personalized advice
 2. `meal-plan` - Sahoor/Iftar recommendations
 3. `book-qa` - Q&A from Ramadan guide
@@ -127,6 +135,7 @@ interface RamadanStore {
 7. `voice-journal` - Transcription analysis
 8. `behavior-insight` - Pattern-based insights
 9. `ai-insights` - Comprehensive AI insights
+10. `schedule-generation` - AI-built 24-hour Ramadan routine
 
 ### Caching Strategy
 
@@ -385,6 +394,7 @@ Each includes: Sahoor focus, training timing, hydration strategy, game-day advic
 - **v1 → v2**: Migrated `juzCompleted[]` to `juzProgress[]`, added Tasbeeh
 - **v2 → v3**: Added `userProfile` and `userMemory`
 - **v3 → v4**: Added health patterns, smart prompts, quick log engagement
+- **v4 → v5**: Added `customSchedule` for AI-generated routines
 
 ### Key Implementation Patterns
 
@@ -453,5 +463,37 @@ const { dayOfRamadan, isRamadan, daysRemaining } = getRamadanCountdown();
 
 ---
 
-*Last updated: 2026-02-08*
+---
+
+## Key Design Decisions
+
+### Prayer Count (5/5 not 6/6)
+The app counts **5 obligatory daily prayers** (Fajr, Dhur, Asr, Maghrib, Ishaa) separately from Taraweeh:
+- Progress displays as `X/5`
+- Taraweeh has its own section with "Ramadan Night Prayer" divider
+- Taraweeh only visible during Ramadan phase
+
+### Phase System
+The app operates in three modes:
+```typescript
+type AppPhase = "pre-ramadan" | "ramadan" | "post-ramadan";
+
+// Usage:
+const phaseInfo = getPhaseInfo(); // from src/lib/ramadan.ts
+if (phaseInfo.phase === "ramadan") {
+  // Show full Ramadan features
+}
+```
+
+Phase-specific features:
+| Feature | Pre-Ramadan | Ramadan | Post-Ramadan |
+|---------|-------------|---------|--------------|
+| 5 Daily Prayers | Yes | Yes | Yes |
+| Taraweeh | Hidden | Yes | Hidden |
+| Fasting Toggle | Optional | Yes | Optional |
+| Sahoor/Iftar | Hidden | Yes | Hidden |
+
+---
+
+*Last updated: 2026-02-10*
 *Maintained by: Development Team & AI Agents*
