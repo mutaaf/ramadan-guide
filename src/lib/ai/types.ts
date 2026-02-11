@@ -12,7 +12,9 @@ export type AIFeature =
   | "voice-journal"
   | "behavior-insight"
   | "ai-insights"
-  | "schedule-generation";
+  | "schedule-generation"
+  | "companion-generation"
+  | "companion-polish";
 
 // ── Cache ─────────────────────────────────────────────────────────────
 export interface CacheEntry {
@@ -35,6 +37,8 @@ export const FEATURE_TTL: Record<AIFeature, number> = {
   "behavior-insight": 4 * 60 * 60 * 1000, // 4h
   "ai-insights": 6 * 60 * 60 * 1000, // 6h
   "schedule-generation": 0, // no cache - always fresh
+  "companion-generation": 0, // no cache - admin generates once
+  "companion-polish": 0, // no cache
 };
 
 export const FEATURE_MODEL: Record<AIFeature, string> = {
@@ -48,6 +52,8 @@ export const FEATURE_MODEL: Record<AIFeature, string> = {
   "behavior-insight": "gpt-4o-mini",
   "ai-insights": "gpt-4o-mini",
   "schedule-generation": "gpt-4o-mini",
+  "companion-generation": "gpt-4o",
+  "companion-polish": "gpt-4o-mini",
 };
 
 // ── Transport ─────────────────────────────────────────────────────────

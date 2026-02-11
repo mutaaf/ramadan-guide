@@ -11,6 +11,7 @@ const sections = [
   { href: "/learn/laylatul-qadr", title: "Laylatul Qadr", subtitle: "The Night of Power", icon: "03" },
   { href: "/learn/prophet", title: "Prophet Muhammad", subtitle: "Peace be upon Him", icon: "04" },
   { href: "/learn/pronunciation", title: "Pronunciation Guide", subtitle: "23 Key Terms", icon: "05" },
+  { href: "/learn/series", title: "Series Companion", subtitle: "AI Lecture Guides", icon: "06" },
 ];
 
 export default function LearnPage() {

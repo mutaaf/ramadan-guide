@@ -6,6 +6,9 @@ import type {
   SmartPromptSettings,
   QuickLogEngagement,
 } from "@/lib/health/types";
+import type { PartnerStats } from "@/lib/accountability/types";
+import type { SeriesUserData } from "@/lib/series/types";
+import { createDefaultSeriesUserData } from "@/lib/series/types";
 import {
   DEFAULT_HEALTH_PATTERNS,
   DEFAULT_SMART_PROMPT_SETTINGS,
@@ -266,6 +269,24 @@ interface RamadanStore {
   addScheduleBlock: (block: ScheduleBlock) => void;
   removeScheduleBlock: (blockId: string) => void;
   clearCustomSchedule: () => void;
+
+  // Accountability partner state
+  partnerStats: PartnerStats | null;
+  lastPartnerSync: number | null;
+  setPartnerStats: (stats: PartnerStats | null) => void;
+  setLastPartnerSync: (timestamp: number) => void;
+  clearPartnerData: () => void;
+
+  // Series companion data
+  seriesUserData: SeriesUserData;
+  toggleEpisodeComplete: (episodeId: string) => void;
+  toggleEpisodeBookmark: (episodeId: string) => void;
+  setEpisodeNote: (episodeId: string, note: string) => void;
+  setLastViewed: (seriesId: string, episodeId: string) => void;
+  updateSeriesProgress: (seriesId: string, episodeId: string) => void;
+
+  // Helper to calculate prayer streak
+  getPrayerStreak: () => number;
 }
 
 export const useStore = create<RamadanStore>()(
@@ -299,6 +320,13 @@ export const useStore = create<RamadanStore>()(
 
       // Custom schedule
       customSchedule: null,
+
+      // Accountability partner
+      partnerStats: null,
+      lastPartnerSync: null,
+
+      // Series companion
+      seriesUserData: createDefaultSeriesUserData(),
 
       setUser: (name, sport) => set({ userName: name, sport }),
       setOnboarded: (v) => set({ onboarded: v }),
@@ -549,10 +577,97 @@ export const useStore = create<RamadanStore>()(
 
       clearCustomSchedule: () =>
         set({ customSchedule: null }),
+
+      // Accountability partner actions
+      setPartnerStats: (stats) =>
+        set({ partnerStats: stats }),
+
+      setLastPartnerSync: (timestamp) =>
+        set({ lastPartnerSync: timestamp }),
+
+      clearPartnerData: () =>
+        set({ partnerStats: null, lastPartnerSync: null }),
+
+      // Series companion actions
+      toggleEpisodeComplete: (episodeId) =>
+        set((s) => ({
+          seriesUserData: {
+            ...s.seriesUserData,
+            completedEpisodes: {
+              ...s.seriesUserData.completedEpisodes,
+              [episodeId]: !s.seriesUserData.completedEpisodes[episodeId],
+            },
+          },
+        })),
+
+      toggleEpisodeBookmark: (episodeId) =>
+        set((s) => ({
+          seriesUserData: {
+            ...s.seriesUserData,
+            bookmarkedEpisodes: {
+              ...s.seriesUserData.bookmarkedEpisodes,
+              [episodeId]: !s.seriesUserData.bookmarkedEpisodes[episodeId],
+            },
+          },
+        })),
+
+      setEpisodeNote: (episodeId, note) =>
+        set((s) => ({
+          seriesUserData: {
+            ...s.seriesUserData,
+            episodeNotes: {
+              ...s.seriesUserData.episodeNotes,
+              [episodeId]: note,
+            },
+          },
+        })),
+
+      setLastViewed: (seriesId, episodeId) =>
+        set((s) => ({
+          seriesUserData: {
+            ...s.seriesUserData,
+            lastViewed: { seriesId, episodeId, timestamp: Date.now() },
+          },
+        })),
+
+      updateSeriesProgress: (seriesId, episodeId) =>
+        set((s) => ({
+          seriesUserData: {
+            ...s.seriesUserData,
+            seriesProgress: {
+              ...s.seriesUserData.seriesProgress,
+              [seriesId]: {
+                startedAt: s.seriesUserData.seriesProgress[seriesId]?.startedAt ?? Date.now(),
+                lastEpisodeId: episodeId,
+              },
+            },
+          },
+        })),
+
+      getPrayerStreak: () => {
+        const state = get();
+        const sortedDates = Object.keys(state.days).sort().reverse();
+        let streak = 0;
+
+        for (const date of sortedDates) {
+          const day = state.days[date];
+          const prayers = day.prayers;
+          const completed = [prayers.fajr, prayers.dhur, prayers.asr, prayers.maghrib, prayers.ishaa]
+            .filter(Boolean).length;
+
+          if (completed === 5) {
+            streak++;
+          } else {
+            break;
+          }
+        }
+
+        return streak;
+      },
     }),
     {
       name: "ramadan-guide-storage",
-      version: 5,
+      version: 7,
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Record<string, unknown>;
         if (version === 0) {
@@ -603,6 +718,15 @@ export const useStore = create<RamadanStore>()(
         if (version < 5) {
           // Initialize custom schedule
           state.customSchedule = null;
+        }
+        if (version < 6) {
+          // Initialize accountability partner state
+          state.partnerStats = null;
+          state.lastPartnerSync = null;
+        }
+        if (version < 7) {
+          // Initialize series companion data
+          state.seriesUserData = createDefaultSeriesUserData();
         }
         return state as unknown as RamadanStore;
       },

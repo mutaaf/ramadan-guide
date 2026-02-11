@@ -64,6 +64,7 @@ const getDay = useStore((s) => s.getDay);
 | 12 | PWA & Offline | Done | `src/app/sw.ts`, `next.config.ts` |
 | 13 | AI Schedule Builder | Done | `src/components/schedule/`, `src/lib/ai/prompts/schedule-generation.ts` |
 | 14 | Phase-Aware System | Done | `src/lib/ramadan.ts` (pre/during/post Ramadan) |
+| 15 | Accountability Partner | Done | `src/lib/accountability/`, `src/app/partner/`, `src/components/PartnerWidget.tsx` |
 
 ---
 
@@ -98,10 +99,14 @@ interface RamadanStore {
   healthPatterns: HealthPatterns;
   smartPromptSettings: SmartPromptSettings;
   quickLogEngagement: QuickLogEngagement;
+
+  // Accountability partner
+  partnerStats: PartnerStats | null;
+  lastPartnerSync: number | null;
 }
 ```
 
-**Migration Strategy:** Version-based migrations in `useStore.ts` (current: v5).
+**Migration Strategy:** Version-based migrations in `useStore.ts` (current: v6).
 
 ### AI Integration Flow
 
@@ -150,6 +155,35 @@ interface RamadanStore {
 - TTL: 24 hours
 - Key: `prayer-times-{lat}-{lng}`
 
+### Accountability Partner Flow
+
+```
+┌──────────────┐     ┌──────────────┐
+│   User A     │     │   User B     │
+│  generates   │     │              │
+│  code FAJR7K │────▶│ enters code  │
+└──────┬───────┘     └──────┬───────┘
+       │                     │
+       ▼                     ▼
+┌──────────────┐     ┌──────────────┐
+│ POST /api/   │     │ POST /api/   │
+│ partner/     │◀───▶│ partner/     │
+│ connect      │     │ connect      │
+└──────────────┘     └──────────────┘
+       │                     │
+       ▼                     ▼
+┌──────────────────────────────────┐
+│   Daily: POST /api/partner/sync  │
+│   Send: {prayerCount, hydration, │
+│          streak, timestamp}      │
+│   Receive: partner's same stats  │
+└──────────────────────────────────┘
+```
+
+**Privacy Model**: Only 4 aggregate fields synced. No names, no prayer times, no personal data.
+**Offline**: Cached partner stats shown when offline. Sync on next app open.
+**Storage**: Connection metadata in localStorage (not Zustand). Partner stats cached locally.
+
 ### PWA Capabilities
 
 - **Service Worker:** Serwist-based (`src/app/sw.ts`)
@@ -191,6 +225,7 @@ src/components/
 ├── Card.tsx                 # Reusable card wrapper
 ├── DailyWisdom.tsx          # Daily hadith/verse display
 ├── HomeDashboard.tsx        # Main home dashboard
+├── PartnerWidget.tsx        # Accountability partner home widget
 ├── PageHeader.tsx           # Page title component
 ├── VoiceRecorder.tsx        # Audio recording
 ├── VoiceJournalButton.tsx   # Voice journal trigger
@@ -234,6 +269,10 @@ src/lib/
 │   ├── quran-guide.ts       # Quran reading guide
 │   ├── sport-protocols.ts   # Sport-specific guidance
 │   └── content-engine.ts    # Content selection logic
+├── accountability/
+│   ├── types.ts             # Partner data structures, code generation
+│   ├── sync.ts              # Stat sync, connection management
+│   └── index.ts             # Re-exports
 ├── ramadan.ts               # Ramadan dates, countdown, helpers
 └── prayer-times.ts          # Prayer time calculations
 ```
@@ -280,9 +319,16 @@ src/app/
 │   ├── wellness/page.tsx
 │   ├── not-fasting/page.tsx
 │   └── post-ramadan/page.tsx
+├── partner/                 # Accountability partner
+│   ├── page.tsx             # Partner dashboard / connect prompt
+│   └── connect/page.tsx     # Code generation + entry
 ├── api/
 │   ├── ai/route.ts          # Main AI endpoint
-│   └── ai/whisper/route.ts  # Audio transcription
+│   ├── ai/whisper/route.ts  # Audio transcription
+│   └── partner/             # Partner sync API
+│       ├── connect/route.ts
+│       ├── sync/route.ts
+│       └── disconnect/route.ts
 └── offline/page.tsx         # Offline fallback
 ```
 
@@ -360,6 +406,16 @@ updateYourField: (date: string, value: string) =>
 2. Add navigation link in `src/components/LearnNavigation.tsx`
 3. Add content to `src/lib/content/` if needed
 
+### Extending the Partner System
+
+1. **Add new synced stat**: Update `DailySync` in `src/lib/accountability/types.ts`
+2. **Update sync payload**: Modify `buildMySyncData()` in `sync.ts`
+3. **Update partner widget**: Add display in `src/components/PartnerWidget.tsx`
+4. **Update partner dashboard**: Add comparison in `src/app/partner/page.tsx`
+5. **Update API routes**: Modify `src/app/api/partner/sync/route.ts`
+
+Important: Only sync aggregate data. Never sync prayer times, personal notes, or identifiable info.
+
 ---
 
 ## Content Library
@@ -395,6 +451,7 @@ Each includes: Sahoor focus, training timing, hydration strategy, game-day advic
 - **v2 → v3**: Added `userProfile` and `userMemory`
 - **v3 → v4**: Added health patterns, smart prompts, quick log engagement
 - **v4 → v5**: Added `customSchedule` for AI-generated routines
+- **v5 → v6**: Added `partnerStats` and `lastPartnerSync` for accountability partner
 
 ### Key Implementation Patterns
 
@@ -495,5 +552,5 @@ Phase-specific features:
 
 ---
 
-*Last updated: 2026-02-10*
+*Last updated: 2026-02-11*
 *Maintained by: Development Team & AI Agents*

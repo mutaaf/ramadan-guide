@@ -4,7 +4,6 @@ import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CircularSlider } from "@/components/ui/CircularSlider";
 import { QuickLogCard } from "./QuickLogCard";
-import { getConfidenceMessage } from "@/lib/health/patternDetector";
 import type { HealthPatterns } from "@/lib/health/types";
 
 interface SleepQuickEntryProps {
@@ -25,7 +24,7 @@ export function SleepQuickEntry({
   onAccept,
   onDismiss,
 }: SleepQuickEntryProps) {
-  const [hours, setHours] = useState(suggestedHours);
+  const [hours, setHours] = useState(0);
   const [showSlider, setShowSlider] = useState(false);
 
   const handleAccept = useCallback(() => {
@@ -98,19 +97,9 @@ export function SleepQuickEntry({
 
                 <p
                   className="text-xs mt-1.5"
-                  style={{
-                    color: "var(--muted)",
-                    fontStyle: confidence === "medium" ? "italic" : "normal",
-                  }}
+                  style={{ color: "var(--muted)" }}
                 >
-                  {getConfidenceMessage(confidence)}
-                </p>
-
-                <p
-                  className="text-xs mt-1"
-                  style={{ color: "var(--muted)", opacity: 0.7 }}
-                >
-                  Long press to adjust
+                  Usually {suggestedHours}h · Long press to adjust
                 </p>
               </motion.div>
             ) : (

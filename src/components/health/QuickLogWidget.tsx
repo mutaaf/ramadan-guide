@@ -60,7 +60,8 @@ export function QuickLogWidget() {
   // Show nothing if user has already logged everything
   const shouldShow = hasSleepSuggestion ||
     hasHydrationSuggestion ||
-    (todayEntry.hoursOfSleep > 0 && restedState === null);
+    (todayEntry.hoursOfSleep > 0 && restedState === null) ||
+    (!dismissed.has('glassesOfWater') && todayEntry.glassesOfWater === 0);
 
   const handleSleepAccept = useCallback((hours: number) => {
     applyDefault('hoursOfSleep', hours);
@@ -72,9 +73,8 @@ export function QuickLogWidget() {
     setDismissed(prev => new Set(prev).add('hoursOfSleep'));
   }, [dismissSuggestion]);
 
-  const handleHydrationAccept = useCallback((glasses: number) => {
+  const handleHydrationChange = useCallback((glasses: number) => {
     applyDefault('glassesOfWater', glasses);
-    setDismissed(prev => new Set(prev).add('glassesOfWater'));
   }, [applyDefault]);
 
   const handleHydrationDismiss = useCallback(() => {
@@ -126,7 +126,7 @@ export function QuickLogWidget() {
               suggestedGlasses={patterns.typicalGlasses}
               currentGlasses={todayEntry.glassesOfWater}
               confidence={patterns.confidence}
-              onAccept={handleHydrationAccept}
+              onChange={handleHydrationChange}
               onDismiss={handleHydrationDismiss}
             />
           )}

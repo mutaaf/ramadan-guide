@@ -32,6 +32,10 @@ aiModelPreference: string
 
 // Custom schedule
 customSchedule: CustomSchedule | null
+
+// Accountability partner
+partnerStats: PartnerStats | null
+lastPartnerSync: number | null
 ```
 
 #### Persistence & Migration
@@ -41,7 +45,7 @@ Storage version is tracked for migrations:
 ```typescript
 {
   name: "ramadan-guide-storage",
-  version: 5,  // Current version
+  version: 6,  // Current version
   migrate: (state, version) => {
     // Handle upgrades from older versions
   }

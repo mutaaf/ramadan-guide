@@ -5,6 +5,7 @@ interface ExecuteOptions {
   apiKey: string;
   useApiRoute?: boolean;
   modelOverride?: string;
+  maxTokens?: number;
 }
 
 export async function executeAIRequest<T>(
@@ -29,14 +30,17 @@ export async function executeAIRequest<T>(
   // 2. Execute request
   let responseText: string;
 
+  const maxTokens = options.maxTokens ?? 1024;
+
   if (options.useApiRoute) {
-    responseText = await fetchViaApiRoute(systemPrompt, userPrompt, model);
+    responseText = await fetchViaApiRoute(systemPrompt, userPrompt, model, maxTokens);
   } else {
     responseText = await fetchDirectOpenAI(
       systemPrompt,
       userPrompt,
       model,
-      options.apiKey
+      options.apiKey,
+      maxTokens
     );
   }
 
@@ -53,7 +57,8 @@ async function fetchDirectOpenAI(
   systemPrompt: string,
   userPrompt: string,
   model: string,
-  apiKey: string
+  apiKey: string,
+  maxTokens: number = 1024
 ): Promise<string> {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -68,7 +73,7 @@ async function fetchDirectOpenAI(
         { role: "user", content: userPrompt },
       ],
       temperature: 0.7,
-      max_tokens: 1024,
+      max_tokens: maxTokens,
       response_format: { type: "json_object" },
     }),
   });
@@ -90,7 +95,8 @@ async function fetchDirectOpenAI(
 async function fetchViaApiRoute(
   systemPrompt: string,
   userPrompt: string,
-  model: string
+  model: string,
+  maxTokens: number = 1024
 ): Promise<string> {
   const res = await fetch("/api/ai", {
     method: "POST",
@@ -99,6 +105,7 @@ async function fetchViaApiRoute(
       systemPrompt,
       userPrompt,
       model,
+      maxTokens,
     }),
   });
 

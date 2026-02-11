@@ -349,3 +349,80 @@ Show install banner on onboarding step 1, before user starts inputting data.
 - Better install conversion rate
 - User sees value proposition first
 - May still miss users who speed through onboarding
+
+---
+
+## ADR-011: Privacy-Preserving Accountability Partner
+
+### Status
+Accepted
+
+### Context
+Social accountability is the app's core differentiator. Other Muslim apps (Muslim Pro, etc.) either have no social features or build full social networks that raise privacy concerns (Muslim Pro's data was sold to the US military). Users want motivation from a partner without sacrificing privacy.
+
+### Decision
+Build a minimal accountability partner system that shares only aggregate daily stats (prayer count 0-5, hydration on/off track, streak days) via 6-character partner codes. No user accounts, no names, no chat.
+
+### Rationale
+1. **Privacy First**: Only 4 aggregate fields ever leave the device
+2. **No Accounts**: Anonymous device IDs eliminate identity risk
+3. **Simple UX**: Generate code, share via text, enter code — done
+4. **Trust**: After Muslim Pro scandal, privacy is a competitive advantage
+5. **Minimal Backend**: In-memory store works for MVP, Vercel KV for production
+
+### Implementation
+```typescript
+// What gets synced (per user, daily) — ONLY this
+interface DailySync {
+  oderId: string;            // Anonymous device ID
+  prayerCount: number;       // 0-5
+  hydrationOnTrack: boolean; // 4+ glasses = on track
+  streak: number;            // Consecutive days with 5/5 prayers
+  lastUpdated: number;       // Timestamp
+}
+```
+
+- Partner codes: 6-char alphanumeric (4 consonants + digit + alphanumeric)
+- Connection state: localStorage (not Zustand) for partner metadata
+- Sync throttle: Max once per hour
+- API routes: `/api/partner/{connect,sync,disconnect}`
+- Home widget: `PartnerWidget.tsx` shows partner stats or "Add Partner" CTA
+
+### Consequences
+- Users get accountability without privacy trade-offs
+- In-memory API store resets on deploy (must migrate to Vercel KV for production)
+- No push notifications for partner events (future consideration)
+- Partner pairs are 1:1 (no group support yet)
+
+---
+
+## ADR-012: Partner Data in localStorage vs Zustand
+
+### Status
+Accepted
+
+### Context
+The accountability partner system needs to store connection metadata (partner code, device ID, connection timestamp). The app already uses Zustand with localStorage persistence for all other state.
+
+### Decision
+Store partner connection metadata directly in localStorage (separate keys) and only sync `partnerStats` through Zustand for UI reactivity.
+
+### Rationale
+1. **Separation of Concerns**: Connection state is infrastructure, not app state
+2. **Independent Lifecycle**: Partner connection persists even if Zustand store is reset
+3. **Security**: Device ID and codes shouldn't be part of exportable store data
+4. **Sync Logic**: The sync module reads/writes localStorage directly, avoiding circular dependencies with Zustand
+
+### Implementation
+- `ramadan-partner-my-code`: This device's generated code
+- `ramadan-partner-code`: Connected partner's code
+- `ramadan-partner-stats`: Cached partner stats (JSON)
+- `ramadan-partner-last-sync`: Timestamp of last sync
+- `ramadan-guide-device-id`: Anonymous device identifier
+
+Zustand only holds: `partnerStats` (for dashboard reactivity) and `lastPartnerSync`.
+
+### Consequences
+- Two storage mechanisms to understand (localStorage + Zustand)
+- Partner data not included in Zustand backup/restore
+- Clear separation between connection plumbing and display state

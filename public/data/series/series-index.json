@@ -1,0 +1,50 @@
+{
+  "scholars": [
+    {
+      "id": "omar-suleiman",
+      "name": "Omar Suleiman",
+      "title": "Imam, Yaqeen Institute",
+      "bio": "Founder and President of Yaqeen Institute for Islamic Research, resident scholar at Valley Ranch Islamic Center.",
+      "links": {
+        "youtube": "https://www.youtube.com/@yaborab",
+        "website": "https://yaqeeninstitute.org"
+      }
+    },
+    {
+      "id": "abdul-rahman-murphy",
+      "name": "Abdul Rahman Murphy",
+      "title": "Lecturer & Author",
+      "bio": "Resident scholar and community leader, known for engaging storytelling and practical Islamic guidance.",
+      "links": {
+        "youtube": "https://www.youtube.com/@AbdulRahmanMurphy"
+      }
+    }
+  ],
+  "series": [
+    {
+      "id": "jannah-series",
+      "scholarId": "omar-suleiman",
+      "title": "The Jannah Series",
+      "description": "A comprehensive journey through the descriptions of Paradise in the Quran and Sunnah. Explore what awaits the believers in the hereafter.",
+      "tags": ["akhirah", "jannah", "motivation", "hereafter"],
+      "episodeCount": 5,
+      "totalDuration": "3h 45m",
+      "status": "published",
+      "createdAt": "2025-01-15T00:00:00Z",
+      "updatedAt": "2025-01-20T00:00:00Z"
+    },
+    {
+      "id": "day-of-judgement",
+      "scholarId": "abdul-rahman-murphy",
+      "title": "The Day of Judgement",
+      "description": "A powerful series exploring the events of the Day of Judgement, from the blowing of the trumpet to the final reckoning.",
+      "tags": ["akhirah", "day-of-judgement", "accountability"],
+      "episodeCount": 3,
+      "totalDuration": "2h 15m",
+      "status": "published",
+      "createdAt": "2025-02-01T00:00:00Z",
+      "updatedAt": "2025-02-05T00:00:00Z"
+    }
+  ],
+  "lastUpdated": "2025-02-05T00:00:00Z"
+}

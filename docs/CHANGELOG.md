@@ -5,8 +5,22 @@ All notable changes to the Ramadan Guide project.
 ## [Unreleased]
 
 ### Added
+- **Accountability Partner System** (Phase 1)
+  - Privacy-preserving partner pairing via 6-character codes
+  - Partner dashboard (`/partner`) showing side-by-side progress comparison
+  - Partner connect page (`/partner/connect`) for code generation and entry
+  - PartnerWidget on home dashboard showing partner stats or "Add Partner" CTA
+  - API routes for connect, sync, and disconnect (`/api/partner/`)
+  - Daily stat sync: prayer count, hydration status, streak days
+  - Celebration messages when both partners complete all prayers
+  - Disconnect with confirmation modal
+  - Share partner code via Web Share API or clipboard
 - Comprehensive documentation (CLAUDE.md, README.md, ARCHITECTURE.md)
 - AI knowledge base for future developers and LLMs
+
+### Changed
+- Zustand store migrated to v6 (added `partnerStats`, `lastPartnerSync`, `getPrayerStreak()`)
+- More page navigation now includes "Accountability Partner" link
 
 ---
 
@@ -128,6 +142,7 @@ All notable changes to the Ramadan Guide project.
 | 3 | Added `userProfile` and `userMemory` |
 | 4 | Added health patterns, smart prompts, entry sources |
 | 5 | Added `customSchedule` for AI-generated routines |
+| 6 | Added `partnerStats`, `lastPartnerSync` for accountability partner |
 
 ### Upgrade Path
 
@@ -142,16 +157,19 @@ Zustand's persist middleware handles migrations automatically. When adding new s
 ## Future Considerations
 
 ### Potential Features
-- [ ] Community features (share achievements)
-- [ ] Masjid finder for Taraweeh
+- [x] Accountability partner (Phase 1 — code-based pairing)
+- [ ] Challenge rooms (anonymous themed challenges with leaderboards)
+- [ ] Streak celebrations (shareable milestone images)
+- [ ] Proactive check-ins (Coach Hamza initiates based on patterns)
+- [ ] Prayer quality (Khushu) tracking
+- [ ] Emotional state check before journal
 - [ ] Family/group tracking
-- [ ] Apple Watch / Wear OS app
-- [ ] Qibla compass
 - [ ] Multi-language support
 - [ ] Notification reminders
 
 ### Technical Debt
-- [ ] Add more Playwright tests
+- [ ] Migrate partner API from in-memory store to Vercel KV for production persistence
+- [ ] Add more Playwright tests (including partner flow)
 - [ ] Improve error boundaries
 - [ ] Add Sentry or error tracking
 - [ ] Optimize bundle size

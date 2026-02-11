@@ -66,12 +66,20 @@ This app provides AI-powered coaching, tracking, and guidance tailored to these 
 ```
 src/
 ├── app/                    # Next.js App Router pages
-│   ├── api/ai/            # AI API routes
+│   ├── api/
+│   │   ├── ai/            # AI API routes
+│   │   └── partner/       # Accountability partner API routes
+│   │       ├── connect/   # Partner code exchange
+│   │       ├── sync/      # Stats sync
+│   │       └── disconnect/# Remove connection
 │   ├── ask/               # Ask Coach Hamza (chat)
 │   ├── dashboard/         # Progress dashboard with charts
 │   ├── learn/             # Educational content
 │   ├── more/              # Settings, about, community
 │   ├── onboarding/        # 4-step onboarding wizard
+│   ├── partner/           # Accountability partner feature
+│   │   ├── page.tsx       # Partner dashboard
+│   │   └── connect/       # Generate/enter partner codes
 │   ├── prepare/           # Pre-Ramadan preparation
 │   └── tracker/           # Daily tracking features
 │       ├── journal/       # Daily journal entry
@@ -84,8 +92,12 @@ src/
 │   ├── ai/                # AI-powered components
 │   ├── health/            # Smart health tracking
 │   ├── schedule/          # Schedule builder wizard
-│   └── ui/                # Reusable UI components
+│   ├── ui/                # Reusable UI components
+│   └── PartnerWidget.tsx  # Home dashboard partner widget
 ├── lib/
+│   ├── accountability/    # Partner accountability system
+│   │   ├── types.ts       # Partner data structures
+│   │   └── sync.ts        # Stat sync, code generation
 │   ├── ai/                # AI client, prompts, caching
 │   │   ├── prompts/       # All AI prompt builders
 │   │   ├── client.ts      # OpenAI API wrapper
@@ -114,6 +126,8 @@ Central Zustand store with:
 - `UserMemory`: AI learning from conversations
 - `CustomSchedule`: AI-generated daily routine
 - `HealthPatterns`: Sleep/hydration analysis for smart suggestions
+- `partnerStats`: Accountability partner's synced stats
+- `getPrayerStreak()`: Consecutive days with all 5 prayers completed
 
 ### Phase System (`src/lib/ramadan.ts`)
 ```typescript
@@ -153,6 +167,27 @@ getCachedLocation()        // Returns cached coords
 getNextPrayer(times)       // Next prayer with countdown
 ```
 
+### Accountability Partner (`src/lib/accountability/`)
+Privacy-preserving partner system. Only aggregate stats are shared.
+
+**Types (`types.ts`)**:
+- `DailySync`: Data synced between partners (prayer count, hydration, streak)
+- `PartnerStats`: Received partner stats
+- `generatePartnerCode()`: Creates 6-char partner code (e.g., "FAJR7K")
+- `getOrCreateDeviceId()`: Anonymous device ID (no user accounts)
+
+**Sync (`sync.ts`)**:
+- `connectToPartner(code)`: Connect using partner's code
+- `disconnectFromPartner()`: Remove connection, clear local data
+- `syncWithPartner(myStats)`: Exchange daily stats with 1-hour throttle
+- `buildMySyncData(prayers, water, streak)`: Build sync payload
+
+**Privacy guarantees:**
+- No names, no prayer times, no personal details ever leave the device
+- Only 4 fields synced: prayerCount (0-5), hydrationOnTrack (bool), streak (number), timestamp
+- All partner data stored in localStorage, not in Zustand (connection state)
+- Users can disconnect at any time
+
 ---
 
 ## AI Prompt Guidelines
@@ -184,6 +219,7 @@ const phaseContext = phase === "ramadan"
 | Sahoor/Iftar Labels | Hidden | Yes | Hidden |
 | Qur'an Tracker | Yes | Yes | Yes |
 | Schedule Builder | Yes | Yes | Yes |
+| Partner Widget | Yes | Yes | Yes |
 
 ---
 
@@ -215,11 +251,12 @@ const RAMADAN_DATES = {
 
 ## Known Considerations
 
-1. **Offline-First**: All features should work without network (except AI calls)
-2. **Data Privacy**: All data stays in localStorage, never sent to servers except AI queries
+1. **Offline-First**: All features should work without network (except AI calls and partner sync)
+2. **Data Privacy**: All data stays in localStorage, never sent to servers except AI queries and partner aggregate stats
 3. **Cultural Sensitivity**: Content reviewed for Islamic authenticity
 4. **Accessibility**: Charts have aria-labels, proper contrast ratios
 5. **Mobile-First**: UI designed for phones, scales up for tablets/desktop
+6. **Partner Privacy**: Accountability partner only sees aggregate stats (prayer count, hydration status, streak). No names, no personal data.
 
 ---
 
@@ -239,18 +276,21 @@ npm run build       # Production build (catches type errors)
 The app is designed for Vercel deployment:
 - Static pages pre-rendered at build time
 - API routes for AI (optional, can use client-side with API key)
+- API routes for partner sync (in-memory store; replace with Vercel KV for production)
 - Service worker for offline PWA support
 
 ---
 
 ## Future Roadmap Ideas
 
-1. **Community Features**: Share achievements, find iftar partners
-2. **Masjid Finder**: Locate nearby mosques for Taraweeh
-3. **Family Mode**: Track multiple family members
-4. **Watch App**: Quick prayer check-off from smartwatch
-5. **Qibla Compass**: Direction finder for prayer
-6. **Multi-language**: Arabic, Urdu, Malay, Turkish support
+1. **Challenge Rooms**: Anonymous themed challenges (e.g., "30 Days of Fajr") with leaderboards
+2. **Streak Celebrations**: Animations + shareable images at milestones (3, 7, 10, 21, 30 days)
+3. **Proactive Check-ins**: Coach Hamza initiates based on declining patterns
+4. **Prayer Quality (Khushu) Tracking**: Post-prayer quality self-rating
+5. **Emotional State Check**: Quick mood pulse before journal entry
+6. **Persistent Partner Backend**: Replace in-memory API store with Vercel KV for production
+7. **Family Mode**: Track multiple family members
+8. **Multi-language**: Arabic, Urdu, Malay, Turkish support
 
 ---
 

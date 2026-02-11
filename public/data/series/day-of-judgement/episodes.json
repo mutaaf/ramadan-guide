@@ -1,0 +1,76 @@
+{
+  "seriesId": "day-of-judgement",
+  "episodes": [
+    {
+      "id": "doj-ep-01",
+      "seriesId": "day-of-judgement",
+      "episodeNumber": 1,
+      "title": "The Trumpet is Blown",
+      "duration": "47:20",
+      "youtubeUrl": "https://www.youtube.com/watch?v=example6",
+      "publishedAt": "2025-02-01T00:00:00Z"
+    },
+    {
+      "id": "doj-ep-02",
+      "seriesId": "day-of-judgement",
+      "episodeNumber": 2,
+      "title": "The Gathering of Mankind",
+      "duration": "44:15",
+      "youtubeUrl": "https://www.youtube.com/watch?v=example7",
+      "publishedAt": "2025-02-02T00:00:00Z"
+    },
+    {
+      "id": "doj-ep-03",
+      "seriesId": "day-of-judgement",
+      "episodeNumber": 3,
+      "title": "The Scales and the Bridge",
+      "duration": "43:25",
+      "youtubeUrl": "https://www.youtube.com/watch?v=example8",
+      "publishedAt": "2025-02-03T00:00:00Z"
+    }
+  ],
+  "companions": {
+    "doj-ep-01": {
+      "episodeId": "doj-ep-01",
+      "generatedAt": "2025-02-05T00:00:00Z",
+      "summary": "Abdul Rahman Murphy opens this powerful series by describing the moment the trumpet (As-Sur) is blown by the angel Israfil. This cataclysmic event marks the end of life as we know it. The lecture covers the two blows of the trumpet - the first causing all creation to perish, and the second bringing everyone back to life for judgment.",
+      "hadiths": [
+        {
+          "text": "The Messenger of Allah (SAW) said: 'How can I be at ease when the one with the horn has put it to his lips and tilted his forehead, listening and waiting to be commanded to blow it?'",
+          "source": "Jami at-Tirmidhi 2431",
+          "narrator": "Abu Hurayrah (RA)",
+          "context": "Used to establish the urgency and reality of the Day of Judgement - the angel is ready at this very moment."
+        }
+      ],
+      "verses": [
+        {
+          "arabic": "وَنُفِخَ فِي الصُّورِ فَصَعِقَ مَن فِي السَّمَاوَاتِ وَمَن فِي الْأَرْضِ إِلَّا مَن شَاءَ اللَّهُ",
+          "translation": "And the Trumpet will be blown, and whoever is in the heavens and whoever is on the earth will fall dead except whom Allah wills.",
+          "reference": "Surah Az-Zumar 39:68",
+          "context": "The central verse describing the first blowing of the trumpet and its devastating effect on all creation."
+        }
+      ],
+      "keyQuotes": [
+        {
+          "text": "The angel Israfil has not blinked since the day he was created. He is waiting. The question is: are we?",
+          "timestamp": "8:15"
+        },
+        {
+          "text": "Knowing the Day of Judgement is real should not paralyze you with fear - it should mobilize you with purpose.",
+          "timestamp": "35:40"
+        }
+      ],
+      "actionItems": [
+        { "text": "Before sleeping tonight, ask yourself: if the trumpet were blown now, am I ready?", "category": "spiritual" },
+        { "text": "Set a daily reminder to recite the dua for protection from the trials of the grave", "category": "practical" },
+        { "text": "Share the concept of accountability with someone who may benefit from it", "category": "social" },
+        { "text": "Read Surah Az-Zumar (39:68-75) with tafsir to understand the sequence of events", "category": "study" }
+      ],
+      "nextSteps": [
+        "Watch Episode 2 to learn what happens after all of mankind is resurrected",
+        "Reflect on how awareness of the Day of Judgement changes your daily priorities"
+      ],
+      "themes": ["trumpet", "israfil", "end-times", "accountability", "urgency"]
+    }
+  }
+}

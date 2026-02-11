@@ -11,6 +11,7 @@ const BOOK_PDF_URL = "https://drive.google.com/file/d/14dZVQGAeIvKDSNWyuHHARwkus
 
 const sections = [
   { href: "/ask", title: "Ask Coach Hamza", subtitle: "Your personal Ramadan Q&A", icon: "?" },
+  { href: "/partner", title: "Accountability Partner", subtitle: "Ramadan together, even when apart", icon: "👥" },
   { href: "/prepare", title: "Prepare", subtitle: "Checklist, transition, duaa", icon: "P" },
   { href: "/more/wellness", title: "Wellness", subtitle: "Health, self-care, mental health", icon: "W" },
   { href: "/more/community", title: "Community", subtitle: "Challenges & accountability", icon: "C" },

@@ -3,7 +3,6 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { QuickLogCard } from "./QuickLogCard";
-import { getConfidenceMessage } from "@/lib/health/patternDetector";
 import { triggerHaptic } from "@/hooks/useSmartPrompts";
 import type { HealthPatterns } from "@/lib/health/types";
 
@@ -11,7 +10,7 @@ interface HydrationQuickEntryProps {
   suggestedGlasses: number;
   currentGlasses: number;
   confidence: HealthPatterns["confidence"];
-  onAccept: (glasses: number) => void;
+  onChange?: (glasses: number) => void;
   onDismiss: () => void;
   maxGlasses?: number;
 }
@@ -25,34 +24,26 @@ export function HydrationQuickEntry({
   suggestedGlasses,
   currentGlasses,
   confidence,
-  onAccept,
+  onChange,
   onDismiss,
   maxGlasses = 8,
 }: HydrationQuickEntryProps) {
-  const [glasses, setGlasses] = useState(
-    currentGlasses > 0 ? currentGlasses : suggestedGlasses
-  );
+  const [glasses, setGlasses] = useState(currentGlasses);
 
   const handleGlassTap = useCallback((index: number) => {
     triggerHaptic('light');
     // Tap on a filled glass empties it and all after it
     // Tap on an empty glass fills it and all before it
     const isCurrentlyFilled = index < glasses;
-    if (isCurrentlyFilled) {
-      setGlasses(index);
-    } else {
-      setGlasses(index + 1);
-    }
-  }, [glasses]);
-
-  const handleAccept = useCallback(() => {
-    onAccept(glasses);
-  }, [glasses, onAccept]);
+    const newValue = isCurrentlyFilled ? index : index + 1;
+    setGlasses(newValue);
+    onChange?.(newValue);
+  }, [glasses, onChange]);
 
   return (
     <QuickLogCard
-      onAccept={handleAccept}
       onDismiss={onDismiss}
+      showActions={false}
     >
       <div className="flex items-start gap-3">
         <span className="text-2xl">💧</span>
@@ -77,7 +68,7 @@ export function HydrationQuickEntry({
                 <motion.button
                   key={i}
                   onClick={() => handleGlassTap(i)}
-                  className="relative w-7 h-9 rounded-md"
+                  className="relative flex-1 min-w-0 h-9 rounded-md"
                   style={{
                     background: isFilled
                       ? "var(--accent-blue)"
@@ -120,25 +111,14 @@ export function HydrationQuickEntry({
             })}
           </div>
 
-          <div className="flex items-center justify-between mt-2">
-            <p
-              className="text-xs"
-              style={{
-                color: "var(--muted)",
-                fontStyle: confidence === "medium" ? "italic" : "normal",
-              }}
-            >
-              {currentGlasses > 0
-                ? "Currently logged"
-                : getConfidenceMessage(confidence)}
-            </p>
-            <p
-              className="text-xs"
-              style={{ color: "var(--muted)", opacity: 0.7 }}
-            >
-              Tap to adjust
-            </p>
-          </div>
+          <p
+            className="text-xs mt-2"
+            style={{ color: "var(--muted)" }}
+          >
+            {currentGlasses > 0
+              ? "Currently logged · Tap to adjust"
+              : `Usually ${suggestedGlasses} glasses · Tap to fill`}
+          </p>
         </div>
       </div>
     </QuickLogCard>

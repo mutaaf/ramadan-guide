@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { systemPrompt, userPrompt, model, stream } = await req.json();
+    const { systemPrompt, userPrompt, model, stream, maxTokens } = await req.json();
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
             { role: "user", content: userPrompt },
           ],
           temperature: 0.7,
-          max_tokens: 1024,
+          max_tokens: maxTokens || 1024,
           stream: true,
         }),
       });
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
           { role: "user", content: userPrompt },
         ],
         temperature: 0.7,
-        max_tokens: 1024,
+        max_tokens: maxTokens || 1024,
         response_format: { type: "json_object" },
       }),
     });
