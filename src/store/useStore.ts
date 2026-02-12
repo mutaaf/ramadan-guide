@@ -15,6 +15,9 @@ import {
   DEFAULT_QUICK_LOG_ENGAGEMENT,
 } from "@/lib/health/types";
 
+export type RingId = "prayers" | "water" | "dhikr" | "quran" | "series";
+export const DEFAULT_ENABLED_RINGS: RingId[] = ["prayers", "water", "dhikr"];
+
 export type SportType = "football" | "basketball" | "soccer" | "track" | "swimming" | "mma" | "other" | "wellness";
 export type ExperienceLevel = "beginner" | "intermediate" | "experienced";
 export type FastingExperience = "first-time" | "some-years" | "many-years";
@@ -287,6 +290,10 @@ interface RamadanStore {
   toggleSaveActionItem: (item: { text: string; category: string; episodeId: string; seriesId: string; index: number }) => void;
   toggleActionItemComplete: (itemId: string) => void;
 
+  // Ring configuration
+  enabledRings: RingId[];
+  toggleRing: (ringId: RingId) => void;
+
   // Helper to calculate prayer streak
   getPrayerStreak: () => number;
 }
@@ -329,6 +336,9 @@ export const useStore = create<RamadanStore>()(
 
       // Series companion
       seriesUserData: createDefaultSeriesUserData(),
+
+      // Ring configuration
+      enabledRings: DEFAULT_ENABLED_RINGS as RingId[],
 
       setUser: (name, sport) => set({ userName: name, sport }),
       setOnboarded: (v) => set({ onboarded: v }),
@@ -688,6 +698,16 @@ export const useStore = create<RamadanStore>()(
           };
         }),
 
+      toggleRing: (ringId) =>
+        set((s) => {
+          const current = s.enabledRings;
+          if (current.includes(ringId)) {
+            if (current.length <= 1) return s;
+            return { enabledRings: current.filter((r) => r !== ringId) };
+          }
+          return { enabledRings: [...current, ringId] };
+        }),
+
       getPrayerStreak: () => {
         const state = get();
         const sortedDates = Object.keys(state.days).sort().reverse();
@@ -711,7 +731,7 @@ export const useStore = create<RamadanStore>()(
     }),
     {
       name: "ramadan-guide-storage",
-      version: 8,
+      version: 9,
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Record<string, unknown>;
         if (version === 0) {
@@ -776,6 +796,9 @@ export const useStore = create<RamadanStore>()(
           // Add savedActionItems to existing seriesUserData
           const sud = state.seriesUserData as Record<string, unknown>;
           if (!sud.savedActionItems) sud.savedActionItems = {};
+        }
+        if (version < 9) {
+          state.enabledRings = ["prayers", "water", "dhikr"];
         }
         return state as unknown as RamadanStore;
       },

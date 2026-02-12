@@ -11,6 +11,8 @@
   --accent-green: #2d6a4f;
   --accent-blue: #0071e3;
   --accent-teal: #147b7b;
+  --accent-violet: #8b5cf6;
+  --accent-rose: #f43f5e;
   --glass: rgba(255, 255, 255, 0.72);
   --glass-border: rgba(255, 255, 255, 0.18);
   --nav-bg: rgba(255, 255, 255, 0.72);
@@ -65,6 +67,8 @@
   --color-accent-green: var(--accent-green);
   --color-accent-blue: var(--accent-blue);
   --color-accent-teal: var(--accent-teal);
+  --color-accent-violet: var(--accent-violet);
+  --color-accent-rose: var(--accent-rose);
   --color-glass: var(--glass);
   --color-glass-border: var(--glass-border);
   --color-nav-bg: var(--nav-bg);

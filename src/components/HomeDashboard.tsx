@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/Card";
-import { useStore, createEmptyDay } from "@/store/useStore";
+import { useStore, createEmptyDay, type RingId } from "@/store/useStore";
+import { useSeriesIndex } from "@/lib/series/hooks";
 import { getTodayString } from "@/lib/ramadan";
 import {
   PrayerTimes,
@@ -25,10 +26,11 @@ import { WellnessRings } from "@/components/WellnessRings";
 import { PrayerToggles } from "@/components/PrayerToggles";
 
 export function HomeDashboard() {
-  const { userName, days, juzProgress, getTasbeehTotalForDay, seriesUserData } = useStore();
+  const { userName, days, juzProgress, getTasbeehTotalForDay, seriesUserData, enabledRings, toggleRing } = useStore();
   const [prayerTimes, setPrayerTimes] = useState<PrayerTimes | null>(null);
   const [locationError, setLocationError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showRingConfig, setShowRingConfig] = useState(false);
   const router = useRouter();
 
   const today = getTodayString();
@@ -36,6 +38,24 @@ export function HomeDashboard() {
   const dailyPrayerCount = [day.prayers.fajr, day.prayers.dhur, day.prayers.asr, day.prayers.maghrib, day.prayers.ishaa].filter(Boolean).length;
   const juzDone = juzProgress.filter((p) => p === 100).length;
   const tasbeehTotal = getTasbeehTotalForDay(today);
+
+  // Series data for rings
+  const { data: seriesIndex } = useSeriesIndex();
+  const completedEpisodeCount = Object.values(seriesUserData.completedEpisodes).filter(Boolean).length;
+  const seriesTotal = seriesIndex?.series.reduce((sum, s) => sum + s.episodeCount, 0) ?? 0;
+
+  // Auto-enable rings based on user progress (run once on mount)
+  const autoEnableRan = useRef(false);
+  useEffect(() => {
+    if (autoEnableRan.current) return;
+    autoEnableRan.current = true;
+    if (juzDone > 0 && !enabledRings.includes("quran")) {
+      toggleRing("quran");
+    }
+    if (completedEpisodeCount > 0 && !enabledRings.includes("series")) {
+      toggleRing("series");
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchPrayerTimes() {
@@ -87,7 +107,7 @@ export function HomeDashboard() {
       color: "var(--accent-gold)",
       bg: "var(--selected-gold-bg)",
       icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 20h9" />
           <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
         </svg>
@@ -99,7 +119,7 @@ export function HomeDashboard() {
       color: "var(--accent-teal, #2dd4bf)",
       bg: "rgba(45, 212, 191, 0.12)",
       icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" />
           <circle cx="12" cy="12" r="3" />
           <path d="M12 2v3" /><path d="M12 19v3" />
@@ -113,7 +133,7 @@ export function HomeDashboard() {
       color: "var(--accent-blue, #60a5fa)",
       bg: "rgba(96, 165, 250, 0.12)",
       icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
           <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
         </svg>
@@ -125,7 +145,7 @@ export function HomeDashboard() {
       color: "var(--accent-gold)",
       bg: "var(--selected-gold-bg)",
       icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
       ),
@@ -199,16 +219,74 @@ export function HomeDashboard() {
           transition={{ delay: 0.15 }}
         >
           <Card>
-            <p
-              className="text-xs font-medium uppercase tracking-wider mb-3 px-1"
-              style={{ color: "var(--accent-gold)" }}
-            >
-              Today&apos;s Wellness
-            </p>
+            <div className="flex items-center justify-between mb-3 px-1">
+              <p
+                className="text-xs font-medium uppercase tracking-wider"
+                style={{ color: "var(--accent-gold)" }}
+              >
+                Today&apos;s Wellness
+              </p>
+              <button
+                onClick={() => setShowRingConfig((v) => !v)}
+                className="inline-link w-7 h-7 flex items-center justify-center rounded-full"
+                style={{ color: "var(--muted)", background: showRingConfig ? "var(--surface-1)" : "transparent" }}
+                aria-label="Configure rings"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Ring config toggle pills */}
+            <AnimatePresence>
+              {showRingConfig && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
+                    {(
+                      [
+                        { id: "prayers" as RingId, label: "Prayers", color: "#c9a84c" },
+                        { id: "water" as RingId, label: "Water", color: "#3b82f6" },
+                        { id: "dhikr" as RingId, label: "Dhikr", color: "#14b8a6" },
+                        { id: "quran" as RingId, label: "Qur'an", color: "#7c3aed" },
+                        { id: "series" as RingId, label: "Series", color: "#e11d48" },
+                      ] as const
+                    ).map((pill) => {
+                      const active = enabledRings.includes(pill.id);
+                      return (
+                        <button
+                          key={pill.id}
+                          onClick={() => toggleRing(pill.id)}
+                          className="inline-link text-[11px] font-medium px-3 py-1 rounded-full transition-all"
+                          style={{
+                            background: active ? `${pill.color}20` : "var(--surface-1)",
+                            color: active ? pill.color : "var(--muted)",
+                            border: `1px solid ${active ? `${pill.color}40` : "transparent"}`,
+                          }}
+                        >
+                          {pill.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <WellnessRings
               prayers={dailyPrayerCount}
               hydration={day.glassesOfWater}
               dhikr={tasbeehTotal}
+              quranJuz={juzDone}
+              seriesCompleted={completedEpisodeCount}
+              seriesTotal={seriesTotal}
               onTap={() => router.push("/tracker")}
             />
             <div className="mt-4 pt-3" style={{ borderTop: "1px solid var(--card-border)" }}>
@@ -226,29 +304,33 @@ export function HomeDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <p
-            className="text-xs font-medium uppercase tracking-wider mb-2 px-1"
-            style={{ color: "var(--accent-gold)" }}
-          >
-            Quick Actions
-          </p>
-          <div className="flex gap-2.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-            {quickActions.map((action) => (
-              <Link key={action.href} href={action.href} className="shrink-0">
-                <Card asLink className="flex flex-col items-center py-3 px-5 w-[80px]">
+          <Card>
+            <p
+              className="text-xs font-medium uppercase tracking-wider mb-3 px-1"
+              style={{ color: "var(--accent-gold)" }}
+            >
+              Quick Actions
+            </p>
+            <div className="grid grid-cols-4 gap-3">
+              {quickActions.map((action) => (
+                <Link
+                  key={action.href}
+                  href={action.href}
+                  className="flex flex-col items-center gap-1.5 py-2 rounded-xl active:scale-95 transition-transform"
+                >
                   <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center mb-1.5"
+                    className="w-11 h-11 rounded-full flex items-center justify-center"
                     style={{ background: action.bg, color: action.color }}
                   >
                     {action.icon}
                   </div>
-                  <p className="text-[10px] font-medium" style={{ color: "var(--muted)" }}>
+                  <p className="text-[11px] font-medium" style={{ color: "var(--muted)" }}>
                     {action.label}
                   </p>
-                </Card>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          </Card>
         </motion.div>
 
         <PartnerWidget />
