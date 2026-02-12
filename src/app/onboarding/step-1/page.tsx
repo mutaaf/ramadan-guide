@@ -14,6 +14,7 @@ const SPORTS: { value: SportType; label: string; icon: string }[] = [
   { value: "swimming", label: "Swimming", icon: "🏊" },
   { value: "mma", label: "MMA / Combat", icon: "🥊" },
   { value: "other", label: "Other Sport", icon: "💪" },
+  { value: "wellness", label: "General Wellness", icon: "🌿" },
 ];
 
 export default function OnboardingStep1() {
@@ -80,7 +81,7 @@ export default function OnboardingStep1() {
         {/* Sport Selection */}
         <div>
           <label className="block text-xs font-medium uppercase tracking-wider mb-3" style={{ color: "var(--accent-gold)" }}>
-            What&apos;s your sport?
+            What&apos;s your focus?
           </label>
           <div className="grid grid-cols-2 gap-2">
             {SPORTS.map((s) => (

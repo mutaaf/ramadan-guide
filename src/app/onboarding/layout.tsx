@@ -19,33 +19,37 @@ export default function OnboardingLayout({
   const currentStepIndex = STEPS.findIndex((s) => s.path === pathname);
   const progress = currentStepIndex >= 0 ? ((currentStepIndex + 1) / STEPS.length) * 100 : 0;
 
+  const isTourPage = currentStepIndex === 0;
+
   return (
     <div className="min-h-dvh flex flex-col">
-      {/* Progress bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 safe-top">
-        <div
-          className="h-1"
-          style={{ background: "var(--surface-1)" }}
-        >
+      {/* Progress bar — hidden on tour page (it has its own dot indicators) */}
+      {!isTourPage && (
+        <div className="fixed top-0 left-0 right-0 z-50 safe-top">
           <div
-            className="h-full transition-all duration-500 ease-out"
-            style={{
-              width: `${progress}%`,
-              background: "linear-gradient(90deg, #c9a84c, #e8c75a)",
-            }}
-          />
-        </div>
-        {currentStepIndex > 0 && (
-          <div className="px-4 py-2">
-            <p className="text-xs font-medium" style={{ color: "var(--muted)" }}>
-              Step {currentStepIndex} of {STEPS.length - 1}
-            </p>
+            className="h-1"
+            style={{ background: "var(--surface-1)" }}
+          >
+            <div
+              className="h-full transition-all duration-500 ease-out"
+              style={{
+                width: `${progress}%`,
+                background: "linear-gradient(90deg, #c9a84c, #e8c75a)",
+              }}
+            />
           </div>
-        )}
-      </div>
+          {currentStepIndex > 0 && (
+            <div className="px-4 py-2">
+              <p className="text-xs font-medium" style={{ color: "var(--muted)" }}>
+                Step {currentStepIndex} of {STEPS.length - 1}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Content */}
-      <div className="flex-1 pt-12">
+      <div className={`flex-1 ${isTourPage ? "" : "pt-12"}`}>
         {children}
       </div>
 

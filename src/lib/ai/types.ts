@@ -290,7 +290,7 @@ export interface AIInsightsOutput {
 export interface ScheduleGenerationInput {
   sport: string;
   trainingIntensity: string;
-  occupation: "student" | "working" | "athlete" | "flexible";
+  occupation: "student" | "working" | "athlete" | "flexible" | "practicing";
   workHours?: string;
   preferredTime: "morning" | "afternoon" | "evening" | "flexible";
   sessionLength: string;

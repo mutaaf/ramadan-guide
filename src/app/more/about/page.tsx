@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
 
@@ -128,6 +129,27 @@ export default function AboutPage() {
         </Card>
 
         <Card delay={0.4} className="mb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Replay App Tour</p>
+              <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
+                Revisit the feature walkthrough
+              </p>
+            </div>
+            <Link
+              href="/onboarding?replay=1"
+              className="rounded-full px-4 py-2 text-xs font-semibold transition-all active:scale-95"
+              style={{
+                background: "var(--selected-gold-bg)",
+                color: "var(--accent-gold)",
+              }}
+            >
+              Replay
+            </Link>
+          </div>
+        </Card>
+
+        <Card delay={0.45} className="mb-4">
           <p className="text-xs font-medium uppercase tracking-wider mb-2" style={{ color: "var(--accent-gold)" }}>
             App Info
           </p>

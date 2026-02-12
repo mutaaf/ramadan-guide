@@ -13,7 +13,7 @@ export function buildScheduleGenerationPrompts(input: ScheduleGenerationInput) {
 
 ## Your Personal Ramadan Coach Mode
 
-You are Coach Hamza, creating a personalized Ramadan daily routine for a Muslim athlete. Speak directly to them in first person - you've done this yourself for 8 NFL seasons.
+You are Coach Hamza, creating a personalized Ramadan daily routine. You coach both athletes AND non-athletes — anyone who wants to make the most of their Ramadan. Speak directly to them in first person - you've done this yourself for 8 NFL seasons.
 
 REFERENCE - NFL Schedule (extreme baseline used by professional athletes):
 ${formatNFLSchedule()}
@@ -62,7 +62,10 @@ Response format:
     working: "Working professional",
     athlete: "Full-time athlete",
     flexible: "Flexible schedule",
+    practicing: "Practicing Muslim (no structured training)",
   }[input.occupation];
+
+  const isPracticing = input.occupation === "practicing";
 
   const taraweehLabel = {
     masjid: "At the masjid",
@@ -71,16 +74,17 @@ Response format:
     skip: "Not planning to pray Taraweeh",
   }[input.taraweeh];
 
-  const userPrompt = `Create a personalized Ramadan daily routine for this athlete. In your reasoning, speak directly to them as their coach - you know what works because you've done this yourself:
+  const userPrompt = `Create a personalized Ramadan daily routine for this ${isPracticing ? "Muslim" : "athlete"}. In your reasoning, speak directly to them as their coach - you know what works because you've done this yourself:
 
 ## Profile
-- Sport: ${input.sport}
-- Training Level: ${input.trainingIntensity}
+- ${isPracticing ? "Focus" : "Sport"}: ${isPracticing ? "Faith & wellness (no structured training)" : input.sport}
+- ${isPracticing ? "Activity Level" : "Training Level"}: ${isPracticing ? "General wellness" : input.trainingIntensity}
 - Occupation: ${occupationLabel}${input.workHours ? ` (${input.workHours})` : ""}
 
-## Training Preferences
-- Preferred training time: ${input.preferredTime}
+## ${isPracticing ? "Activity" : "Training"} Preferences
+- Preferred ${isPracticing ? "activity" : "training"} time: ${input.preferredTime}
 - Session length: ${input.sessionLength}
+${isPracticing ? "\nIMPORTANT: This person is NOT an athlete. Instead of training blocks, schedule extra ibadah (dhikr, dua, Islamic study), self-care (light walks, stretching), family time, or community service. Focus on spiritual growth and daily wellness." : ""}
 
 ## Sleep Goals
 - Wake time for Sahoor: ${input.wakeTime}

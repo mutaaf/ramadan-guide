@@ -16,6 +16,7 @@ const SPORT_MESSAGES: Record<string, string> = {
   swimming: "Hydration is your biggest challenge, but we'll master it together. Your strokes will feel even more purposeful.",
   mma: "The mental strength you build in Ramadan? That's your secret weapon in the cage or ring.",
   other: "Whatever your sport, the principles are the same: prepare well, train smart, and trust in Allah's plan.",
+  wellness: "You don't need to be a pro athlete to train your body and soul. The discipline of Ramadan will strengthen every part of your life.",
 };
 
 export default function OnboardingStep4() {

@@ -29,6 +29,7 @@ const OCCUPATION_OPTIONS = [
   { value: "working", label: "Working", description: "9-5 or similar job schedule" },
   { value: "athlete", label: "Full-time Athlete", description: "Training is my main focus" },
   { value: "flexible", label: "Flexible/Other", description: "Work from home, freelance, etc." },
+  { value: "practicing", label: "Practicing Muslim", description: "Faith-focused, no structured training" },
 ] as const;
 
 const TRAINING_TIME_OPTIONS = [
@@ -272,6 +273,7 @@ export function ScheduleWizard() {
           apiKey,
           useApiRoute,
           modelOverride: aiModelPreference || undefined,
+          maxTokens: 2048,
         }
       );
       setGeneratedSchedule(result.data);

@@ -15,7 +15,7 @@ import {
   DEFAULT_QUICK_LOG_ENGAGEMENT,
 } from "@/lib/health/types";
 
-export type SportType = "football" | "basketball" | "soccer" | "track" | "swimming" | "mma" | "other";
+export type SportType = "football" | "basketball" | "soccer" | "track" | "swimming" | "mma" | "other" | "wellness";
 export type ExperienceLevel = "beginner" | "intermediate" | "experienced";
 export type FastingExperience = "first-time" | "some-years" | "many-years";
 export type TrainingIntensity = "recreational" | "competitive" | "professional";
@@ -147,7 +147,7 @@ export interface ScheduleBlock {
 }
 
 export interface ScheduleWizardAnswers {
-  occupation: "student" | "working" | "athlete" | "flexible";
+  occupation: "student" | "working" | "athlete" | "flexible" | "practicing";
   workHours?: string;
   preferredTrainingTime: "morning" | "afternoon" | "evening" | "flexible";
   sessionLength: string;
