@@ -7,7 +7,7 @@ import { Card } from "@/components/Card";
 export default function AboutPage() {
   return (
     <div>
-      <PageHeader title="About" subtitle="Coach Hamza & this guide" back="/more" />
+      <PageHeader title="About" subtitle="Ramadan Companion" back="/more" />
 
       <div className="px-6 pb-8">
         {/* Download Book Card */}
@@ -84,20 +84,19 @@ export default function AboutPage() {
             About This App
           </p>
           <p className="text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
-            This interactive guide is based on &ldquo;Coach Hamza&apos;s Guide for Athletes...in
-            Ramadan&rdquo; by Hamza Abdullah. It was built as a free digital companion to help
-            athletes on their Ramadan journey.
+            Ramadan Companion was created by Mutaaf Aziz as a free tool to help athletes navigate
+            Ramadan with confidence. Content and coaching methodology are inspired by &ldquo;Coach
+            Hamza&apos;s Guide for Athletes...in Ramadan&rdquo; by Hamza Abdullah.
           </p>
           <p className="text-sm leading-relaxed mt-2" style={{ color: "var(--muted)" }}>
-            All content faithfully represents Coach Hamza&apos;s original work. Qur&apos;anic
-            references use the M.A.S. Abdel Haleem translation (Oxford University Press). Hadith
-            references from sunnah.com.
+            Qur&apos;anic references use the M.A.S. Abdel Haleem translation (Oxford University
+            Press). Hadith references from sunnah.com.
           </p>
         </Card>
 
         <Card delay={0.3} className="mb-4">
           <p className="text-xs font-medium uppercase tracking-wider mb-3" style={{ color: "var(--accent-gold)" }}>
-            Connect
+            Coach Hamza &middot; ProBigBros
           </p>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -171,10 +170,10 @@ export default function AboutPage() {
 
         <div className="text-center mt-6">
           <p className="text-xs" style={{ color: "var(--muted)" }}>
-            Copyright &copy; 2024 Hamza Abdullah. All rights reserved.
+            Ramadan Companion &copy; {new Date().getFullYear()} Mutaaf Aziz
           </p>
           <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>
-            Pro Big Bros LLC
+            Coaching content by Coach Hamza Abdullah &middot; Pro Big Bros LLC
           </p>
         </div>
       </div>

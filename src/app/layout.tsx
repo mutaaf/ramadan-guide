@@ -32,17 +32,15 @@ export const metadata: Metadata = {
     "athletes",
     "Muslim",
     "Islam",
-    "Hamza Abdullah",
-    "NFL",
     "hydration",
     "nutrition",
     "prayer tracker",
     "Quran",
-    "Ramadan coach",
+    "Ramadan app",
+    "dhikr",
   ],
-  authors: [{ name: "Hamza Abdullah", url: "https://probigbros.com" }],
-  creator: "Hamza Abdullah",
-  publisher: "Pro Big Bros LLC",
+  authors: [{ name: "Mutaaf Aziz" }],
+  creator: "Mutaaf Aziz",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -72,7 +70,7 @@ export const metadata: Metadata = {
     description:
       "Track prayers, Qur'an, hydration & dhikr with AI coaching. Everything for your best Ramadan — free & private.",
     images: ["/icon-512.png"],
-    creator: "@ProBigBros",
+    creator: "@mutaafaziz",
   },
   robots: {
     index: true,
@@ -120,14 +118,7 @@ export default function RootLayout({
     operatingSystem: "Any",
     author: {
       "@type": "Person",
-      name: "Hamza Abdullah",
-      jobTitle: "Retired NFL Player & Ramadan Coach",
-      url: "https://probigbros.com",
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "Pro Big Bros LLC",
-      url: "https://probigbros.com",
+      name: "Mutaaf Aziz",
     },
     offers: {
       "@type": "Offer",

@@ -1,7 +1,7 @@
 {
-  "name": "Your Personal Ramadan Coach - by Coach Hamza",
-  "short_name": "Ramadan Coach",
-  "description": "Your personal Ramadan coach for athletes — by Hamza Abdullah, retired NFL player",
+  "name": "Ramadan Companion",
+  "short_name": "Ramadan",
+  "description": "Track prayers, Qur'an, hydration & dhikr with AI-powered coaching. Your all-in-one Ramadan app.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
