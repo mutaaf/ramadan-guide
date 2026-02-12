@@ -21,11 +21,11 @@ const siteUrl = "https://ramadan-guide.vercel.app";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Your Personal Ramadan Coach",
-    template: "%s | Ramadan Coach",
+    default: "Ramadan Companion — Your All-in-One Ramadan App",
+    template: "%s | Ramadan Companion",
   },
   description:
-    "Your personal Ramadan coach for athletes — by Coach Hamza Abdullah, retired NFL player. Track prayers, hydration, nutrition, and build your personalized routine.",
+    "Track prayers, Qur'an, hydration & dhikr. Get AI-powered coaching, daily reminders, and a personalized Ramadan routine — all in one beautiful app. Free.",
   keywords: [
     "Ramadan",
     "fasting",
@@ -47,30 +47,30 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Ramadan Coach",
+    title: "Ramadan Companion",
   },
   openGraph: {
     type: "website",
     locale: "en_US",
     url: siteUrl,
-    siteName: "Your Personal Ramadan Coach",
-    title: "Your Personal Ramadan Coach - by Coach Hamza",
+    siteName: "Ramadan Companion",
+    title: "Ramadan Companion — Prayers, Qur'an, Dhikr & AI Coaching",
     description:
-      "Your personal Ramadan coach for athletes — by Coach Hamza Abdullah, retired NFL player.",
+      "Everything you need for your best Ramadan yet. Track prayers, Qur'an progress, hydration & dhikr — with AI-powered daily coaching. Free & private.",
     images: [
       {
         url: "/icon-512.png",
         width: 512,
         height: 512,
-        alt: "Your Personal Ramadan Coach Logo",
+        alt: "Ramadan Companion App",
       },
     ],
   },
   twitter: {
     card: "summary",
-    title: "Your Personal Ramadan Coach",
+    title: "Ramadan Companion — Your All-in-One Ramadan App",
     description:
-      "Your personal Ramadan coach for athletes — by Coach Hamza Abdullah, retired NFL player.",
+      "Track prayers, Qur'an, hydration & dhikr with AI coaching. Everything for your best Ramadan — free & private.",
     images: ["/icon-512.png"],
     creator: "@ProBigBros",
   },
@@ -112,9 +112,9 @@ export default function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "Your Personal Ramadan Coach",
+    name: "Ramadan Companion",
     description:
-      "Your personal Ramadan coach for athletes — by Coach Hamza Abdullah, retired NFL player.",
+      "Track prayers, Qur'an, hydration & dhikr with AI-powered coaching. Everything for your best Ramadan.",
     url: siteUrl,
     applicationCategory: "HealthApplication",
     operatingSystem: "Any",
