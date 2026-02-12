@@ -5,12 +5,14 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/Card";
 import { useAdminStore } from "@/lib/series/admin-store";
 import { ScholarForm } from "@/components/series/admin/ScholarForm";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { Scholar } from "@/lib/series/types";
 
 export default function ScholarsPage() {
   const { scholars, addScholar, updateScholar, removeScholar } = useAdminStore();
   const [editing, setEditing] = useState<Scholar | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Scholar | null>(null);
 
   const handleSave = (scholar: Scholar) => {
     if (editing) {
@@ -62,7 +64,7 @@ export default function ScholarsPage() {
                   Edit
                 </button>
                 <button
-                  onClick={() => removeScholar(scholar.id)}
+                  onClick={() => setDeleteTarget(scholar)}
                   className="text-xs px-2 py-1 rounded"
                   style={{ background: "rgba(239, 68, 68, 0.12)", color: "#ef4444" }}
                 >
@@ -79,6 +81,19 @@ export default function ScholarsPage() {
           No scholars yet. Add your first scholar to get started.
         </p>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Scholar"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={() => {
+          if (deleteTarget) removeScholar(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

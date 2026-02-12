@@ -15,7 +15,7 @@ export default function PreparePage() {
   return (
     <div>
       <PageHeader title="Prepare" subtitle="Get ready before Ramadan begins" />
-      <div className="px-6 pb-8 space-y-3">
+      <div className="px-6 pb-8 space-y-2">
         {sections.map((s, i) => (
           <Link key={s.href} href={s.href}>
             <Card delay={i * 0.08} className="flex items-center gap-4">

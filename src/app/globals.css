@@ -13,7 +13,7 @@
   --accent-teal: #147b7b;
   --glass: rgba(255, 255, 255, 0.72);
   --glass-border: rgba(255, 255, 255, 0.18);
-  --nav-bg: rgba(255, 255, 255, 0.88);
+  --nav-bg: rgba(255, 255, 255, 0.72);
   --surface-1: #f5f5f7;
   --surface-2: #e8e8ed;
   --ring-track: #e8e8ed;
@@ -40,7 +40,7 @@
     --muted: #98989d;
     --glass: rgba(37, 37, 40, 0.85);
     --glass-border: rgba(255, 255, 255, 0.06);
-    --nav-bg: rgba(26, 26, 28, 0.92);
+    --nav-bg: rgba(26, 26, 28, 0.78);
     --surface-1: #2a2a2d;
     --surface-2: #38383b;
     --ring-track: #38383b;
@@ -134,7 +134,7 @@ body {
 }
 
 .safe-bottom {
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 64px);
 }
 
 @media (min-width: 768px) {

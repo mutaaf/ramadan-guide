@@ -25,7 +25,7 @@ export function EpisodeCard({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-transform"
+        className="rounded-2xl p-4 py-[18px] cursor-pointer active:scale-[0.98] transition-transform"
         style={{
           background: "var(--card)",
           border: isCompleted ? "1px solid var(--accent-gold)" : "1px solid var(--card-border)",

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAdminStore } from "@/lib/series/admin-store";
 import type { Series } from "@/lib/series/types";
+import { validateRequired, type FieldErrors } from "@/lib/series/validation";
 
 interface SeriesFormProps {
   initial?: Series;
@@ -18,9 +19,20 @@ export function SeriesForm({ initial, onSave, onCancel }: SeriesFormProps) {
   const [tags, setTags] = useState(initial?.tags?.join(", ") ?? "");
   const [totalDuration, setTotalDuration] = useState(initial?.totalDuration ?? "");
   const [status, setStatus] = useState<"draft" | "published">(initial?.status ?? "draft");
+  const [errors, setErrors] = useState<FieldErrors>({});
+
+  const validate = (): boolean => {
+    const e: FieldErrors = {
+      title: validateRequired(title, "Title"),
+      scholarId: validateRequired(scholarId, "Scholar"),
+    };
+    setErrors(e);
+    return !Object.values(e).some(Boolean);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
     onSave({
       title,
       scholarId,
@@ -38,25 +50,25 @@ export function SeriesForm({ initial, onSave, onCancel }: SeriesFormProps) {
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          required
           className="w-full text-sm rounded-lg px-3 py-2"
-          style={{ background: "var(--surface-1)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
+          style={{ background: "var(--surface-1)", border: `1px solid ${errors.title ? "#ef4444" : "var(--card-border)"}`, color: "var(--foreground)" }}
         />
+        {errors.title && <p className="text-[11px] mt-0.5" style={{ color: "#ef4444" }}>{errors.title}</p>}
       </div>
       <div>
         <label className="text-[11px] font-medium block mb-1" style={{ color: "var(--muted)" }}>Scholar</label>
         <select
           value={scholarId}
           onChange={(e) => setScholarId(e.target.value)}
-          required
           className="w-full text-sm rounded-lg px-3 py-2"
-          style={{ background: "var(--surface-1)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
+          style={{ background: "var(--surface-1)", border: `1px solid ${errors.scholarId ? "#ef4444" : "var(--card-border)"}`, color: "var(--foreground)" }}
         >
           <option value="">Select scholar...</option>
           {scholars.map((s) => (
             <option key={s.id} value={s.id}>{s.name}</option>
           ))}
         </select>
+        {errors.scholarId && <p className="text-[11px] mt-0.5" style={{ color: "#ef4444" }}>{errors.scholarId}</p>}
       </div>
       <div>
         <label className="text-[11px] font-medium block mb-1" style={{ color: "var(--muted)" }}>Description</label>
@@ -97,8 +109,8 @@ export function SeriesForm({ initial, onSave, onCancel }: SeriesFormProps) {
           className="w-full text-sm rounded-lg px-3 py-2"
           style={{ background: "var(--surface-1)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
         >
-          <option value="draft">Draft</option>
-          <option value="published">Published</option>
+          <option value="draft">Hidden</option>
+          <option value="published">Live</option>
         </select>
       </div>
       <div className="flex gap-2 pt-2">

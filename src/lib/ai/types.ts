@@ -14,7 +14,10 @@ export type AIFeature =
   | "ai-insights"
   | "schedule-generation"
   | "companion-generation"
-  | "companion-polish";
+  | "companion-polish"
+  | "companion-section-regen"
+  | "companion-cross-episode"
+  | "action-guidance";
 
 // ── Cache ─────────────────────────────────────────────────────────────
 export interface CacheEntry {
@@ -39,6 +42,9 @@ export const FEATURE_TTL: Record<AIFeature, number> = {
   "schedule-generation": 0, // no cache - always fresh
   "companion-generation": 0, // no cache - admin generates once
   "companion-polish": 0, // no cache
+  "companion-section-regen": 0, // no cache
+  "companion-cross-episode": 0, // no cache
+  "action-guidance": 12 * 60 * 60 * 1000, // 12h
 };
 
 export const FEATURE_MODEL: Record<AIFeature, string> = {
@@ -54,6 +60,9 @@ export const FEATURE_MODEL: Record<AIFeature, string> = {
   "schedule-generation": "gpt-4o-mini",
   "companion-generation": "gpt-4o",
   "companion-polish": "gpt-4o-mini",
+  "companion-section-regen": "gpt-4o",
+  "companion-cross-episode": "gpt-4o-mini",
+  "action-guidance": "gpt-4o-mini",
 };
 
 // ── Transport ─────────────────────────────────────────────────────────
@@ -308,4 +317,20 @@ export interface ScheduleGenerationOutput {
   }[];
   reasoning: string;
   tips: string[];
+}
+
+// ── Feature 11: Action Guidance ─────────────────────────────────────
+export interface ActionGuidanceInput {
+  pendingActions: { text: string; category: string }[];
+  completedCount: number;
+  totalCount: number;
+  userName: string;
+  sport: string;
+  dayOfRamadan: number;
+}
+
+export interface ActionGuidanceOutput {
+  priorityAction: { action: string; why: string; howToday: string };
+  tips: string[];
+  motivation: string;
 }

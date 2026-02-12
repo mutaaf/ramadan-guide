@@ -20,6 +20,7 @@ import { DailyWisdom } from "@/components/DailyWisdom";
 import { AIInsights } from "@/components/ai/AIInsights";
 import { QuickLogWidget } from "@/components/health/QuickLogWidget";
 import { PartnerWidget } from "@/components/PartnerWidget";
+import { SavedActionsCard } from "@/components/series/SavedActionsCard";
 import { WellnessRings } from "@/components/WellnessRings";
 import { PrayerToggles } from "@/components/PrayerToggles";
 
@@ -231,10 +232,10 @@ export function HomeDashboard() {
           >
             Quick Actions
           </p>
-          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+          <div className="flex gap-2.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
             {quickActions.map((action) => (
               <Link key={action.href} href={action.href} className="shrink-0">
-                <Card asLink className="flex flex-col items-center py-3 px-5 w-[76px]">
+                <Card asLink className="flex flex-col items-center py-3 px-5 w-[80px]">
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center mb-1.5"
                     style={{ background: action.bg, color: action.color }}
@@ -251,6 +252,9 @@ export function HomeDashboard() {
         </motion.div>
 
         <PartnerWidget />
+
+        {/* My Actions — saved action items from series */}
+        <SavedActionsCard />
 
         {/* Continue Watching — Series Companion */}
         {seriesUserData.lastViewed && (

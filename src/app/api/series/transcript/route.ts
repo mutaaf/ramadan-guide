@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const transcriptCache = new Map<string, { data: string; fetchedAt: number }>();
+
 export async function POST(req: NextRequest) {
   try {
     const { youtubeUrl } = await req.json();
@@ -14,8 +17,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid YouTube URL" }, { status: 400 });
     }
 
+    // Check cache
+    const cached = transcriptCache.get(videoId);
+    if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
+      return NextResponse.json({ transcript: cached.data, videoId });
+    }
+
     // Fetch the YouTube page to get captions
     const transcript = await fetchTranscript(videoId);
+
+    // Store in cache
+    transcriptCache.set(videoId, { data: transcript, fetchedAt: Date.now() });
 
     return NextResponse.json({ transcript, videoId });
   } catch (err) {

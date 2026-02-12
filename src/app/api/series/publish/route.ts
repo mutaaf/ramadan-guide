@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
+import { writeFile, mkdir } from "fs/promises";
+import path from "path";
 import type { SeriesIndex, SeriesEpisodeData } from "@/lib/series/types";
 
 export async function POST(req: NextRequest) {
@@ -35,10 +37,12 @@ export async function POST(req: NextRequest) {
     const files: { path: string; url: string }[] = [];
 
     // Upload series index
+    const blobOpts = { access: "public" as const, addRandomSuffix: false, allowOverwrite: true, contentType: "application/json" };
+
     const indexBlob = await put(
       "series/series-index.json",
       JSON.stringify(index),
-      { access: "public", addRandomSuffix: false, contentType: "application/json" }
+      blobOpts
     );
     files.push({ path: "series/series-index.json", url: indexBlob.url });
 
@@ -48,9 +52,23 @@ export async function POST(req: NextRequest) {
       const blob = await put(
         blobPath,
         JSON.stringify(data),
-        { access: "public", addRandomSuffix: false, contentType: "application/json" }
+        blobOpts
       );
       files.push({ path: blobPath, url: blob.url });
+    }
+
+    // Also update static fallback files (works in dev; no-ops on read-only prod FS)
+    try {
+      const publicDir = path.join(process.cwd(), "public", "data", "series");
+      await mkdir(publicDir, { recursive: true });
+      await writeFile(path.join(publicDir, "series-index.json"), JSON.stringify(index, null, 2));
+      for (const [sid, data] of Object.entries(seriesData)) {
+        const seriesDir = path.join(publicDir, sid);
+        await mkdir(seriesDir, { recursive: true });
+        await writeFile(path.join(seriesDir, "episodes.json"), JSON.stringify(data, null, 2));
+      }
+    } catch {
+      // Filesystem write failed (e.g. read-only in production) — non-critical
     }
 
     const publishedAt = new Date().toISOString();

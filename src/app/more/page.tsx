@@ -26,7 +26,7 @@ export default function MorePage() {
   return (
     <div>
       <PageHeader title="More" subtitle="Resources, wellness, and community" />
-      <div className="px-6 lg:px-8 pb-8 space-y-3 lg:space-y-4">
+      <div className="px-6 lg:px-8 pb-8 space-y-2 lg:space-y-3">
         {/* AI Settings */}
         <Card delay={0} className="flex items-center gap-4 lg:gap-5" onClick={() => setShowSettings(true)}>
           <div

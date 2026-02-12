@@ -2,13 +2,37 @@ import type { SeriesIndex, SeriesEpisodeData } from "./types";
 
 const cache = new Map<string, { data: unknown; fetchedAt: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const PUBLISH_TS_KEY = "series-last-published-at";
 
 const BLOB_BASE = process.env.NEXT_PUBLIC_BLOB_BASE_URL;
+
+/**
+ * Signal that data was just published.
+ * Clears in-memory cache and writes a localStorage timestamp
+ * so other tabs / future navigations also bypass stale data.
+ */
+export function invalidateSeriesCache() {
+  cache.clear();
+  if (typeof window !== "undefined") {
+    localStorage.setItem(PUBLISH_TS_KEY, Date.now().toString());
+  }
+}
+
+function getLastPublishTs(): number {
+  if (typeof window === "undefined") return 0;
+  return Number(localStorage.getItem(PUBLISH_TS_KEY) ?? "0");
+}
 
 function getCached<T>(key: string): T | null {
   const entry = cache.get(key);
   if (!entry) return null;
+  // Expired by TTL
   if (Date.now() - entry.fetchedAt > CACHE_TTL) {
+    cache.delete(key);
+    return null;
+  }
+  // Stale because a publish happened after this was cached
+  if (entry.fetchedAt < getLastPublishTs()) {
     cache.delete(key);
     return null;
   }
@@ -20,10 +44,15 @@ function setCache(key: string, data: unknown) {
 }
 
 async function fetchWithFallback<T>(blobPath: string, staticPath: string): Promise<T> {
+  // Cache-bust query param to bypass browser/CDN HTTP cache after publish
+  const bustParam = `?v=${getLastPublishTs() || "0"}`;
+
   // Try blob first if configured
   if (BLOB_BASE) {
     try {
-      const res = await fetch(`${BLOB_BASE}/${blobPath}`);
+      const res = await fetch(`${BLOB_BASE}/${blobPath}${bustParam}`, {
+        cache: "no-store",
+      });
       if (res.ok) {
         return await res.json();
       }
@@ -33,7 +62,7 @@ async function fetchWithFallback<T>(blobPath: string, staticPath: string): Promi
   }
 
   // Fallback to static files
-  const res = await fetch(staticPath);
+  const res = await fetch(`${staticPath}${bustParam}`, { cache: "no-store" });
   if (!res.ok) throw new Error(`Failed to load ${staticPath}`);
   return await res.json();
 }

@@ -19,7 +19,7 @@ export function Card({ children, className = "", onClick, asLink, delay = 0 }: C
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
       onClick={onClick}
-      className={`rounded-2xl lg:rounded-3xl p-5 md:p-6 lg:p-7 ${isInteractive ? "cursor-pointer active:scale-[0.98] transition-transform" : ""} ${className}`}
+      className={`rounded-2xl lg:rounded-3xl p-4 md:p-5 lg:p-6 ${isInteractive ? "cursor-pointer active:scale-[0.98] transition-transform" : ""} ${className}`}
       style={{
         background: "var(--card)",
         border: "1px solid var(--card-border)",

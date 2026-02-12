@@ -98,7 +98,7 @@ export default function SeriesDetailPage({
               >
                 Episodes
               </p>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {episodeData?.episodes.map((ep, i) => (
                   <EpisodeCard
                     key={ep.id}

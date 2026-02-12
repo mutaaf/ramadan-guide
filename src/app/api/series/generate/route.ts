@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildCompanionGenerationPrompts } from "@/lib/series/prompts/companion-generation";
 import { buildCompanionPolishPrompts } from "@/lib/series/prompts/companion-polish";
+import { buildCrossEpisodePrompts } from "@/lib/series/prompts/cross-episode";
 
 const MAX_TRANSCRIPT_TOKENS = 12000; // ~48K chars, rough estimate
 
 export async function POST(req: NextRequest) {
   try {
-    const { transcript, scholarName, seriesTitle, episodeNumber, episodeTitle } = await req.json();
+    const {
+      transcript,
+      scholarName,
+      seriesTitle,
+      episodeNumber,
+      episodeTitle,
+      otherEpisodes,
+    } = await req.json();
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -22,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     // Chunk long transcripts
     const chunks = chunkTranscript(transcript, MAX_TRANSCRIPT_TOKENS * 4); // ~4 chars per token
-    let phase1Results: Phase1Output[] = [];
+    const phase1Results: Phase1Output[] = [];
 
     // Phase 1: Extract from each chunk
     for (const chunk of chunks) {
@@ -34,14 +42,14 @@ export async function POST(req: NextRequest) {
         episodeTitle,
       });
 
-      const result = await callOpenAI(apiKey, systemPrompt, userPrompt, "gpt-4o", 4096);
+      const result = await callOpenAI(apiKey, systemPrompt, userPrompt, "gpt-4o", 6144);
       phase1Results.push(result as Phase1Output);
     }
 
     // Merge phase 1 results if multiple chunks
     const mergedPhase1 = mergePhase1Results(phase1Results);
 
-    // Phase 2: Generate action items
+    // Phase 2: Generate action items + resources
     const { systemPrompt: p2System, userPrompt: p2User } = buildCompanionPolishPrompts({
       phase1Output: mergedPhase1,
       scholarName,
@@ -49,7 +57,32 @@ export async function POST(req: NextRequest) {
       episodeTitle,
     });
 
-    const phase2Result = await callOpenAI(apiKey, p2System, p2User, "gpt-4o-mini", 2048);
+    const phase2Result = (await callOpenAI(apiKey, p2System, p2User, "gpt-4o-mini", 2048)) as Phase2Output;
+
+    // Phase 3 (optional): Cross-episode connections
+    let crossEpisodeConnections: { episodeId: string; episodeTitle: string; connection: string }[] = [];
+    if (otherEpisodes && Array.isArray(otherEpisodes) && otherEpisodes.length > 0) {
+      try {
+        const { systemPrompt: p3System, userPrompt: p3User } = buildCrossEpisodePrompts({
+          currentEpisode: {
+            episodeId: "",
+            episodeTitle,
+            themes: mergedPhase1.themes,
+            summary: mergedPhase1.summary,
+          },
+          otherEpisodes,
+          seriesTitle,
+          scholarName,
+        });
+
+        const p3Result = (await callOpenAI(apiKey, p3System, p3User, "gpt-4o-mini", 1024)) as {
+          connections: { episodeId: string; episodeTitle: string; connection: string }[];
+        };
+        crossEpisodeConnections = p3Result.connections || [];
+      } catch {
+        // Cross-episode is optional, don't fail the whole generation
+      }
+    }
 
     // Combine results
     const companion = {
@@ -59,9 +92,13 @@ export async function POST(req: NextRequest) {
       hadiths: mergedPhase1.hadiths,
       verses: mergedPhase1.verses,
       keyQuotes: mergedPhase1.keyQuotes,
-      actionItems: (phase2Result as Phase2Output).actionItems || [],
-      nextSteps: (phase2Result as Phase2Output).nextSteps || [],
+      actionItems: phase2Result.actionItems || [],
+      nextSteps: phase2Result.nextSteps || [],
       themes: mergedPhase1.themes,
+      discussionQuestions: mergedPhase1.discussionQuestions || [],
+      glossary: mergedPhase1.glossary || [],
+      recommendedResources: phase2Result.recommendedResources || [],
+      ...(crossEpisodeConnections.length > 0 ? { crossEpisodeConnections } : {}),
     };
 
     return NextResponse.json({ companion });
@@ -79,11 +116,14 @@ interface Phase1Output {
   verses: { arabic?: string; translation: string; reference: string; context: string }[];
   keyQuotes: { text: string; timestamp?: string }[];
   themes: string[];
+  discussionQuestions?: { question: string; context?: string }[];
+  glossary?: { term: string; arabic?: string; definition: string; context: string }[];
 }
 
 interface Phase2Output {
   actionItems: { text: string; category: string }[];
   nextSteps: string[];
+  recommendedResources?: { title: string; type: string; description?: string }[];
 }
 
 async function callOpenAI(
@@ -154,5 +194,7 @@ function mergePhase1Results(results: Phase1Output[]): Phase1Output {
     verses: results.flatMap((r) => r.verses),
     keyQuotes: results.flatMap((r) => r.keyQuotes),
     themes: [...new Set(results.flatMap((r) => r.themes))],
+    discussionQuestions: results.flatMap((r) => r.discussionQuestions ?? []),
+    glossary: results.flatMap((r) => r.glossary ?? []),
   };
 }

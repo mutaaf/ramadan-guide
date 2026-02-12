@@ -18,7 +18,7 @@ export default function LearnPage() {
   return (
     <div>
       <PageHeader title="Learn" subtitle="Foundations of faith and fasting" />
-      <div className="px-6 pb-8 space-y-3">
+      <div className="px-6 pb-8 space-y-2">
         {sections.map((s, i) => (
           <Link key={s.href} href={s.href}>
             <Card delay={i * 0.08} className="flex items-center gap-4">

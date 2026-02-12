@@ -48,7 +48,7 @@ export function PageHeader({ title, subtitle, back }: PageHeaderProps) {
           Back
         </button>
       )}
-      <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">{title}</h1>
+      <h1 className="text-xl lg:text-2xl font-bold tracking-tight leading-snug">{title}</h1>
       {subtitle && (
         <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
           {subtitle}

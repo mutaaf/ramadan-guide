@@ -7,7 +7,7 @@ import type {
   QuickLogEngagement,
 } from "@/lib/health/types";
 import type { PartnerStats } from "@/lib/accountability/types";
-import type { SeriesUserData } from "@/lib/series/types";
+import type { SeriesUserData, SavedActionItem } from "@/lib/series/types";
 import { createDefaultSeriesUserData } from "@/lib/series/types";
 import {
   DEFAULT_HEALTH_PATTERNS,
@@ -284,6 +284,8 @@ interface RamadanStore {
   setEpisodeNote: (episodeId: string, note: string) => void;
   setLastViewed: (seriesId: string, episodeId: string) => void;
   updateSeriesProgress: (seriesId: string, episodeId: string) => void;
+  toggleSaveActionItem: (item: { text: string; category: string; episodeId: string; seriesId: string; index: number }) => void;
+  toggleActionItemComplete: (itemId: string) => void;
 
   // Helper to calculate prayer streak
   getPrayerStreak: () => number;
@@ -310,7 +312,7 @@ export const useStore = create<RamadanStore>()(
 
       apiKey: "",
       aiModelPreference: "",
-      useApiRoute: true,
+      useApiRoute: false,
 
       // Health patterns and smart prompts
       healthPatterns: DEFAULT_HEALTH_PATTERNS,
@@ -644,6 +646,48 @@ export const useStore = create<RamadanStore>()(
           },
         })),
 
+      toggleSaveActionItem: (item) =>
+        set((s) => {
+          const id = `${item.seriesId}:${item.episodeId}:${item.index}`;
+          const savedItems = s.seriesUserData.savedActionItems ?? {};
+          const existing = savedItems[id];
+          if (existing) {
+            const { [id]: _, ...rest } = savedItems;
+            return { seriesUserData: { ...s.seriesUserData, savedActionItems: rest } };
+          }
+          const saved: SavedActionItem = {
+            id,
+            text: item.text,
+            category: item.category as SavedActionItem["category"],
+            episodeId: item.episodeId,
+            seriesId: item.seriesId,
+            completed: false,
+            savedAt: Date.now(),
+          };
+          return {
+            seriesUserData: {
+              ...s.seriesUserData,
+              savedActionItems: { ...savedItems, [id]: saved },
+            },
+          };
+        }),
+
+      toggleActionItemComplete: (itemId) =>
+        set((s) => {
+          const savedItems = s.seriesUserData.savedActionItems ?? {};
+          const item = savedItems[itemId];
+          if (!item) return s;
+          return {
+            seriesUserData: {
+              ...s.seriesUserData,
+              savedActionItems: {
+                ...savedItems,
+                [itemId]: { ...item, completed: !item.completed },
+              },
+            },
+          };
+        }),
+
       getPrayerStreak: () => {
         const state = get();
         const sortedDates = Object.keys(state.days).sort().reverse();
@@ -667,11 +711,11 @@ export const useStore = create<RamadanStore>()(
     }),
     {
       name: "ramadan-guide-storage",
-      version: 7,
+      version: 8,
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Record<string, unknown>;
         if (version === 0) {
-          state.useApiRoute = true;
+          state.useApiRoute = false;
         }
         if (version < 2) {
           // Migrate juzCompleted boolean[] to juzProgress number[]
@@ -727,6 +771,11 @@ export const useStore = create<RamadanStore>()(
         if (version < 7) {
           // Initialize series companion data
           state.seriesUserData = createDefaultSeriesUserData();
+        }
+        if (version < 8) {
+          // Add savedActionItems to existing seriesUserData
+          const sud = state.seriesUserData as Record<string, unknown>;
+          if (!sud.savedActionItems) sud.savedActionItems = {};
         }
         return state as unknown as RamadanStore;
       },

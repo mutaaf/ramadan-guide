@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Scholar } from "@/lib/series/types";
+import { validateRequired, validateUrl, type FieldErrors } from "@/lib/series/validation";
 
 interface ScholarFormProps {
   initial?: Scholar;
@@ -15,9 +16,22 @@ export function ScholarForm({ initial, onSave, onCancel }: ScholarFormProps) {
   const [bio, setBio] = useState(initial?.bio ?? "");
   const [youtube, setYoutube] = useState(initial?.links?.youtube ?? "");
   const [website, setWebsite] = useState(initial?.links?.website ?? "");
+  const [errors, setErrors] = useState<FieldErrors>({});
+
+  const validate = (): boolean => {
+    const e: FieldErrors = {
+      name: validateRequired(name, "Name"),
+      title: validateRequired(title, "Title"),
+      youtube: validateUrl(youtube),
+      website: validateUrl(website),
+    };
+    setErrors(e);
+    return !Object.values(e).some(Boolean);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
     const id = initial?.id ?? name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
     onSave({
       id,
@@ -38,20 +52,20 @@ export function ScholarForm({ initial, onSave, onCancel }: ScholarFormProps) {
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          required
           className="w-full text-sm rounded-lg px-3 py-2"
-          style={{ background: "var(--surface-1)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
+          style={{ background: "var(--surface-1)", border: `1px solid ${errors.name ? "#ef4444" : "var(--card-border)"}`, color: "var(--foreground)" }}
         />
+        {errors.name && <p className="text-[11px] mt-0.5" style={{ color: "#ef4444" }}>{errors.name}</p>}
       </div>
       <div>
         <label className="text-[11px] font-medium block mb-1" style={{ color: "var(--muted)" }}>Title</label>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          required
           className="w-full text-sm rounded-lg px-3 py-2"
-          style={{ background: "var(--surface-1)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
+          style={{ background: "var(--surface-1)", border: `1px solid ${errors.title ? "#ef4444" : "var(--card-border)"}`, color: "var(--foreground)" }}
         />
+        {errors.title && <p className="text-[11px] mt-0.5" style={{ color: "#ef4444" }}>{errors.title}</p>}
       </div>
       <div>
         <label className="text-[11px] font-medium block mb-1" style={{ color: "var(--muted)" }}>Bio</label>
@@ -70,8 +84,9 @@ export function ScholarForm({ initial, onSave, onCancel }: ScholarFormProps) {
             value={youtube}
             onChange={(e) => setYoutube(e.target.value)}
             className="w-full text-sm rounded-lg px-3 py-2"
-            style={{ background: "var(--surface-1)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
+            style={{ background: "var(--surface-1)", border: `1px solid ${errors.youtube ? "#ef4444" : "var(--card-border)"}`, color: "var(--foreground)" }}
           />
+          {errors.youtube && <p className="text-[11px] mt-0.5" style={{ color: "#ef4444" }}>{errors.youtube}</p>}
         </div>
         <div>
           <label className="text-[11px] font-medium block mb-1" style={{ color: "var(--muted)" }}>Website URL</label>
@@ -79,8 +94,9 @@ export function ScholarForm({ initial, onSave, onCancel }: ScholarFormProps) {
             value={website}
             onChange={(e) => setWebsite(e.target.value)}
             className="w-full text-sm rounded-lg px-3 py-2"
-            style={{ background: "var(--surface-1)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
+            style={{ background: "var(--surface-1)", border: `1px solid ${errors.website ? "#ef4444" : "var(--card-border)"}`, color: "var(--foreground)" }}
           />
+          {errors.website && <p className="text-[11px] mt-0.5" style={{ color: "#ef4444" }}>{errors.website}</p>}
         </div>
       </div>
       <div className="flex gap-2 pt-2">

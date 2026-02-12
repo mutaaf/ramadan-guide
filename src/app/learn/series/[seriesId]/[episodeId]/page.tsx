@@ -8,6 +8,7 @@ import { CompanionContent } from "@/components/series/CompanionContent";
 import { ProgressBadge } from "@/components/series/ProgressBadge";
 import { EpisodeNotes } from "@/components/series/EpisodeNotes";
 import { ShareButton } from "@/components/series/ShareButton";
+import Link from "next/link";
 
 export default function EpisodeCompanionPage({
   params,
@@ -72,7 +73,7 @@ export default function EpisodeCompanionPage({
               </div>
 
               {/* Action buttons */}
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => toggleEpisodeComplete(episodeId)}
                   className="flex items-center gap-1.5 text-[12px] font-medium px-3 py-2 rounded-xl transition-colors"
@@ -117,7 +118,7 @@ export default function EpisodeCompanionPage({
                     href={episode.youtubeUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-[12px] font-medium px-3 py-2 rounded-xl ml-auto"
+                    className="flex items-center gap-1.5 text-[12px] font-medium px-3 py-2 rounded-xl"
                     style={{ background: "var(--surface-1)", color: "var(--foreground)" }}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -138,7 +139,7 @@ export default function EpisodeCompanionPage({
                 >
                   Companion Guide
                 </p>
-                <CompanionContent companion={companion} />
+                <CompanionContent companion={companion} seriesId={seriesId} episodeId={episodeId} />
               </Card>
             ) : (
               <Card>
@@ -157,6 +158,18 @@ export default function EpisodeCompanionPage({
 
             {/* Notes */}
             <EpisodeNotes episodeId={episodeId} />
+
+            {/* Back to Tracker */}
+            <Link
+              href="/tracker"
+              className="flex items-center justify-center gap-2 text-[13px] font-medium px-4 py-2.5 rounded-xl transition-colors"
+              style={{ background: "var(--surface-1)", color: "var(--muted)" }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              Back to Tracker
+            </Link>
           </>
         )}
       </div>

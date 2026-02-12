@@ -23,7 +23,7 @@ export default function SeriesBrowsePage() {
   return (
     <div>
       <PageHeader title="Series Companion" subtitle="AI-powered lecture guides" back="/learn" />
-      <div className="px-6 pb-8 space-y-3">
+      <div className="px-6 pb-8 space-y-2">
         {loading && (
           <div className="flex items-center justify-center py-12">
             <div

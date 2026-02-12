@@ -37,6 +37,32 @@ export interface Episode {
   duration: string;
   youtubeUrl?: string;
   publishedAt?: string;
+  status?: "draft" | "published"; // undefined = published (backwards compat)
+}
+
+export interface DiscussionQuestion {
+  question: string;
+  context?: string;
+}
+
+export interface GlossaryTerm {
+  term: string;
+  arabic?: string;
+  definition: string;
+  context: string;
+}
+
+export interface RecommendedResource {
+  title: string;
+  type: "book" | "article" | "video" | "tafsir" | "hadith-collection";
+  description?: string;
+  url?: string;
+}
+
+export interface CrossEpisodeConnection {
+  episodeId: string;
+  episodeTitle: string;
+  connection: string;
 }
 
 export interface CompanionGuide {
@@ -50,6 +76,10 @@ export interface CompanionGuide {
   nextSteps: string[];
   themes: string[];
   relatedEpisodes?: string[];
+  discussionQuestions?: DiscussionQuestion[];
+  glossary?: GlossaryTerm[];
+  recommendedResources?: RecommendedResource[];
+  crossEpisodeConnections?: CrossEpisodeConnection[];
 }
 
 export interface ExtractedHadith {
@@ -76,6 +106,16 @@ export interface ActionItem {
   category: "spiritual" | "practical" | "social" | "study";
 }
 
+export interface SavedActionItem {
+  id: string;           // "{seriesId}:{episodeId}:{index}"
+  text: string;
+  category: "spiritual" | "practical" | "social" | "study";
+  episodeId: string;
+  seriesId: string;
+  completed: boolean;
+  savedAt: number;
+}
+
 // Per-series file: public/data/series/{id}/episodes.json
 export interface SeriesEpisodeData {
   seriesId: string;
@@ -91,6 +131,7 @@ export interface SeriesUserData {
   episodeNotes: Record<string, string>;
   lastViewed: { seriesId: string; episodeId: string; timestamp: number } | null;
   seriesProgress: Record<string, { startedAt: number; lastEpisodeId: string }>;
+  savedActionItems: Record<string, SavedActionItem>;
 }
 
 export const createDefaultSeriesUserData = (): SeriesUserData => ({
@@ -99,6 +140,7 @@ export const createDefaultSeriesUserData = (): SeriesUserData => ({
   episodeNotes: {},
   lastViewed: null,
   seriesProgress: {},
+  savedActionItems: {},
 });
 
 // ── Admin Types ──
