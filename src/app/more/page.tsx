@@ -6,6 +6,9 @@ import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
 import { AISettingsModal } from "@/components/ai/AISettingsModal";
 import { CharitySection } from "@/components/CharitySection";
+import { useStore } from "@/store/useStore";
+import { AICache } from "@/lib/ai/cache";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 const BOOK_PDF_URL = "https://drive.google.com/file/d/14dZVQGAeIvKDSNWyuHHARwkusKmgVue4/view";
 
@@ -22,6 +25,37 @@ const sections = [
 
 export default function MorePage() {
   const [showSettings, setShowSettings] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  function handleDownloadData() {
+    const state = useStore.getState();
+    const { apiKey: _excluded, ...rest } = state;
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      appName: "Ramadan Companion",
+      data: rest,
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ramadan-companion-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function confirmClearAllData() {
+    localStorage.removeItem("ramadan-guide-storage");
+    AICache.clear();
+    localStorage.removeItem("ramadan-partner-code");
+    localStorage.removeItem("ramadan-partner-device-id");
+    localStorage.removeItem("ramadan-partner-connected-at");
+    localStorage.removeItem("ramadan-partner-stats");
+    localStorage.removeItem("ramadan-partner-last-sync");
+    window.location.reload();
+  }
 
   return (
     <div>
@@ -38,6 +72,50 @@ export default function MorePage() {
           <div className="flex-1">
             <p className="font-semibold text-[15px]">AI Settings</p>
             <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>API key, model, cache</p>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--muted)" }}>
+            <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </Card>
+
+        {/* Download Your Data */}
+        <Card delay={0.04} className="flex items-center gap-4 lg:gap-5" onClick={handleDownloadData}>
+          <div
+            className="flex h-11 w-11 lg:h-12 lg:w-12 items-center justify-center rounded-xl shrink-0"
+            style={{ background: "rgba(201, 168, 76, 0.12)", color: "var(--accent-gold)" }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <polyline points="7,10 12,15 17,10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-[15px]">Download Your Data</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Export all your progress as JSON</p>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--muted)" }}>
+            <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </Card>
+
+        {/* Clear All Data */}
+        <Card delay={0.08} className="flex items-center gap-4 lg:gap-5" onClick={() => setShowClearConfirm(true)}>
+          <div
+            className="flex h-11 w-11 lg:h-12 lg:w-12 items-center justify-center rounded-xl shrink-0"
+            style={{ background: "rgba(239, 68, 68, 0.12)", color: "#ef4444" }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3,6 5,6 21,6" />
+              <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+              <path d="M10 11v6" />
+              <path d="M14 11v6" />
+              <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-[15px]" style={{ color: "#ef4444" }}>Clear All Data</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Reset app to fresh state</p>
           </div>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--muted)" }}>
             <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -91,6 +169,16 @@ export default function MorePage() {
       </div>
 
       <AISettingsModal open={showSettings} onClose={() => setShowSettings(false)} />
+
+      <ConfirmDialog
+        open={showClearConfirm}
+        onCancel={() => setShowClearConfirm(false)}
+        onConfirm={confirmClearAllData}
+        title="Clear All Data?"
+        message="This will permanently delete all your progress, tracking data, and settings. This cannot be undone."
+        confirmLabel="Delete Everything"
+        variant="danger"
+      />
     </div>
   );
 }
