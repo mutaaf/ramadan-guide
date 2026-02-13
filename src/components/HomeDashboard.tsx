@@ -24,6 +24,7 @@ import { PartnerWidget } from "@/components/PartnerWidget";
 import { SavedActionsCard } from "@/components/series/SavedActionsCard";
 import { WellnessRings } from "@/components/WellnessRings";
 import { PrayerToggles } from "@/components/PrayerToggles";
+import { NewBadgeBanner } from "@/components/badges/NewBadgeBanner";
 
 export function HomeDashboard() {
   const { userName, days, juzProgress, getTasbeehTotalForDay, seriesUserData, enabledRings, toggleRing } = useStore();
@@ -140,13 +141,15 @@ export function HomeDashboard() {
       ),
     },
     {
-      href: "/ask",
-      label: "Ask",
-      color: "var(--accent-gold)",
-      bg: "var(--selected-gold-bg)",
+      href: "/learn/series",
+      label: "Watch",
+      color: "var(--accent-rose, #f43f5e)",
+      bg: "rgba(244, 63, 94, 0.12)",
       icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+          <path d="M10 8l4 3-4 3V8z" />
         </svg>
       ),
     },
@@ -169,6 +172,9 @@ export function HomeDashboard() {
       </motion.div>
 
       <div className="px-6 space-y-4">
+        {/* New Badge Banner */}
+        <NewBadgeBanner />
+
         {/* 2. Next Prayer — compact single-line banner */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}

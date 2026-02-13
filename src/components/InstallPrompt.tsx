@@ -64,7 +64,7 @@ function incrementVisitCount(): number {
 }
 
 // Shared hook for install prompt logic
-function useInstallPrompt() {
+export function useInstallPrompt() {
   const [platform, setPlatform] = useState<Platform>("desktop");
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 

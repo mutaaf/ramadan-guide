@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useMemo } from "react";
 import * as d3 from "d3";
+import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
 import { ProgressRing } from "@/components/ProgressRing";
@@ -12,6 +13,7 @@ import { ProactiveInsight } from "@/components/ai/ProactiveInsight";
 import { WeeklySummary } from "@/components/ai/WeeklySummary";
 import { DailyCoachingInput, WeeklyAnalysisInput } from "@/lib/ai/types";
 import { DailyWisdom } from "@/components/DailyWisdom";
+import { evaluateBadges } from "@/lib/badges/evaluate";
 
 function SleepChart({ days }: { days: DayEntry[] }) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -321,11 +323,36 @@ export default function DashboardPage() {
     return { days: weekDays, userName, sport, weekNumber };
   }, [dayEntries, totalDays, userName, sport]);
 
+  const badgeCount = evaluateBadges(useStore.getState()).length;
+
   return (
     <div>
       <PageHeader title="Progress" subtitle="Your Ramadan journey at a glance" />
 
       <div className="px-6 pb-8">
+        {/* Badges link */}
+        <Link href="/dashboard/badges">
+          <Card asLink className="flex items-center gap-3 mb-4">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: "var(--selected-gold-bg)", color: "var(--accent-gold)" }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold">Achievements</p>
+              <p className="text-[11px]" style={{ color: "var(--muted)" }}>
+                {badgeCount} badge{badgeCount !== 1 ? "s" : ""} unlocked
+              </p>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ color: "var(--muted)" }}>
+              <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </Card>
+        </Link>
+
         {/* Quick Stats Grid */}
         <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-6">
           <Card delay={0.05}>

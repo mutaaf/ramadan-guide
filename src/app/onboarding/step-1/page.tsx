@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useStore, SportType } from "@/store/useStore";
-import { InstallBanner } from "@/components/InstallPrompt";
 
 const SPORTS: { value: SportType; label: string; icon: string }[] = [
   { value: "football", label: "Football", icon: "🏈" },
@@ -45,9 +44,6 @@ export default function OnboardingStep1() {
 
   return (
     <div className="min-h-[calc(100dvh-3rem)] flex flex-col px-6 py-8">
-      {/* PWA Install Banner */}
-      <InstallBanner />
-
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

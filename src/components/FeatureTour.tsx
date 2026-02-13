@@ -3,12 +3,13 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { GeometricPattern } from "@/components/GeometricPattern";
+import { useInstallPrompt } from "@/components/InstallPrompt";
 
 interface FeatureTourProps {
   onComplete: () => void;
 }
 
-const SLIDES = [
+const FEATURE_SLIDES = [
   {
     title: "Muslim Wellness for Everyone",
     description:
@@ -35,7 +36,16 @@ const SLIDES = [
   },
 ];
 
-function SlideVisual({ type }: { type: (typeof SLIDES)[number]["visual"] }) {
+const INSTALL_SLIDE = {
+  title: "Install for the Best Experience",
+  description:
+    "Add to your home screen for quick access, offline support, and a full-screen app experience. Your progress syncs seamlessly.",
+  visual: "install" as const,
+};
+
+type SlideVisualType = "pattern" | "rings" | "lectures" | "chart" | "install";
+
+function SlideVisual({ type }: { type: SlideVisualType }) {
   const iconSize = "w-20 h-20";
   const containerClass = `${iconSize} rounded-full mx-auto mb-6 flex items-center justify-center`;
 
@@ -87,6 +97,17 @@ function SlideVisual({ type }: { type: (typeof SLIDES)[number]["visual"] }) {
           </svg>
         </div>
       );
+    case "install":
+      return (
+        <div className={containerClass} style={{ background: "rgba(201, 168, 76, 0.1)" }}>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+            <line x1="12" y1="18" x2="12" y2="18.01" strokeWidth="2" />
+            <path d="M8 10l4 4 4-4" />
+            <line x1="12" y1="6" x2="12" y2="14" />
+          </svg>
+        </div>
+      );
   }
 }
 
@@ -97,8 +118,16 @@ export function FeatureTour({ onComplete }: FeatureTourProps) {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
   const constraintsRef = useRef<HTMLDivElement>(null);
+  const { platform, deferredPrompt, handleInstall } = useInstallPrompt();
+  const [showIOSSteps, setShowIOSSteps] = useState(false);
+
+  // Build slides: include install slide only if not already installed
+  const SLIDES = platform === "installed"
+    ? FEATURE_SLIDES
+    : [...FEATURE_SLIDES, INSTALL_SLIDE];
 
   const isLast = current === SLIDES.length - 1;
+  const isInstallSlide = SLIDES[current]?.visual === "install";
 
   const goTo = (index: number) => {
     if (index < 0 || index >= SLIDES.length) return;
@@ -111,6 +140,13 @@ export function FeatureTour({ onComplete }: FeatureTourProps) {
       goTo(current + 1);
     } else if (info.offset.x > SWIPE_THRESHOLD && current > 0) {
       goTo(current - 1);
+    }
+  };
+
+  const onInstallClick = async () => {
+    const accepted = await handleInstall();
+    if (accepted) {
+      onComplete();
     }
   };
 
@@ -187,6 +223,19 @@ export function FeatureTour({ onComplete }: FeatureTourProps) {
             >
               {SLIDES[current].description}
             </p>
+
+            {/* iOS instructions shown inline on install slide */}
+            {isInstallSlide && platform === "ios" && showIOSSteps && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                className="mt-4 text-left max-w-xs mx-auto space-y-2"
+              >
+                <InstallStep number={1} text="Tap the Share button" icon={<ShareIcon />} />
+                <InstallStep number={2} text={`Tap "Add to Home Screen"`} />
+                <InstallStep number={3} text={`Tap "Add"`} />
+              </motion.div>
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -212,8 +261,52 @@ export function FeatureTour({ onComplete }: FeatureTourProps) {
           ))}
         </div>
 
-        {/* CTA button */}
-        {isLast ? (
+        {/* CTA button — contextual for install slide */}
+        {isInstallSlide ? (
+          <div className="space-y-3">
+            {platform === "android" && deferredPrompt ? (
+              <button
+                onClick={onInstallClick}
+                className="w-full rounded-full py-3.5 text-sm font-semibold text-black transition-all active:scale-[0.97]"
+                style={{
+                  background: "linear-gradient(135deg, #c9a84c, #e8c75a, #c9a84c)",
+                  boxShadow: "0 4px 20px rgba(201, 168, 76, 0.3)",
+                }}
+              >
+                Install App
+              </button>
+            ) : platform === "ios" ? (
+              <button
+                onClick={() => setShowIOSSteps((v) => !v)}
+                className="w-full rounded-full py-3.5 text-sm font-semibold text-black transition-all active:scale-[0.97]"
+                style={{
+                  background: "linear-gradient(135deg, #c9a84c, #e8c75a, #c9a84c)",
+                  boxShadow: "0 4px 20px rgba(201, 168, 76, 0.3)",
+                }}
+              >
+                {showIOSSteps ? "Got It!" : "How to Install"}
+              </button>
+            ) : (
+              <button
+                onClick={onComplete}
+                className="w-full rounded-full py-3.5 text-sm font-semibold text-black transition-all active:scale-[0.97]"
+                style={{
+                  background: "linear-gradient(135deg, #c9a84c, #e8c75a, #c9a84c)",
+                  boxShadow: "0 4px 20px rgba(201, 168, 76, 0.3)",
+                }}
+              >
+                Get Started
+              </button>
+            )}
+            <button
+              onClick={onComplete}
+              className="w-full text-sm font-medium py-2 transition-all active:scale-[0.97]"
+              style={{ color: "var(--muted)" }}
+            >
+              Continue in browser
+            </button>
+          </div>
+        ) : isLast ? (
           <button
             onClick={onComplete}
             className="w-full rounded-full py-3.5 text-sm font-semibold text-black transition-all active:scale-[0.97]"
@@ -236,10 +329,47 @@ export function FeatureTour({ onComplete }: FeatureTourProps) {
           </button>
         )}
 
-        <p className="text-xs text-center mt-3" style={{ color: "var(--muted)" }}>
-          Swipe to explore
-        </p>
+        {!isInstallSlide && (
+          <p className="text-xs text-center mt-3" style={{ color: "var(--muted)" }}>
+            Swipe to explore
+          </p>
+        )}
       </div>
     </div>
+  );
+}
+
+function InstallStep({ number, text, icon }: { number: number; text: string; icon?: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2 text-xs" style={{ color: "var(--muted)" }}>
+      <span
+        className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
+        style={{ background: "var(--selected-gold-bg)", color: "var(--accent-gold)" }}
+      >
+        {number}
+      </span>
+      {icon && <span className="shrink-0">{icon}</span>}
+      <span>{text}</span>
+    </div>
+  );
+}
+
+function ShareIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ color: "var(--accent-gold)" }}
+    >
+      <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
+      <polyline points="16 6 12 2 8 6" />
+      <line x1="12" y1="2" x2="12" y2="15" />
+    </svg>
   );
 }

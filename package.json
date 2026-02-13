@@ -17,6 +17,7 @@
     "@vercel/blob": "^2.2.0",
     "d3": "^7.9.0",
     "framer-motion": "^12.31.0",
+    "html-to-image": "^1.11.13",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",

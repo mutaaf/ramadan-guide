@@ -294,6 +294,9 @@ interface RamadanStore {
   enabledRings: RingId[];
   toggleRing: (ringId: RingId) => void;
 
+  // Badge actions
+  markBadgesSeen: (ids: string[]) => void;
+
   // Helper to calculate prayer streak
   getPrayerStreak: () => number;
 }
@@ -694,6 +697,19 @@ export const useStore = create<RamadanStore>()(
                 ...savedItems,
                 [itemId]: { ...item, completed: !item.completed },
               },
+            },
+          };
+        }),
+
+      markBadgesSeen: (ids) =>
+        set((s) => {
+          const existing = s.userMemory.achievements;
+          const newIds = ids.filter((id) => !existing.includes(id));
+          if (newIds.length === 0) return s;
+          return {
+            userMemory: {
+              ...s.userMemory,
+              achievements: [...existing, ...newIds],
             },
           };
         }),
