@@ -13,23 +13,23 @@ test.describe("Learn Section", () => {
   test("Islam page shows Five Pillars", async ({ page }) => {
     await page.goto("/learn/islam");
     await expect(page.locator("h1")).toContainText("What is Islam?");
-    await expect(page.locator("text=Shahada")).toBeVisible();
-    await expect(page.locator("text=Salah")).toBeVisible();
-    await expect(page.locator("text=Zakah")).toBeVisible();
-    await expect(page.locator("text=Sawm")).toBeVisible();
-    await expect(page.locator("text=Hajj")).toBeVisible();
+    await expect(page.locator("p").filter({ hasText: "Shahadah" }).first()).toBeVisible();
+    await expect(page.locator("p").filter({ hasText: "Salah" }).first()).toBeVisible();
+    await expect(page.locator("p").filter({ hasText: "Zakah" }).first()).toBeVisible();
+    await expect(page.locator("p").filter({ hasText: "Sawm" }).first()).toBeVisible();
+    await expect(page.locator("p").filter({ hasText: "Hajj" }).first()).toBeVisible();
   });
 
   test("Ramadan page shows themes", async ({ page }) => {
     await page.goto("/learn/ramadan");
     await expect(page.locator("h1")).toContainText("What is Ramadan?");
-    await expect(page.locator("text=Fasting")).toBeVisible();
+    await expect(page.locator("p").filter({ hasText: "Fasting" }).first()).toBeVisible();
   });
 
   test("Laylatul Qadr page loads", async ({ page }) => {
     await page.goto("/learn/laylatul-qadr");
     await expect(page.locator("h1")).toContainText("Laylatul Qadr");
-    await expect(page.locator("text=Night of Power")).toBeVisible();
+    await expect(page.getByText("The Night of Power", { exact: true })).toBeVisible();
   });
 
   test("Pronunciation guide shows terms", async ({ page }) => {

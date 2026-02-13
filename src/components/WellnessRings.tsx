@@ -73,6 +73,7 @@ export function WellnessRings(props: WellnessRingsProps) {
   const { radii, strokes, svgSize } = SIZING[count] ?? SIZING[3];
 
   // Compute wellness score with dynamic weights
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const wellnessScore = useMemo(() => {
     let weightedSum = 0;
     let totalWeight = 0;

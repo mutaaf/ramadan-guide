@@ -70,6 +70,7 @@ function useInstallPrompt() {
 
   useEffect(() => {
     const detectedPlatform = getPlatform();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPlatform(detectedPlatform);
 
     if (detectedPlatform === "installed" || detectedPlatform === "desktop") return;
@@ -109,6 +110,7 @@ export function InstallBanner() {
   useEffect(() => {
     if (platform === "installed" || platform === "desktop") return;
     if (isBannerDismissed()) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setShow(true);
   }, [platform]);
 
@@ -258,6 +260,7 @@ export function InstallPrompt({ forceShow = false }: { forceShow?: boolean }) {
 
   useEffect(() => {
     const detectedPlatform = getPlatform();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPlatform(detectedPlatform);
 
     // Don't show if already installed or on desktop

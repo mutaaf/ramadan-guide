@@ -53,6 +53,7 @@ export default function PartnerPage() {
 
   useEffect(() => {
     const info = getConnectionInfo();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setConnected(info.connected);
     setMyCode(info.myCode);
     setPartnerCode(info.partnerCode);

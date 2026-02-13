@@ -43,6 +43,7 @@ export function PartnerWidget() {
 
   useEffect(() => {
     const isConnected = isConnectedToPartner();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setConnected(isConnected);
 
     if (isConnected) {

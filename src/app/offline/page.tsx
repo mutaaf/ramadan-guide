@@ -35,10 +35,10 @@ export default function OfflinePage() {
           </svg>
         </div>
 
-        <h1 className="text-2xl font-bold mb-3">You're Offline</h1>
+        <h1 className="text-2xl font-bold mb-3">You&apos;re Offline</h1>
         <p className="text-base mb-6" style={{ color: "var(--muted)" }}>
-          It looks like you've lost your internet connection. Don't worry — your
-          saved data is safe and will sync when you're back online.
+          It looks like you&apos;ve lost your internet connection. Don&apos;t worry — your
+          saved data is safe and will sync when you&apos;re back online.
         </p>
 
         <button

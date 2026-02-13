@@ -96,6 +96,7 @@ export default function AdminSeriesLayout({
   const [authed, setAuthed] = useState<boolean | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAuthed(!!localStorage.getItem("admin-token"));
   }, []);
 

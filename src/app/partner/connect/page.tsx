@@ -28,6 +28,7 @@ export default function PartnerConnectPage() {
     }
 
     // Get or generate my code
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMyCode(getMyPartnerCode());
   }, [router]);
 

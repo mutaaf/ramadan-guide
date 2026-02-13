@@ -3,8 +3,8 @@ import { test, expect } from "@playwright/test";
 test.describe("Navigation", () => {
   test("homepage loads correctly", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveTitle(/Ramadan Guide/);
-    await expect(page.locator("text=Coach Hamza")).toBeVisible();
+    await expect(page).toHaveTitle(/Ramadan Companion/);
+    await expect(page.locator("text=Assalamu Alaikum")).toBeVisible();
   });
 
   test("can navigate to Learn section", async ({ page }) => {

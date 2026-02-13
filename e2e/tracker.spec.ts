@@ -22,7 +22,7 @@ test.describe("Tracker Features", () => {
     test("displays hydration options", async ({ page }) => {
       await page.goto("/tracker/hydration");
       await expect(page.locator("text=Recommended Drinks")).toBeVisible();
-      await expect(page.locator("text=Water")).toBeVisible();
+      await expect(page.getByText("Water", { exact: true })).toBeVisible();
     });
   });
 

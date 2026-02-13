@@ -39,7 +39,7 @@ export default function NotFound() {
         </h1>
         <h2 className="text-xl font-semibold mb-3">Page Not Found</h2>
         <p className="text-base mb-6" style={{ color: "var(--muted)" }}>
-          The page you're looking for doesn't exist or has been moved. Let's get
+          The page you&apos;re looking for doesn&apos;t exist or has been moved. Let&apos;s get
           you back on track.
         </p>
 

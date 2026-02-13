@@ -45,7 +45,7 @@ export default function Error({
 
         <h1 className="text-2xl font-bold mb-3">Something Went Wrong</h1>
         <p className="text-base mb-6" style={{ color: "var(--muted)" }}>
-          We encountered an unexpected error. Don't worry — your data is safe.
+          We encountered an unexpected error. Don&apos;t worry — your data is safe.
           Please try again.
         </p>
 

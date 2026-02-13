@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import crypto from "crypto";
 import withSerwistInit from "@serwist/next";
 
 const withSerwist = withSerwistInit({
@@ -16,7 +17,7 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_BUILD_DATE: new Date().toISOString(),
     NEXT_PUBLIC_BUILD_HASH:
       process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ||
-      require("crypto").randomBytes(4).toString("hex"),
+      crypto.randomBytes(4).toString("hex"),
   },
 };
 

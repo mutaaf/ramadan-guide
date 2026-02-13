@@ -162,6 +162,7 @@ export default function AboutPage() {
             <div className="flex items-center justify-between">
               <span className="text-sm" style={{ color: "var(--muted)" }}>Last Updated</span>
               <span className="text-xs" style={{ color: "var(--muted)" }}>
+                {/* eslint-disable-next-line react-hooks/purity */}
                 {new Date(process.env.NEXT_PUBLIC_BUILD_DATE || Date.now()).toLocaleDateString()}
               </span>
             </div>

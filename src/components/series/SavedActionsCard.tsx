@@ -29,13 +29,12 @@ export function SavedActionsCard() {
   const [guidanceOpen, setGuidanceOpen] = useState(true);
 
   const items = Object.values(savedActionItems);
-  if (items.length === 0) return null;
 
   const { dayOfRamadan } = getRamadanCountdown();
   const completedCount = items.filter((i) => i.completed).length;
   const pendingItems = items.filter((i) => !i.completed);
   const completedItems = items.filter((i) => i.completed);
-  const progressPct = Math.round((completedCount / items.length) * 100);
+  const progressPct = items.length > 0 ? Math.round((completedCount / items.length) * 100) : 0;
 
   // Group pending items by category
   const pendingGrouped = pendingItems.reduce<Record<string, SavedActionItem[]>>((acc, item) => {
@@ -60,7 +59,7 @@ export function SavedActionsCard() {
       sport,
       dayOfRamadan,
     };
-  }, [pendingItems.length, completedCount, items.length, userName, sport, dayOfRamadan]);
+  }, [pendingItems, completedCount, items.length, userName, sport, dayOfRamadan]);
 
   const buildPrompts = useCallback(
     (i: ActionGuidanceInput) => buildActionGuidancePrompts(i),
@@ -73,6 +72,8 @@ export function SavedActionsCard() {
   >("action-guidance", guidanceInput, buildPrompts, {
     autoTrigger: ready && pendingItems.length > 0,
   });
+
+  if (items.length === 0) return null;
 
   return (
     <Card>

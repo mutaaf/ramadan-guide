@@ -69,6 +69,7 @@ export function AIInsights() {
     generate();
   }, [generate, lastRefresh]);
 
+  // eslint-disable-next-line react-hooks/purity
   const canRefresh = Date.now() - lastRefresh >= 60000;
 
   // Tier 1: New users (< 3 days) - Show demo preview insights
