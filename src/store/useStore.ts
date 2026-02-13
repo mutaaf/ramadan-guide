@@ -295,7 +295,9 @@ interface RamadanStore {
   toggleRing: (ringId: RingId) => void;
 
   // Badge actions
+  badgeUnlocks: Record<string, { unlockedAt: number; shareCount: number }>;
   markBadgesSeen: (ids: string[]) => void;
+  recordBadgeShare: (badgeId: string) => void;
 
   // Helper to calculate prayer streak
   getPrayerStreak: () => number;
@@ -342,6 +344,9 @@ export const useStore = create<RamadanStore>()(
 
       // Ring configuration
       enabledRings: DEFAULT_ENABLED_RINGS as RingId[],
+
+      // Badge tracking for recap
+      badgeUnlocks: {} as Record<string, { unlockedAt: number; shareCount: number }>,
 
       setUser: (name, sport) => set({ userName: name, sport }),
       setOnboarded: (v) => set({ onboarded: v }),
@@ -706,10 +711,32 @@ export const useStore = create<RamadanStore>()(
           const existing = s.userMemory.achievements;
           const newIds = ids.filter((id) => !existing.includes(id));
           if (newIds.length === 0) return s;
+          const now = Date.now();
+          const updatedUnlocks = { ...s.badgeUnlocks };
+          for (const id of newIds) {
+            if (!updatedUnlocks[id]) {
+              updatedUnlocks[id] = { unlockedAt: now, shareCount: 0 };
+            }
+          }
           return {
             userMemory: {
               ...s.userMemory,
               achievements: [...existing, ...newIds],
+            },
+            badgeUnlocks: updatedUnlocks,
+          };
+        }),
+
+      recordBadgeShare: (badgeId) =>
+        set((s) => {
+          const existing = s.badgeUnlocks[badgeId];
+          return {
+            badgeUnlocks: {
+              ...s.badgeUnlocks,
+              [badgeId]: {
+                unlockedAt: existing?.unlockedAt ?? Date.now(),
+                shareCount: (existing?.shareCount ?? 0) + 1,
+              },
             },
           };
         }),
@@ -747,7 +774,7 @@ export const useStore = create<RamadanStore>()(
     }),
     {
       name: "ramadan-guide-storage",
-      version: 9,
+      version: 10,
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Record<string, unknown>;
         if (version === 0) {
@@ -815,6 +842,9 @@ export const useStore = create<RamadanStore>()(
         }
         if (version < 9) {
           state.enabledRings = ["prayers", "water", "dhikr"];
+        }
+        if (version < 10) {
+          state.badgeUnlocks = {};
         }
         return state as unknown as RamadanStore;
       },
