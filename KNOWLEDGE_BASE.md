@@ -22,7 +22,9 @@
 | Animations | Framer Motion | 12.31.0 |
 | Data Visualization | D3 | 7.9.0 |
 | PWA | Serwist | 9.5.4 |
-| AI | OpenAI API | gpt-4o-mini, Whisper |
+| AI | OpenAI API | gpt-4o-mini, gpt-4o, Whisper |
+| Blob Storage | Vercel Blob | 2.2.0 |
+| Analytics | Vercel Analytics | 1.6.1 |
 | Testing | Playwright | 1.58.2 |
 
 ### Key Commands
@@ -65,6 +67,13 @@ const getDay = useStore((s) => s.getDay);
 | 13 | AI Schedule Builder | Done | `src/components/schedule/`, `src/lib/ai/prompts/schedule-generation.ts` |
 | 14 | Phase-Aware System | Done | `src/lib/ramadan.ts` (pre/during/post Ramadan) |
 | 15 | Accountability Partner | Done | `src/lib/accountability/`, `src/app/partner/`, `src/components/PartnerWidget.tsx` |
+| 16 | Educational Series | Done | `src/lib/series/`, `src/app/learn/series/`, `src/components/series/` |
+| 17 | Admin Panel (Series) | Done | `src/app/admin/series/`, `src/components/series/admin/`, `src/lib/series/admin-store.ts` |
+| 18 | Badge Achievement System | Done | `src/lib/badges/`, `src/app/dashboard/badges/`, `src/components/badges/` |
+| 19 | Voice Journal (Whisper) | Done | `src/app/api/ai/whisper/route.ts`, `src/components/VoiceRecorder.tsx` |
+| 20 | Desktop Dock Navigation | Done | `src/components/DockNav.tsx` |
+| 21 | Series Publishing Pipeline | Done | `src/app/api/series/publish/route.ts`, `src/lib/series/publish-status.ts` |
+| 22 | Companion Guide Generation | Done | `src/lib/series/prompts/`, `src/app/api/series/generate/route.ts` |
 
 ---
 
@@ -103,10 +112,19 @@ interface RamadanStore {
   // Accountability partner
   partnerStats: PartnerStats | null;
   lastPartnerSync: number | null;
+
+  // Educational series tracking
+  seriesUserData: SeriesUserData;   // Completions, bookmarks, notes, action items
+
+  // Badge achievement system
+  badgeUnlocks: Record<string, { unlockedAt: number; shareCount: number }>;
+
+  // Dashboard customization
+  enabledRings: RingId[];           // "prayers" | "water" | "dhikr" | "quran" | "series"
 }
 ```
 
-**Migration Strategy:** Version-based migrations in `useStore.ts` (current: v6).
+**Migration Strategy:** Version-based migrations in `useStore.ts` (current: v10).
 
 ### AI Integration Flow
 
@@ -184,6 +202,98 @@ interface RamadanStore {
 **Offline**: Cached partner stats shown when offline. Sync on next app open.
 **Storage**: Connection metadata in localStorage (not Zustand). Partner stats cached locally.
 
+### Educational Series System
+
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│   Admin UI   │────▶│  Admin Store  │────▶│ /api/series/ │
+│ /admin/series│     │ (localStorage)│     │   publish    │
+└──────────────┘     └──────────────┘     └──────┬───────┘
+                                                  │
+                                                  ▼
+                                          ┌──────────────┐
+                                          │ Vercel Blob  │
+                                          │  Storage     │
+                                          └──────┬───────┘
+                                                  │
+                     ┌────────────────────────────┤
+                     ▼                            ▼
+              ┌──────────────┐           ┌──────────────┐
+              │ series-index │           │  episodes.json│
+              │    .json     │           │ + companions  │
+              └──────────────┘           └──────────────┘
+                     │                            │
+                     ▼                            ▼
+              ┌──────────────────────────────────────────┐
+              │  User: /learn/series → fetcher.ts        │
+              │  (Blob with static /public/data fallback)│
+              └──────────────────────────────────────────┘
+```
+
+**Data Model:**
+- `Scholar`: id, name, title, bio, links (youtube, website)
+- `Series`: id, scholarId, title, description, tags, status (draft/published)
+- `Episode`: id, seriesId, episodeNumber, title, duration, youtubeUrl
+- `CompanionGuide`: summary, hadiths, verses, keyQuotes, actionItems, discussionQuestions, glossary, crossEpisodeConnections
+
+**Companion Guide Generation Pipeline:**
+1. Admin provides YouTube transcript (manual or via `/api/series/transcript`)
+2. AI analyzes transcript → generates CompanionGuide sections
+3. Admin reviews/edits in rich editor UI
+4. Sections can be individually regenerated via `/api/series/regenerate-section`
+5. Cross-episode connections computed when multiple episodes exist
+
+**User Tracking (SeriesUserData):**
+```typescript
+interface SeriesUserData {
+  completedEpisodes: Record<string, boolean>;
+  bookmarkedEpisodes: Record<string, boolean>;
+  episodeNotes: Record<string, string>;
+  lastViewed: { seriesId: string; episodeId: string; timestamp: number } | null;
+  seriesProgress: Record<string, { startedAt: number; lastEpisodeId: string }>;
+  savedActionItems: Record<string, SavedActionItem>;
+}
+```
+
+### Badge Achievement System
+
+**17 Badges across 5 Categories:**
+
+| Category | Badge | Tier | Criteria |
+|----------|-------|------|----------|
+| Journey | Bismillah | Bronze | Started Ramadan journey |
+| Prayer | Consistent | Bronze | 3-day prayer streak |
+| Prayer | Steadfast | Silver | 7-day prayer streak |
+| Prayer | Devoted | Gold | 21-day prayer streak |
+| Prayer | Perfect Month | Gold | 30-day prayer streak |
+| Quran | First Juz | Bronze | Completed 1 Juz |
+| Quran | Halfway There | Silver | Completed 15 Juz |
+| Quran | Khatm al-Quran | Gold | Completed 30 Juz |
+| Fasting | First Fast | Bronze | First fast day |
+| Fasting | 10 Days Strong | Silver | 10 fasting days |
+| Fasting | Full Ramadan | Gold | 30 fasting days |
+| Wellness | First Guide | Bronze | Completed 1 episode |
+| Wellness | Series Scholar | Silver | Completed entire series |
+| Wellness | Well Hydrated | Silver | 7 days with 8+ glasses |
+| Wellness | Remembrance | Bronze | 1,000 cumulative tasbeeh |
+
+**Canvas Rendering System (`capture.ts`):**
+- Two formats: Feed (1080x1080) and Story (1080x1920)
+- Dark gradient background with Islamic geometric star patterns
+- Animated sparkle effects with sinusoidal movement
+- 8-pointed star badge icon with tier-specific glow (bronze/silver/gold)
+- 3-second animated video export (MP4/WebM)
+- Web Share API with fallback to download
+
+**Badge Evaluation Flow:**
+```
+Store state changes → deriveRamadanState()
+  → reads days, juzProgress, seriesUserData
+  → compares against badge criteria
+  → updates badgeUnlocks in store
+  → NewBadgeBanner shows notification
+```
+
 ### PWA Capabilities
 
 - **Service Worker:** Serwist-based (`src/app/sw.ts`)
@@ -219,9 +329,30 @@ src/components/
 │   ├── HydrationQuickEntry.tsx
 │   ├── SleepQuickEntry.tsx
 │   └── index.ts
+├── badges/                  # Achievement badge components
+│   ├── BadgeCard.tsx        # Individual badge display
+│   ├── BadgeShareModal.tsx  # Full share UI with preview
+│   └── NewBadgeBanner.tsx   # New badge notification
+├── series/                  # Series & episode components
+│   ├── SeriesCard.tsx       # Series list card
+│   ├── EpisodeCard.tsx      # Episode list item
+│   ├── CompanionContent.tsx # Study guide display
+│   ├── ActionItemList.tsx   # Trackable action items
+│   ├── HadithCard.tsx       # Hadith display
+│   ├── VerseCard.tsx        # Qur'anic verse display
+│   ├── ShareButton.tsx      # Share functionality
+│   └── admin/               # Admin panel components
+│       ├── SeriesForm.tsx   # Series CRUD form
+│       ├── EpisodeForm.tsx  # Episode editor
+│       ├── ScholarForm.tsx  # Scholar management
+│       ├── CompanionEditor.tsx # Companion guide editor
+│       ├── PublishButton.tsx   # Publish to Vercel Blob
+│       └── ExportButton.tsx   # JSON export
 ├── ui/
-│   └── CircularSlider.tsx   # Interactive circular input
+│   ├── CircularSlider.tsx   # Interactive circular input
+│   └── ConfirmDialog.tsx    # Confirmation modal
 ├── BottomNav.tsx            # Mobile navigation
+├── DockNav.tsx              # Desktop dock navigation
 ├── Card.tsx                 # Reusable card wrapper
 ├── DailyWisdom.tsx          # Daily hadith/verse display
 ├── HomeDashboard.tsx        # Main home dashboard
@@ -273,6 +404,24 @@ src/lib/
 │   ├── types.ts             # Partner data structures, code generation
 │   ├── sync.ts              # Stat sync, connection management
 │   └── index.ts             # Re-exports
+├── badges/
+│   ├── definitions.ts       # 17 badge definitions (5 categories, 3 tiers)
+│   ├── evaluate.ts          # Badge unlock logic, deriveRamadanState()
+│   ├── capture.ts           # Canvas 2D rendering + video export
+│   └── share.ts             # Web Share API + fallback download
+├── series/
+│   ├── types.ts             # Scholar, Series, Episode, CompanionGuide
+│   ├── hooks.ts             # useSeriesIndex, useSeriesDetail, useEpisode
+│   ├── admin-store.ts       # Admin Zustand store (localStorage)
+│   ├── fetcher.ts           # Blob + static file fetching with cache
+│   ├── publish-status.ts    # Readiness computation for publishing
+│   ├── diff.ts              # Change tracking since last publish
+│   ├── validation.ts        # Series data validation
+│   ├── useAutoPublish.ts    # Automated publish triggers
+│   └── prompts/             # AI prompt builders
+│       ├── companion-generation.ts  # Full guide from transcript
+│       ├── section-regeneration.ts  # Regenerate single section
+│       └── cross-episode.ts         # Cross-episode connections
 ├── ramadan.ts               # Ramadan dates, countdown, helpers
 └── prayer-times.ts          # Prayer time calculations
 ```
@@ -283,8 +432,17 @@ src/lib/
 src/app/
 ├── page.tsx                 # Home/landing
 ├── layout.tsx               # Root layout
-├── dashboard/page.tsx       # Analytics dashboard
+├── dashboard/               # Analytics dashboard
+│   ├── page.tsx             # Main dashboard with charts
+│   └── badges/page.tsx      # Achievement badges showcase
 ├── ask/page.tsx             # Ask Coach Hamza
+├── admin/                   # Admin panel
+│   └── series/
+│       ├── page.tsx         # Series management dashboard
+│       ├── import/page.tsx  # Bulk data import
+│       ├── scholars/page.tsx # Scholar management
+│       ├── [seriesId]/page.tsx         # Edit series
+│       └── [seriesId]/[episodeId]/page.tsx # Edit episode + companion
 ├── onboarding/              # 4-step onboarding
 │   ├── page.tsx
 │   ├── step-1/page.tsx      # Name, sport
@@ -297,7 +455,12 @@ src/app/
 │   ├── ramadan/page.tsx     # Ramadan significance
 │   ├── laylatul-qadr/page.tsx
 │   ├── prophet/page.tsx
-│   └── pronunciation/page.tsx
+│   ├── pronunciation/page.tsx
+│   └── series/              # Educational series
+│       ├── page.tsx         # Browse all published series
+│       ├── bookmarks/page.tsx # Saved episodes
+│       ├── [seriesId]/page.tsx         # Series detail + episodes
+│       └── [seriesId]/[episodeId]/page.tsx # Episode + companion guide
 ├── prepare/                 # Preparation guides
 │   ├── page.tsx
 │   ├── checklist/page.tsx
@@ -306,7 +469,9 @@ src/app/
 │   └── duaa/page.tsx
 ├── tracker/                 # Daily tracking
 │   ├── page.tsx
-│   ├── schedule/page.tsx
+│   ├── schedule/
+│   │   ├── page.tsx         # Daily routine view
+│   │   └── customize/page.tsx # AI schedule builder wizard
 │   ├── quran/page.tsx
 │   ├── tasbeeh/page.tsx
 │   ├── nutrition/page.tsx
@@ -324,11 +489,19 @@ src/app/
 │   └── connect/page.tsx     # Code generation + entry
 ├── api/
 │   ├── ai/route.ts          # Main AI endpoint
-│   ├── ai/whisper/route.ts  # Audio transcription
-│   └── partner/             # Partner sync API
-│       ├── connect/route.ts
-│       ├── sync/route.ts
-│       └── disconnect/route.ts
+│   ├── ai/whisper/route.ts  # Audio transcription (Whisper)
+│   ├── partner/             # Partner sync API
+│   │   ├── connect/route.ts
+│   │   ├── sync/route.ts
+│   │   └── disconnect/route.ts
+│   └── series/              # Series management API
+│       ├── generate/route.ts           # Companion guide generation
+│       ├── regenerate-section/route.ts # Regenerate single section
+│       ├── publish/route.ts            # Publish to Vercel Blob
+│       ├── transcript/route.ts         # Transcript extraction
+│       ├── playlist/route.ts           # Playlist import
+│       ├── verify-token/route.ts       # Admin auth verification
+│       └── og/[episodeId]/route.ts     # OG image generation
 └── offline/page.tsx         # Offline fallback
 ```
 
@@ -416,6 +589,38 @@ updateYourField: (date: string, value: string) =>
 
 Important: Only sync aggregate data. Never sync prayer times, personal notes, or identifiable info.
 
+### Adding a New Badge
+
+1. **Define the badge** in `src/lib/badges/definitions.ts`:
+```typescript
+{
+  id: "your-badge-id",
+  name: "Badge Name",
+  description: "How user earned it",
+  tier: "bronze" | "silver" | "gold",
+  category: "journey" | "prayer" | "quran" | "fasting" | "wellness",
+  criteria: "Criteria description",
+  shareText: "I just earned..."
+}
+```
+
+2. **Add evaluation logic** in `src/lib/badges/evaluate.ts`:
+```typescript
+// Inside deriveRamadanState() function
+if (yourCondition) {
+  unlocked.push("your-badge-id");
+}
+```
+
+3. Badge auto-evaluates on store changes and appears in `/dashboard/badges`
+
+### Adding a New Series
+
+1. Use admin panel at `/admin/series` (recommended) or programmatically via `admin-store.ts`
+2. Create scholar → Create series → Add episodes → Generate companion guides
+3. Publish via admin "Publish" button → uploads to Vercel Blob
+4. Users automatically see published series at `/learn/series`
+
 ---
 
 ## Content Library
@@ -452,6 +657,10 @@ Each includes: Sahoor focus, training timing, hydration strategy, game-day advic
 - **v3 → v4**: Added health patterns, smart prompts, quick log engagement
 - **v4 → v5**: Added `customSchedule` for AI-generated routines
 - **v5 → v6**: Added `partnerStats` and `lastPartnerSync` for accountability partner
+- **v6 → v7**: Added `seriesUserData` for educational series tracking
+- **v7 → v8**: Added `enabledRings` for dashboard ring customization
+- **v8 → v9**: Added `savedActionItems` to seriesUserData
+- **v9 → v10**: Added `badgeUnlocks` for achievement badge tracking
 
 ### Key Implementation Patterns
 
@@ -472,10 +681,17 @@ Tier 3 (>= 3 days, API ready): Full AI-generated insights
 
 ```bash
 # .env.local
-OPENAI_API_KEY=sk-...        # Server-side API key (optional if client provides)
+OPENAI_API_KEY=sk-...                    # Server-side API key (optional if client provides)
+
+# Vercel Blob Storage (for publishing series data)
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_... # Get from: Vercel Dashboard > Storage > Blob
+NEXT_PUBLIC_BLOB_BASE_URL=https://your-id.public.blob.vercel-storage.com
+
+# Admin secret for publish endpoint (any strong random string)
+ADMIN_SECRET=replace-with-a-strong-random-token
 ```
 
-Users can also provide their own API key via Settings, stored in the Zustand store.
+Users can also provide their own OpenAI API key via Settings, stored in the Zustand store.
 
 ---
 
@@ -552,5 +768,5 @@ Phase-specific features:
 
 ---
 
-*Last updated: 2026-02-11*
+*Last updated: 2026-02-13*
 *Maintained by: Development Team & AI Agents*

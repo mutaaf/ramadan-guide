@@ -21,6 +21,10 @@ export default defineConfig({
       name: "Mobile Safari",
       use: { ...devices["iPhone 13"] },
     },
+    {
+      name: "iPad Landscape",
+      use: { viewport: { width: 1024, height: 768 } },
+    },
   ],
   webServer: {
     command: "npm run dev",

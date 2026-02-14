@@ -5,6 +5,52 @@ All notable changes to the Ramadan Guide project.
 ## [Unreleased]
 
 ### Added
+- **Educational Series System**
+  - Browse curated lecture series by scholar (`/learn/series`)
+  - AI-generated companion guides with hadiths, verses, key quotes, action items
+  - Episode completion and bookmark tracking
+  - Personal notes per episode
+  - Saved action items with completion tracking (spiritual, practical, social, study)
+  - Cross-episode connections for deeper learning
+  - Discussion questions and glossary for each episode
+  - Bookmarks page for saved episodes (`/learn/series/bookmarks`)
+- **Admin Panel for Series Management** (`/admin/series`)
+  - Scholar CRUD management
+  - Series and episode creation/editing
+  - Companion guide generation from YouTube transcripts
+  - Section-level regeneration for fine-tuning AI output
+  - Bulk data import (`/admin/series/import`)
+  - Publish to Vercel Blob with diff tracking
+  - Auto-publish logic
+  - JSON export for backup
+- **Badge Achievement System** (`/dashboard/badges`)
+  - 17 badges across 5 categories (journey, prayer, quran, fasting, wellness)
+  - 3 tier levels: bronze, silver, gold
+  - Automatic badge evaluation based on user activity
+  - Canvas-rendered shareable images (feed 1080x1080, story 1080x1920)
+  - Animated 3-second video export (MP4/WebM)
+  - Islamic geometric patterns and tier-specific glow effects
+  - Web Share API with fallback download
+  - New badge notification banner
+- **Voice Journal / Whisper Integration**
+  - Server-side audio transcription via OpenAI Whisper API (`/api/ai/whisper`)
+  - VoiceRecorder component with audio capture
+  - VoiceJournalButton for quick journal voice entry
+- **Desktop Dock Navigation**
+  - Horizontal dock-style nav for desktop (`DockNav.tsx`)
+  - Icon-based with active state animation via Framer Motion
+- **Series API Routes**
+  - `/api/series/generate` - Companion guide generation
+  - `/api/series/regenerate-section` - Section-level regeneration
+  - `/api/series/publish` - Publish to Vercel Blob (ADMIN_SECRET auth)
+  - `/api/series/transcript` - Transcript extraction
+  - `/api/series/playlist` - YouTube playlist import
+  - `/api/series/verify-token` - Admin authentication
+  - `/api/series/og/[episodeId]` - OG image generation
+- **Schedule Customization** (`/tracker/schedule/customize`)
+  - Dedicated wizard page for AI schedule building
+- **Dashboard Ring Customization**
+  - Toggleable dashboard rings: prayers, water, dhikr, quran, series
 - **Accountability Partner System** (Phase 1)
   - Privacy-preserving partner pairing via 6-character codes
   - Partner dashboard (`/partner`) showing side-by-side progress comparison
@@ -19,7 +65,12 @@ All notable changes to the Ramadan Guide project.
 - AI knowledge base for future developers and LLMs
 
 ### Changed
-- Zustand store migrated to v6 (added `partnerStats`, `lastPartnerSync`, `getPrayerStreak()`)
+- Zustand store migrated to v10 (from v6):
+  - v7: Added `seriesUserData` for educational series tracking
+  - v8: Added `enabledRings` for dashboard ring customization
+  - v9: Added `savedActionItems` to seriesUserData
+  - v10: Added `badgeUnlocks` for achievement badge tracking
+- Learn section expanded with series browsing and episode companion guides
 - More page navigation now includes "Accountability Partner" link
 
 ---
@@ -158,8 +209,9 @@ Zustand's persist middleware handles migrations automatically. When adding new s
 
 ### Potential Features
 - [x] Accountability partner (Phase 1 — code-based pairing)
+- [x] Streak celebrations (shareable badge images with animated video export)
+- [x] Educational series with AI companion guides
 - [ ] Challenge rooms (anonymous themed challenges with leaderboards)
-- [ ] Streak celebrations (shareable milestone images)
 - [ ] Proactive check-ins (Coach Hamza initiates based on patterns)
 - [ ] Prayer quality (Khushu) tracking
 - [ ] Emotional state check before journal

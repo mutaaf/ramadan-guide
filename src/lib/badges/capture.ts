@@ -2,7 +2,7 @@ import type { BadgeDefinition, BadgeTier } from "./definitions";
 
 export type CaptureFormat = "feed" | "story";
 
-const DIMENSIONS = {
+export const DIMENSIONS = {
   feed: { width: 1080, height: 1080 },
   story: { width: 1080, height: 1920 },
 };
@@ -28,7 +28,9 @@ const LAYOUT = {
 };
 
 const FONT = "-apple-system, system-ui, 'Segoe UI', Roboto, sans-serif";
-export const APP_URL = "ramadancompanion.vercel.app";
+export const APP_URL = "myramadanguide.com";
+
+const TWO_PI = Math.PI * 2;
 
 // ── Drawing Helpers ──
 
@@ -81,9 +83,16 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, maxWid
   return y + lineHeight;
 }
 
+// ── Utility: sinusoidal interpolation ──
+
+function sinLerp(time: number, phaseOffset: number, min: number, max: number): number {
+  const t = (Math.sin(time * TWO_PI + phaseOffset) + 1) / 2; // 0..1
+  return min + t * (max - min);
+}
+
 // ── Geometric Pattern ──
 
-function drawGeometricPattern(ctx: CanvasRenderingContext2D, w: number, h: number) {
+function drawGeometricPattern(ctx: CanvasRenderingContext2D, w: number, h: number, time?: number) {
   const spacing = 90;
   const outerR = 26;
   const innerR = 11;
@@ -91,7 +100,7 @@ function drawGeometricPattern(ctx: CanvasRenderingContext2D, w: number, h: numbe
   ctx.save();
   ctx.strokeStyle = "#c9a84c";
   ctx.lineWidth = 0.7;
-  ctx.globalAlpha = 0.07;
+  ctx.globalAlpha = time !== undefined ? sinLerp(time, 0, 0.055, 0.085) : 0.07;
 
   for (let x = spacing / 2; x < w + spacing; x += spacing) {
     for (let y = spacing / 2; y < h + spacing; y += spacing) {
@@ -116,7 +125,7 @@ function drawGeometricPattern(ctx: CanvasRenderingContext2D, w: number, h: numbe
 
 // ── Sparkle/Shine Elements ──
 
-function drawSparkles(ctx: CanvasRenderingContext2D, cx: number, cy: number, spread: number, color: string) {
+function drawSparkles(ctx: CanvasRenderingContext2D, cx: number, cy: number, spread: number, color: string, time?: number) {
   ctx.save();
   // Outer ring of 4-pointed sparkles
   for (let i = 0; i < 16; i++) {
@@ -124,10 +133,18 @@ function drawSparkles(ctx: CanvasRenderingContext2D, cx: number, cy: number, spr
     const dist = spread * (0.55 + 0.45 * ((i * 7 + 3) % 10) / 10);
     const x = cx + Math.cos(angle) * dist;
     const y = cy + Math.sin(angle) * dist;
-    const size = 3 + ((i * 3 + 1) % 6);
-    const alpha = 0.15 + 0.35 * ((i * 7) % 10) / 10;
+    const baseSize = 3 + ((i * 3 + 1) % 6);
+    const baseAlpha = 0.15 + 0.35 * ((i * 7) % 10) / 10;
 
-    ctx.globalAlpha = alpha;
+    const phaseOffset = i * Math.PI / 8;
+    const alpha = time !== undefined
+      ? sinLerp(time, phaseOffset, baseAlpha * 0.3, baseAlpha * 1.4)
+      : baseAlpha;
+    const size = time !== undefined
+      ? baseSize * sinLerp(time, phaseOffset + 1, 0.7, 1.3)
+      : baseSize;
+
+    ctx.globalAlpha = Math.min(alpha, 1);
     ctx.fillStyle = color;
     // Vertical diamond
     ctx.beginPath();
@@ -153,7 +170,12 @@ function drawSparkles(ctx: CanvasRenderingContext2D, cx: number, cy: number, spr
     const dist = spread * (0.3 + 0.7 * ((i * 11 + 5) % 10) / 10);
     const x = cx + Math.cos(angle) * dist;
     const y = cy + Math.sin(angle) * dist;
-    ctx.globalAlpha = 0.08 + 0.15 * ((i * 3) % 10) / 10;
+    const baseAlpha = 0.08 + 0.15 * ((i * 3) % 10) / 10;
+    const phaseOffset = i * Math.PI / 12;
+
+    ctx.globalAlpha = time !== undefined
+      ? sinLerp(time, phaseOffset, baseAlpha * 0.2, baseAlpha * 1.5)
+      : baseAlpha;
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.arc(x, y, 1.5, 0, Math.PI * 2);
@@ -164,14 +186,25 @@ function drawSparkles(ctx: CanvasRenderingContext2D, cx: number, cy: number, spr
 
 // ── Badge Icon (Large 8-pointed Islamic Star) ──
 
-function drawBadgeIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, tier: BadgeTier, color: string) {
+function drawBadgeIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, tier: BadgeTier, color: string, time?: number) {
   const style = TIER_STYLE[tier];
+
+  // Scale pulse for animation
+  const scale = time !== undefined ? sinLerp(time, 0, 1.0, 1.03) : 1;
+  const glowBlur = time !== undefined ? sinLerp(time, 0.5, 40, 60) : 50;
+
+  if (scale !== 1) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(scale, scale);
+    ctx.translate(-cx, -cy);
+  }
 
   // Outer glow (gold tier only)
   if (tier === "gold") {
     ctx.save();
     ctx.shadowColor = style.glow;
-    ctx.shadowBlur = 50;
+    ctx.shadowBlur = glowBlur;
     drawStarPath(ctx, cx, cy, r, r * 0.42);
     ctx.strokeStyle = color;
     ctx.lineWidth = 3;
@@ -227,15 +260,19 @@ function drawBadgeIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, r:
   ctx.arc(cx, cy, 6, 0, Math.PI * 2);
   ctx.fillStyle = color;
   ctx.fill();
+
+  if (scale !== 1) {
+    ctx.restore();
+  }
 }
 
 // ── Corner Accents ──
 
-function drawCornerAccents(ctx: CanvasRenderingContext2D, w: number, h: number, color: string) {
+function drawCornerAccents(ctx: CanvasRenderingContext2D, w: number, h: number, color: string, time?: number) {
   ctx.save();
   ctx.strokeStyle = color;
   ctx.lineWidth = 1.5;
-  ctx.globalAlpha = 0.12;
+  ctx.globalAlpha = time !== undefined ? sinLerp(time, 0.3, 0.08, 0.16) : 0.12;
   const s = 80;
   const offset = 40;
 
@@ -270,18 +307,18 @@ function drawCornerAccents(ctx: CanvasRenderingContext2D, w: number, h: number, 
   ctx.restore();
 }
 
-// ── Main Capture Function ──
+// ── Render Frame (pure render function, used by both static capture and animation) ──
 
-export async function captureBadgeImage(badge: BadgeDefinition, format: CaptureFormat): Promise<Blob> {
+export function renderFrame(
+  ctx: CanvasRenderingContext2D,
+  badge: BadgeDefinition,
+  format: CaptureFormat,
+  time?: number,
+): void {
   const { width, height } = DIMENSIONS[format];
   const L = LAYOUT[format];
   const tier = TIER_STYLE[badge.tier];
   const cx = width / 2;
-
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d")!;
 
   // 1. Dark gradient background
   const bg = ctx.createLinearGradient(0, 0, 0, height);
@@ -293,24 +330,28 @@ export async function captureBadgeImage(badge: BadgeDefinition, format: CaptureF
   ctx.fillRect(0, 0, width, height);
 
   // 2. Geometric pattern
-  drawGeometricPattern(ctx, width, height);
+  drawGeometricPattern(ctx, width, height, time);
 
   // 3. Corner accents
-  drawCornerAccents(ctx, width, height, tier.primary);
+  drawCornerAccents(ctx, width, height, tier.primary, time);
 
   // 4. Radial glow behind badge
+  const glowOpacity = time !== undefined ? sinLerp(time, 0.2, 0.7, 1.0) : 1;
+  ctx.save();
+  ctx.globalAlpha = glowOpacity;
   const glow = ctx.createRadialGradient(cx, L.iconY, 0, cx, L.iconY, 300);
   glow.addColorStop(0, tier.glow);
   glow.addColorStop(0.6, `${tier.primary}08`);
   glow.addColorStop(1, "transparent");
   ctx.fillStyle = glow;
   ctx.fillRect(0, L.iconY - 300, width, 600);
+  ctx.restore();
 
   // 5. Badge icon
-  drawBadgeIcon(ctx, cx, L.iconY, L.iconR, badge.tier, tier.primary);
+  drawBadgeIcon(ctx, cx, L.iconY, L.iconR, badge.tier, tier.primary, time);
 
   // 6. Sparkles
-  drawSparkles(ctx, cx, L.iconY, L.sparkleSpread, tier.primary);
+  drawSparkles(ctx, cx, L.iconY, L.sparkleSpread, tier.primary, time);
 
   // 7. Tier pill
   ctx.save();
@@ -348,15 +389,27 @@ export async function captureBadgeImage(badge: BadgeDefinition, format: CaptureF
   wrapText(ctx, badge.subtitle, cx, width - 120, 42, L.subtitleY);
   ctx.restore();
 
-  // 10. Gold accent line
+  // 10. Gold accent line with shimmer
   ctx.save();
-  const lineGrad = ctx.createLinearGradient(cx - 140, 0, cx + 140, 0);
-  lineGrad.addColorStop(0, "transparent");
-  lineGrad.addColorStop(0.2, `${tier.primary}40`);
-  lineGrad.addColorStop(0.5, tier.primary);
-  lineGrad.addColorStop(0.8, `${tier.primary}40`);
-  lineGrad.addColorStop(1, "transparent");
-  ctx.fillStyle = lineGrad;
+  if (time !== undefined) {
+    // Animated shimmer: bright spot slides L→R
+    const shimmerPos = time % 1; // 0→1 linear
+    const lineGrad = ctx.createLinearGradient(cx - 140, 0, cx + 140, 0);
+    lineGrad.addColorStop(0, "transparent");
+    lineGrad.addColorStop(Math.max(0, shimmerPos - 0.15), `${tier.primary}30`);
+    lineGrad.addColorStop(shimmerPos, tier.primary);
+    lineGrad.addColorStop(Math.min(1, shimmerPos + 0.15), `${tier.primary}30`);
+    lineGrad.addColorStop(1, "transparent");
+    ctx.fillStyle = lineGrad;
+  } else {
+    const lineGrad = ctx.createLinearGradient(cx - 140, 0, cx + 140, 0);
+    lineGrad.addColorStop(0, "transparent");
+    lineGrad.addColorStop(0.2, `${tier.primary}40`);
+    lineGrad.addColorStop(0.5, tier.primary);
+    lineGrad.addColorStop(0.8, `${tier.primary}40`);
+    lineGrad.addColorStop(1, "transparent");
+    ctx.fillStyle = lineGrad;
+  }
   ctx.fillRect(cx - 140, L.lineY, 280, 2);
   // Mini stars on the line
   for (let i = -1; i <= 1; i++) {
@@ -380,10 +433,10 @@ export async function captureBadgeImage(badge: BadgeDefinition, format: CaptureF
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  // Moon + app name
+  // App name
   ctx.font = `bold 34px ${FONT}`;
   ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
-  ctx.fillText("Ramadan Companion", cx, L.brandY);
+  ctx.fillText("My Ramadan Guide", cx, L.brandY);
 
   // URL
   ctx.font = `500 24px ${FONT}`;
@@ -393,14 +446,129 @@ export async function captureBadgeImage(badge: BadgeDefinition, format: CaptureF
   // Hashtags
   ctx.font = `600 22px ${FONT}`;
   ctx.fillStyle = `${tier.primary}60`;
-  ctx.fillText("#RamadanCompanion  #Ramadan2026  #Ramadan", cx, L.hashY);
+  ctx.fillText("#MyRamadanGuide  #Ramadan2026  #Ramadan", cx, L.hashY);
   ctx.restore();
+}
 
-  // Convert to blob
+// ── Static Image Capture ──
+
+export async function captureBadgeImage(badge: BadgeDefinition, format: CaptureFormat): Promise<Blob> {
+  const { width, height } = DIMENSIONS[format];
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+
+  renderFrame(ctx, badge, format);
+
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) resolve(blob);
       else reject(new Error("Failed to create image"));
     }, "image/png");
+  });
+}
+
+// ── Video Capture ──
+
+export interface VideoResult {
+  blob: Blob;
+  mimeType: string;
+  extension: string;
+}
+
+export function supportsVideoCapture(): boolean {
+  if (typeof MediaRecorder === "undefined") return false;
+  const canvas = document.createElement("canvas");
+  return typeof canvas.captureStream === "function";
+}
+
+function getVideoMimeType(): string | null {
+  if (typeof MediaRecorder === "undefined") return null;
+  // Prefer mp4 (Safari), then webm with vp9, then plain webm
+  const candidates = [
+    "video/mp4",
+    "video/webm;codecs=vp9",
+    "video/webm",
+  ];
+  for (const mime of candidates) {
+    if (MediaRecorder.isTypeSupported(mime)) return mime;
+  }
+  return null;
+}
+
+export async function captureBadgeVideo(
+  badge: BadgeDefinition,
+  format: CaptureFormat,
+  signal?: AbortSignal,
+): Promise<VideoResult> {
+  const { width, height } = DIMENSIONS[format];
+  const mimeType = getVideoMimeType();
+  if (!mimeType) throw new Error("No supported video MIME type");
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+
+  const stream = canvas.captureStream(30);
+  const recorder = new MediaRecorder(stream, {
+    mimeType,
+    videoBitsPerSecond: 5_000_000,
+  });
+
+  const chunks: Blob[] = [];
+  recorder.ondataavailable = (e) => {
+    if (e.data.size > 0) chunks.push(e.data);
+  };
+
+  const DURATION_MS = 3000;
+  const extension = mimeType.startsWith("video/mp4") ? "mp4" : "webm";
+
+  return new Promise<VideoResult>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
+
+    const onAbort = () => {
+      recorder.stop();
+      reject(new DOMException("Aborted", "AbortError"));
+    };
+    signal?.addEventListener("abort", onAbort, { once: true });
+
+    recorder.onstop = () => {
+      signal?.removeEventListener("abort", onAbort);
+      const blob = new Blob(chunks, { type: mimeType });
+      resolve({ blob, mimeType, extension });
+    };
+
+    recorder.onerror = () => {
+      signal?.removeEventListener("abort", onAbort);
+      reject(new Error("MediaRecorder error"));
+    };
+
+    recorder.start();
+
+    const startTime = performance.now();
+    let rafId: number;
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      if (elapsed >= DURATION_MS) {
+        // Render one final frame at t=0 for seamless loop
+        renderFrame(ctx, badge, format, 0);
+        recorder.stop();
+        return;
+      }
+      const t = (elapsed % DURATION_MS) / DURATION_MS; // 0..1
+      renderFrame(ctx, badge, format, t);
+      rafId = requestAnimationFrame(animate);
+    };
+
+    rafId = requestAnimationFrame(animate);
+
+    // Safety: cleanup if abort fires mid-animation
+    signal?.addEventListener("abort", () => cancelAnimationFrame(rafId), { once: true });
   });
 }

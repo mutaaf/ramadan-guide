@@ -82,7 +82,7 @@ export default function BadgesPage() {
 
         {/* Badge grid */}
         <div className="grid grid-cols-2 gap-3">
-          {BADGE_DEFINITIONS.map((badge) => {
+          {BADGE_DEFINITIONS.map((badge, i) => {
             const isUnlocked = unlockedIds.has(badge.id);
             const isNew = newIds.includes(badge.id);
             return (
@@ -91,6 +91,7 @@ export default function BadgesPage() {
                 badge={badge}
                 unlocked={isUnlocked}
                 isNew={isNew}
+                index={i}
                 onTap={() => setSelectedBadge(badge)}
               />
             );

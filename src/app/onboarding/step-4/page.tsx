@@ -142,26 +142,27 @@ export default function OnboardingStep4() {
       </motion.div>
 
       {/* Complete Button */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8, duration: 0.5 }}
-        className="relative z-10"
-      >
-        <button
-          onClick={handleComplete}
-          className="w-full rounded-full py-3.5 text-sm font-semibold text-black transition-all active:scale-[0.98]"
-          style={{
-            background: "linear-gradient(135deg, #c9a84c, #e8c75a, #c9a84c)",
-            boxShadow: "0 4px 20px rgba(201, 168, 76, 0.3)",
-          }}
+      <div className="sticky bottom-0 pt-4 pb-6 -mx-6 px-6 relative z-10" style={{ background: "linear-gradient(to top, var(--background) 80%, transparent)" }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.5 }}
         >
-          Start My Journey
-        </button>
-        <p className="text-xs text-center mt-3" style={{ color: "var(--muted)" }}>
-          Bismillah — Let&apos;s make this Ramadan count
-        </p>
-      </motion.div>
+          <button
+            onClick={handleComplete}
+            className="w-full rounded-full py-3.5 text-sm font-semibold text-black transition-all active:scale-[0.98]"
+            style={{
+              background: "linear-gradient(135deg, #c9a84c, #e8c75a, #c9a84c)",
+              boxShadow: "0 4px 20px rgba(201, 168, 76, 0.3)",
+            }}
+          >
+            Start My Journey
+          </button>
+          <p className="text-xs text-center mt-3" style={{ color: "var(--muted)" }}>
+            Bismillah — Let&apos;s make this Ramadan count
+          </p>
+        </motion.div>
+      </div>
     </div>
   );
 }

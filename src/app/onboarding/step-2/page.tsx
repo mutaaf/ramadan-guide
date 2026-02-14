@@ -170,22 +170,23 @@ export default function OnboardingStep2() {
       </motion.div>
 
       {/* Continue Button */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-        className="pt-6"
-      >
-        <button
-          onClick={handleContinue}
-          className="w-full rounded-full py-3.5 text-sm font-semibold text-black transition-all active:scale-[0.98]"
-          style={{
-            background: "linear-gradient(135deg, #c9a84c, #e8c75a, #c9a84c)",
-          }}
+      <div className="sticky bottom-0 pt-4 pb-6 -mx-6 px-6" style={{ background: "linear-gradient(to top, var(--background) 80%, transparent)" }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
         >
-          Continue
-        </button>
-      </motion.div>
+          <button
+            onClick={handleContinue}
+            className="w-full rounded-full py-3.5 text-sm font-semibold text-black transition-all active:scale-[0.98]"
+            style={{
+              background: "linear-gradient(135deg, #c9a84c, #e8c75a, #c9a84c)",
+            }}
+          >
+            Continue
+          </button>
+        </motion.div>
+      </div>
     </div>
   );
 }

@@ -39,7 +39,9 @@ This app provides AI-powered coaching, tracking, and guidance tailored to these 
 - **Animations**: Framer Motion
 - **Charts**: D3.js for visualizations
 - **PWA**: Serwist (service worker, offline support)
-- **AI**: OpenAI API (GPT-4o-mini / GPT-4o)
+- **AI**: OpenAI API (GPT-4o-mini / GPT-4o / Whisper)
+- **Storage**: Vercel Blob (series publishing)
+- **Analytics**: Vercel Analytics
 - **Testing**: Playwright
 
 ### Key Design Decisions
@@ -59,6 +61,10 @@ This app provides AI-powered coaching, tracking, and guidance tailored to these 
    - No API key: Demo insights + locally computed stats
    - With API key: Full personalized AI coaching
 
+6. **Educational Series System**: Curated lecture series with AI-generated companion guides, scholar management, and admin publishing pipeline via Vercel Blob.
+
+7. **Badge Achievement System**: 17 badges across 5 categories (journey, prayer, quran, fasting, wellness) with canvas-rendered shareable images and animated video export.
+
 ---
 
 ## Directory Structure
@@ -68,13 +74,22 @@ src/
 ├── app/                    # Next.js App Router pages
 │   ├── api/
 │   │   ├── ai/            # AI API routes
-│   │   └── partner/       # Accountability partner API routes
-│   │       ├── connect/   # Partner code exchange
-│   │       ├── sync/      # Stats sync
-│   │       └── disconnect/# Remove connection
+│   │   │   └── whisper/   # Speech-to-text transcription
+│   │   ├── partner/       # Accountability partner API routes
+│   │   │   ├── connect/   # Partner code exchange
+│   │   │   ├── sync/      # Stats sync
+│   │   │   └── disconnect/# Remove connection
+│   │   └── series/        # Series management API
+│   │       ├── generate/  # Companion guide generation
+│   │       ├── publish/   # Publish to Vercel Blob
+│   │       └── ...        # Transcript, playlist, OG image
+│   ├── admin/             # Admin panel
+│   │   └── series/        # Series CRUD, scholar mgmt, import
 │   ├── ask/               # Ask Coach Hamza (chat)
 │   ├── dashboard/         # Progress dashboard with charts
+│   │   └── badges/        # Achievement badges showcase
 │   ├── learn/             # Educational content
+│   │   └── series/        # Browse series, episodes, bookmarks
 │   ├── more/              # Settings, about, community
 │   ├── onboarding/        # 4-step onboarding wizard
 │   ├── partner/           # Accountability partner feature
@@ -87,12 +102,17 @@ src/
 │       ├── nutrition/     # Meal planning
 │       ├── quran/         # Juz progress
 │       ├── schedule/      # AI-generated daily routine
+│       │   └── customize/ # Schedule builder wizard
 │       └── tasbeeh/       # Dhikr counter
 ├── components/
 │   ├── ai/                # AI-powered components
+│   ├── badges/            # Badge display, sharing, notifications
 │   ├── health/            # Smart health tracking
 │   ├── schedule/          # Schedule builder wizard
+│   ├── series/            # Series cards, episode views, companion content
+│   │   └── admin/         # Admin forms (series, episodes, scholars)
 │   ├── ui/                # Reusable UI components
+│   ├── DockNav.tsx        # Desktop dock navigation
 │   └── PartnerWidget.tsx  # Home dashboard partner widget
 ├── lib/
 │   ├── accountability/    # Partner accountability system
@@ -105,12 +125,23 @@ src/
 │   │   ├── hooks.ts       # React hooks for AI features
 │   │   ├── memory.ts      # User context building
 │   │   └── types.ts       # AI feature types
+│   ├── badges/            # Achievement badge system
+│   │   ├── definitions.ts # 17 badge definitions
+│   │   ├── evaluate.ts    # Badge unlock logic
+│   │   ├── capture.ts     # Canvas rendering + video export
+│   │   └── share.ts       # Social media sharing
 │   ├── content/           # Static content (hadiths, verses)
 │   ├── health/            # Health pattern analysis
+│   ├── series/            # Educational series management
+│   │   ├── types.ts       # Scholar, Series, Episode, CompanionGuide
+│   │   ├── hooks.ts       # useSeries, useEpisode hooks
+│   │   ├── admin-store.ts # Admin panel Zustand store
+│   │   ├── fetcher.ts     # Blob + static file fetching
+│   │   └── prompts/       # Companion guide AI prompts
 │   ├── prayer-times.ts    # Aladhan API integration
 │   └── ramadan.ts         # Phase detection, dates, constants
 ├── store/
-│   └── useStore.ts        # Zustand global state
+│   └── useStore.ts        # Zustand global state (v10)
 └── config/
     └── charity.ts         # Charity organization data
 ```
@@ -120,13 +151,16 @@ src/
 ## Key Files Reference
 
 ### Core State (`src/store/useStore.ts`)
-Central Zustand store with:
+Central Zustand store (v10) with:
 - `DayEntry`: Daily tracking data (prayers, sleep, hydration, meals, training)
 - `UserProfile`: Sport, experience level, goals, concerns
 - `UserMemory`: AI learning from conversations
 - `CustomSchedule`: AI-generated daily routine
 - `HealthPatterns`: Sleep/hydration analysis for smart suggestions
 - `partnerStats`: Accountability partner's synced stats
+- `seriesUserData`: Episode completion, bookmarks, notes, saved action items
+- `badgeUnlocks`: Badge unlock timestamps and share counts
+- `enabledRings`: Customizable dashboard rings (prayers, water, dhikr, quran, series)
 - `getPrayerStreak()`: Consecutive days with all 5 prayers completed
 
 ### Phase System (`src/lib/ramadan.ts`)
@@ -188,6 +222,30 @@ Privacy-preserving partner system. Only aggregate stats are shared.
 - All partner data stored in localStorage, not in Zustand (connection state)
 - Users can disconnect at any time
 
+### Educational Series (`src/lib/series/`)
+AI-powered lecture companion system with scholar management and publishing.
+
+**Types (`types.ts`)**: Scholar, Series, Episode, CompanionGuide, SeriesUserData
+- `CompanionGuide`: AI-generated study guide with hadiths, verses, quotes, action items, discussion questions, glossary
+- `SavedActionItem`: Trackable action items from episodes (spiritual/practical/social/study categories)
+
+**Hooks (`hooks.ts`)**: `useSeriesIndex()`, `useSeriesDetail()`, `useEpisode()`, `useUserSeriesData()`
+
+**Admin Store (`admin-store.ts`)**: Separate Zustand store for series CRUD operations (scholars, series, episodes, companions, transcripts)
+
+**Publishing Pipeline**: Admin generates companion guides from transcripts → publishes to Vercel Blob → users fetch from Blob with static file fallback
+
+### Badge System (`src/lib/badges/`)
+17 achievement badges with shareable social media images.
+
+**Definitions (`definitions.ts`)**: 5 categories (journey, prayer, quran, fasting, wellness), 3 tiers (bronze, silver, gold)
+
+**Evaluation (`evaluate.ts`)**: `deriveRamadanState()` reads across days, juzProgress, and seriesUserData to determine which badges are unlocked
+
+**Capture (`capture.ts`)**: Canvas 2D rendering with Islamic geometric patterns, animated sparkles, tier-specific glow effects. Exports as PNG (feed 1080x1080, story 1080x1920) or animated video (3s loop)
+
+**Share (`share.ts`)**: Web Share API with fallback download, pre-formatted social captions with hashtags
+
 ---
 
 ## AI Prompt Guidelines
@@ -220,6 +278,8 @@ const phaseContext = phase === "ramadan"
 | Qur'an Tracker | Yes | Yes | Yes |
 | Schedule Builder | Yes | Yes | Yes |
 | Partner Widget | Yes | Yes | Yes |
+| Series / Learn | Yes | Yes | Yes |
+| Badges | Yes | Yes | Yes |
 
 ---
 
@@ -230,6 +290,18 @@ const phaseContext = phase === "ramadan"
 2. Create prompt builder in `src/lib/ai/prompts/`
 3. Add feature to `FEATURE_MODEL` and `FEATURE_TTL` in types
 4. Create component using `useAI` hook
+
+### Adding a New Series
+1. Use admin panel at `/admin/series` or create data in `src/lib/series/admin-store.ts`
+2. Add scholar in `/admin/series/scholars`
+3. Create series with episodes
+4. Generate companion guides from transcripts
+5. Publish to Vercel Blob via `/api/series/publish`
+
+### Adding a New Badge
+1. Define badge in `src/lib/badges/definitions.ts` (id, name, description, tier, category, criteria)
+2. Add evaluation logic in `src/lib/badges/evaluate.ts` → `deriveRamadanState()`
+3. Badge will auto-evaluate and show in `/dashboard/badges`
 
 ### Modifying Prayer Count Logic
 Search for these patterns (all should use 5, not 6):
@@ -251,12 +323,14 @@ const RAMADAN_DATES = {
 
 ## Known Considerations
 
-1. **Offline-First**: All features should work without network (except AI calls and partner sync)
+1. **Offline-First**: All features should work without network (except AI calls, partner sync, and series fetching)
 2. **Data Privacy**: All data stays in localStorage, never sent to servers except AI queries and partner aggregate stats
 3. **Cultural Sensitivity**: Content reviewed for Islamic authenticity
 4. **Accessibility**: Charts have aria-labels, proper contrast ratios
-5. **Mobile-First**: UI designed for phones, scales up for tablets/desktop
+5. **Mobile-First**: UI designed for phones, scales up for tablets/desktop (DockNav for desktop)
 6. **Partner Privacy**: Accountability partner only sees aggregate stats (prayer count, hydration status, streak). No names, no personal data.
+7. **Store Version**: Currently at v10. Always increment version and add migration logic when adding new state fields.
+8. **Admin Security**: Series publish endpoint requires `ADMIN_SECRET` env var for authentication.
 
 ---
 
@@ -277,7 +351,10 @@ The app is designed for Vercel deployment:
 - Static pages pre-rendered at build time
 - API routes for AI (optional, can use client-side with API key)
 - API routes for partner sync (in-memory store; replace with Vercel KV for production)
+- API routes for series publishing (Vercel Blob storage)
 - Service worker for offline PWA support
+- Vercel Analytics for usage tracking
+- CI via GitHub Actions (build + lint + Playwright E2E)
 
 ---
 

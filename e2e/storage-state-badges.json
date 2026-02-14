@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:3000",
+      "localStorage": [
+        {
+          "name": "ramadan-guide-storage",
+          "value": "{\"state\":{\"userName\":\"\",\"sport\":\"\",\"onboarded\":true,\"userProfile\":{\"userName\":\"Test\",\"sport\":\"football\",\"experienceLevel\":\"beginner\",\"fastingExperience\":\"first-time\",\"trainingIntensity\":\"recreational\",\"primaryGoals\":[\"spiritual-growth\"],\"ramadanConcerns\":[]},\"userMemory\":{\"preferredMealTypes\":[],\"dietaryRestrictions\":[],\"sleepSchedule\":\"\",\"frequentTopics\":[],\"strugglingAreas\":[],\"achievements\":[],\"notes\":[],\"interactionCount\":0},\"checklist\":{},\"days\":{},\"juzProgress\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"challengesCompleted\":{},\"maintenanceDays\":{},\"tasbeehCounters\":[{\"id\":\"subhanallah\",\"name\":\"SubhanAllah\",\"arabicName\":\"سبحان الله\",\"target\":33,\"count\":0},{\"id\":\"alhamdulillah\",\"name\":\"Alhamdulillah\",\"arabicName\":\"الحمد لله\",\"target\":33,\"count\":0},{\"id\":\"allahuakbar\",\"name\":\"Allahu Akbar\",\"arabicName\":\"الله أكبر\",\"target\":33,\"count\":0}],\"tasbeehHistory\":{},\"apiKey\":\"\",\"aiModelPreference\":\"\",\"useApiRoute\":false,\"healthPatterns\":{\"typicalSleepHours\":7,\"sleepVariance\":1,\"typicalRestedState\":true,\"typicalGlasses\":6,\"preferredDrinks\":[],\"lastPatternUpdate\":0,\"dataPointsAnalyzed\":0,\"confidence\":\"low\"},\"smartPromptSettings\":{\"morningEnabled\":false,\"eveningEnabled\":false,\"usePrayerTiming\":true,\"notificationsGranted\":false,\"lastMorningPrompt\":null,\"lastEveningPrompt\":null},\"quickLogEngagement\":{\"acceptanceRate\":0,\"daysWithQuickLog\":0,\"totalSuggestions\":0,\"acceptedSuggestions\":0},\"entrySources\":{},\"customSchedule\":null,\"partnerStats\":null,\"lastPartnerSync\":null,\"seriesUserData\":{\"completedEpisodes\":{},\"bookmarkedEpisodes\":{},\"episodeNotes\":{},\"lastViewed\":null,\"seriesProgress\":{},\"savedActionItems\":{}},\"enabledRings\":[\"prayers\",\"water\",\"dhikr\"],\"badgeUnlocks\":{\"journey-start\":{\"unlockedAt\":\"2026-02-10T12:00:00.000Z\",\"shareCount\":0}}},\"version\":9}"
+        }
+      ]
+    }
+  ]
+}

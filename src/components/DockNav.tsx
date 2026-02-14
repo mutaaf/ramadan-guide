@@ -74,7 +74,7 @@ export function DockNav() {
 
   return (
     <nav
-      className="hidden md:flex fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-3 py-3 rounded-2xl"
+      className="dock-nav hidden md:flex fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-3 py-3 rounded-2xl"
       style={{
         background: "var(--nav-bg)",
         backdropFilter: "blur(40px) saturate(180%)",

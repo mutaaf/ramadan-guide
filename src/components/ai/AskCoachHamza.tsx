@@ -227,7 +227,7 @@ export function AskCoachHamza({ initialQuestion }: AskCoachHamzaProps = {}) {
       {/* Messages */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-1 space-y-3 pb-20"
+        className="flex-1 overflow-y-auto px-1 space-y-3 pb-36 md:pb-40"
       >
         {messages.length === 0 && (
           <div className="pt-8 text-center">
@@ -408,9 +408,8 @@ export function AskCoachHamza({ initialQuestion }: AskCoachHamzaProps = {}) {
 
       {/* Input - Fixed at bottom above nav */}
       <div
-        className="fixed left-0 right-0 z-40 px-6 pb-2 pt-2"
+        className="fixed left-0 right-0 z-50 px-6 pb-2 pt-2 bottom-[calc(env(safe-area-inset-bottom,0px)+64px)] md:bottom-[90px]"
         style={{
-          bottom: "calc(env(safe-area-inset-bottom, 0px) + 70px)",
           background: "var(--background)",
         }}
       >

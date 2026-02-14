@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { BadgeDefinition } from "@/lib/badges/definitions";
-import { captureBadgeImage, type CaptureFormat } from "@/lib/badges/capture";
-import { shareBadgeImage, downloadBlob, buildShareCaption, copyCaption } from "@/lib/badges/share";
+import { renderFrame, captureBadgeImage, captureBadgeVideo, supportsVideoCapture, DIMENSIONS, type CaptureFormat } from "@/lib/badges/capture";
+import { shareBadgeImage, shareBadgeVideo, downloadBlob, buildShareCaption, copyCaption } from "@/lib/badges/share";
 import { useStore } from "@/store/useStore";
 
 interface BadgeShareModalProps {
@@ -14,54 +14,59 @@ interface BadgeShareModalProps {
 
 export function BadgeShareModal({ badge, onClose }: BadgeShareModalProps) {
   const [format, setFormat] = useState<CaptureFormat>("story");
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(false);
+  const [canVideo, setCanVideo] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef<number>(0);
   const blobRef = useRef<Blob | null>(null);
-  const prevUrlRef = useRef<string | null>(null);
   const recordBadgeShare = useStore((s) => s.recordBadgeShare);
 
-  // Generate canvas preview when badge/format changes
+  // Check video support on mount
   useEffect(() => {
-    if (!badge) {
-      if (prevUrlRef.current) {
-        URL.revokeObjectURL(prevUrlRef.current);
-        prevUrlRef.current = null;
-      }
-      blobRef.current = null;
-      return;
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCanVideo(supportsVideoCapture());
+  }, []);
 
-    let cancelled = false;
+  // Run animated canvas preview
+  useEffect(() => {
+    if (!badge) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const { width, height } = DIMENSIONS[format];
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d")!;
+
+    // Pre-generate static blob for share/download
     blobRef.current = null;
-
-    // Use microtask to batch state updates
-    queueMicrotask(() => {
-      if (cancelled) return;
-      setLoading(true);
-      setPreviewUrl(null);
-    });
-
     captureBadgeImage(badge, format).then((blob) => {
-      if (cancelled) return;
       blobRef.current = blob;
-      if (prevUrlRef.current) URL.revokeObjectURL(prevUrlRef.current);
-      const url = URL.createObjectURL(blob);
-      prevUrlRef.current = url;
-      setPreviewUrl(url);
-      setLoading(false);
-    }).catch(() => {
-      if (!cancelled) setLoading(false);
     });
 
-    return () => { cancelled = true; };
+    const startTime = performance.now();
+    const LOOP_MS = 3000;
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const t = (elapsed % LOOP_MS) / LOOP_MS;
+      renderFrame(ctx, badge, format, t);
+      rafRef.current = requestAnimationFrame(animate);
+    };
+
+    rafRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+    };
   }, [badge, format]);
 
   const handleShare = useCallback(async () => {
     if (!blobRef.current || !badge) return;
     setSharing(true);
-    // Copy caption to clipboard first so user has it ready
     await copyCaption(badge);
     const result = await shareBadgeImage(blobRef.current, badge);
     if (result === "shared" || result === "downloaded") {
@@ -76,6 +81,21 @@ export function BadgeShareModal({ badge, onClose }: BadgeShareModalProps) {
     downloadBlob(blobRef.current, `ramadan-${badge.id}-${format}.png`);
     recordBadgeShare(badge.id);
     setSharing(false);
+  }, [badge, format, recordBadgeShare]);
+
+  const handleVideoShare = useCallback(async () => {
+    if (!badge) return;
+    setVideoProgress(true);
+    try {
+      const result = await captureBadgeVideo(badge, format);
+      const outcome = await shareBadgeVideo(result, badge);
+      if (outcome === "shared" || outcome === "downloaded") {
+        recordBadgeShare(badge.id);
+      }
+    } catch {
+      // User cancelled or recording failed
+    }
+    setVideoProgress(false);
   }, [badge, format, recordBadgeShare]);
 
   const handleCopy = useCallback(async () => {
@@ -156,7 +176,7 @@ export function BadgeShareModal({ badge, onClose }: BadgeShareModalProps) {
                 ))}
               </div>
 
-              {/* Canvas-rendered preview */}
+              {/* Animated canvas preview */}
               <div
                 className="rounded-2xl overflow-hidden mb-3 mx-auto"
                 style={{
@@ -166,21 +186,11 @@ export function BadgeShareModal({ badge, onClose }: BadgeShareModalProps) {
                   background: "#0a0a0c",
                 }}
               >
-                {loading ? (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div
-                      className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin"
-                      style={{ borderColor: "var(--accent-gold)", borderTopColor: "transparent" }}
-                    />
-                  </div>
-                ) : previewUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={previewUrl}
-                    alt={`${badge.title} badge`}
-                    className="w-full h-full object-contain"
-                  />
-                ) : null}
+                <canvas
+                  ref={canvasRef}
+                  className="w-full h-full"
+                  style={{ display: "block" }}
+                />
               </div>
 
               {/* Caption preview + copy */}
@@ -217,7 +227,7 @@ export function BadgeShareModal({ badge, onClose }: BadgeShareModalProps) {
               <div className="flex gap-3">
                 <button
                   onClick={handleShare}
-                  disabled={sharing || loading}
+                  disabled={sharing || videoProgress}
                   className="flex-1 rounded-xl py-3.5 text-sm font-bold text-black transition-all active:scale-[0.97] disabled:opacity-50"
                   style={{
                     background: "linear-gradient(135deg, #c9a84c, #e8c75a, #c9a84c)",
@@ -226,9 +236,28 @@ export function BadgeShareModal({ badge, onClose }: BadgeShareModalProps) {
                 >
                   {sharing ? "Sharing..." : "Share"}
                 </button>
+                {canVideo && (
+                  <button
+                    onClick={handleVideoShare}
+                    disabled={sharing || videoProgress}
+                    className="rounded-xl py-3.5 px-4 text-sm font-semibold transition-all active:scale-[0.97] disabled:opacity-50"
+                    style={{ background: "var(--surface-1)", color: "var(--foreground)" }}
+                  >
+                    {videoProgress ? (
+                      <div
+                        className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin mx-auto"
+                        style={{ borderColor: "var(--accent-gold)", borderTopColor: "transparent" }}
+                      />
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                      </svg>
+                    )}
+                  </button>
+                )}
                 <button
                   onClick={handleDownload}
-                  disabled={sharing || loading}
+                  disabled={sharing || videoProgress}
                   className="rounded-xl py-3.5 px-5 text-sm font-semibold transition-all active:scale-[0.97] disabled:opacity-50"
                   style={{ background: "var(--surface-1)", color: "var(--foreground)" }}
                 >

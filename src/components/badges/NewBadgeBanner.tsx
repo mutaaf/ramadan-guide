@@ -28,12 +28,15 @@ export function NewBadgeBanner() {
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
+        animate={{ opacity: 1, y: 0, scale: [1, 1.01, 1] }}
         exit={{ opacity: 0, y: -10 }}
+        transition={{
+          scale: { repeat: Infinity, duration: 3, ease: "easeInOut" },
+        }}
       >
         <Link href="/dashboard/badges">
           <div
-            className="rounded-2xl px-4 py-3 flex items-center gap-3"
+            className="rounded-2xl px-4 py-3 flex items-center gap-3 banner-shimmer"
             style={{
               background: "rgba(201, 168, 76, 0.1)",
               border: "1px solid rgba(201, 168, 76, 0.25)",
@@ -68,6 +71,26 @@ export function NewBadgeBanner() {
             </button>
           </div>
         </Link>
+
+        {/* Banner shimmer animation */}
+        <style jsx global>{`
+          @keyframes banner-shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+          }
+          .banner-shimmer {
+            background-image: linear-gradient(
+              90deg,
+              rgba(201, 168, 76, 0.1) 0%,
+              rgba(201, 168, 76, 0.1) 40%,
+              rgba(232, 199, 90, 0.25) 50%,
+              rgba(201, 168, 76, 0.1) 60%,
+              rgba(201, 168, 76, 0.1) 100%
+            ) !important;
+            background-size: 200% 100%;
+            animation: banner-shimmer 3s linear infinite;
+          }
+        `}</style>
       </motion.div>
     </AnimatePresence>
   );

@@ -1,5 +1,5 @@
 import type { BadgeDefinition } from "./definitions";
-import { APP_URL } from "./capture";
+import { APP_URL, type VideoResult } from "./capture";
 
 export function buildShareCaption(badge: BadgeDefinition): string {
   return [
@@ -42,6 +42,26 @@ export async function shareBadgeImage(blob: Blob, badge: BadgeDefinition): Promi
 
   // Fallback: download the file
   downloadBlob(blob, `ramadan-${badge.id}.png`);
+  return "downloaded";
+}
+
+export async function shareBadgeVideo(result: VideoResult, badge: BadgeDefinition): Promise<"shared" | "downloaded" | "error"> {
+  const file = new File([result.blob], `ramadan-${badge.id}.${result.extension}`, { type: result.mimeType });
+  const caption = buildShareCaption(badge);
+
+  if (navigator.share) {
+    try {
+      const shareData: ShareData = { text: caption, files: [file] };
+      if (navigator.canShare?.(shareData)) {
+        await navigator.share(shareData);
+        return "shared";
+      }
+    } catch (e) {
+      if (e instanceof Error && e.name === "AbortError") return "shared";
+    }
+  }
+
+  downloadBlob(result.blob, `ramadan-${badge.id}.${result.extension}`);
   return "downloaded";
 }
 

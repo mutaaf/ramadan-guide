@@ -55,7 +55,8 @@ export default function OnboardingLayout({
 
       {/* Hide bottom nav styling */}
       <style jsx global>{`
-        .bottom-nav {
+        .bottom-nav,
+        .dock-nav {
           display: none !important;
         }
         .safe-bottom {

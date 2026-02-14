@@ -36,6 +36,15 @@ customSchedule: CustomSchedule | null
 // Accountability partner
 partnerStats: PartnerStats | null
 lastPartnerSync: number | null
+
+// Educational series tracking
+seriesUserData: SeriesUserData   // Completions, bookmarks, notes, action items
+
+// Badge achievement system
+badgeUnlocks: Record<string, { unlockedAt: number; shareCount: number }>
+
+// Dashboard customization
+enabledRings: RingId[]           // "prayers" | "water" | "dhikr" | "quran" | "series"
 ```
 
 #### Persistence & Migration
@@ -45,9 +54,10 @@ Storage version is tracked for migrations:
 ```typescript
 {
   name: "ramadan-guide-storage",
-  version: 6,  // Current version
+  version: 10,  // Current version
   migrate: (state, version) => {
     // Handle upgrades from older versions
+    // v7: seriesUserData, v8: enabledRings, v9: savedActionItems, v10: badgeUnlocks
   }
 }
 ```
@@ -257,6 +267,111 @@ const withSerwist = withSerwistInit({
 
 ---
 
+## Educational Series System
+
+### Admin Store (`src/lib/series/admin-store.ts`)
+
+A separate Zustand store for series management, persisted under `ramadan-series-admin`:
+
+```typescript
+interface SeriesAdminStore {
+  scholars: Scholar[];
+  series: Series[];
+  episodes: Record<string, Episode[]>;       // seriesId → episodes
+  companions: Record<string, CompanionGuide>; // episodeId → guide
+  transcripts: Record<string, string>;        // episodeId → text
+  generationStatuses: Record<string, AdminGenerationStatus>;
+  // CRUD actions for all entities
+}
+```
+
+### Companion Guide Generation Flow
+
+```
+Transcript Input (manual / YouTube API)
+    ↓
+POST /api/series/generate
+    ↓
+OpenAI GPT-4o analyzes transcript
+    ↓
+Returns CompanionGuide:
+  - summary
+  - hadiths (with source, narrator, context)
+  - verses (with surah, ayah, translation)
+  - keyQuotes (with speaker, context)
+  - actionItems (spiritual/practical/social/study)
+  - discussionQuestions
+  - glossary (Arabic terms with definitions)
+    ↓
+Admin reviews & edits in CompanionEditor
+    ↓
+Individual sections can be regenerated via
+POST /api/series/regenerate-section
+    ↓
+Cross-episode connections computed when
+multiple episodes exist
+```
+
+### Data Fetching Strategy (`src/lib/series/fetcher.ts`)
+
+```
+User requests series data
+    ↓
+Try Vercel Blob URL (NEXT_PUBLIC_BLOB_BASE_URL)
+    ↓ fail
+Fallback to /public/data/series/ static files
+    ↓
+Cache result with timestamp for invalidation
+```
+
+### Publishing Pipeline
+
+```
+Admin clicks "Publish"
+    ↓
+POST /api/series/publish (requires ADMIN_SECRET)
+    ↓
+Uploads series-index.json + per-series episodes.json
+    ↓
+Vercel Blob stores files at CDN edge
+    ↓
+Users fetch fresh data on next load
+```
+
+---
+
+## Badge Achievement System
+
+### Evaluation Flow
+
+```typescript
+// src/lib/badges/evaluate.ts
+function deriveRamadanState(store): BadgeEvaluation {
+  // Reads: store.days, store.juzProgress, store.seriesUserData
+  // Computes: prayer streaks, fasting days, quran progress,
+  //           hydration days, tasbeeh totals, series completions
+  // Returns: list of unlocked badge IDs
+}
+```
+
+### Canvas Rendering (`src/lib/badges/capture.ts`)
+
+The badge share image renderer uses Canvas 2D with:
+
+1. **Background**: Dark gradient (tier-tinted)
+2. **Geometric Patterns**: Islamic 8-pointed stars
+3. **Sparkle Animation**: Sinusoidal movement with fade
+4. **Badge Icon**: 8-pointed star with tier-specific glow
+5. **Text Layout**: Wrapped title/subtitle with proper line breaks
+6. **Shimmer Effect**: Accent line animation
+7. **Branding**: App URL + hashtags at bottom
+
+Two export formats:
+- **Image**: PNG at 1080x1080 (feed) or 1080x1920 (story)
+- **Video**: 3-second animated loop via MediaRecorder API
+
+---
+
 ## Component Patterns
 
 ### AI-Powered Components
@@ -406,9 +521,11 @@ npm run test:ui     # Interactive UI
 ## Security Notes
 
 1. **API Key Storage**: Client-side in localStorage (user's own key)
-2. **No Server-Side Data**: All data stays on device
+2. **No Server-Side Data**: All user data stays on device
 3. **AI Requests**: Go directly to OpenAI or through Vercel API route
-4. **No Analytics**: Privacy-focused (Vercel Analytics optional)
+4. **Analytics**: Vercel Analytics (optional, privacy-focused)
+5. **Admin Authentication**: Series publish endpoint requires `ADMIN_SECRET` header
+6. **Partner Privacy**: Only 4 aggregate fields synced (prayer count, hydration, streak, timestamp)
 
 ---
 
@@ -419,3 +536,7 @@ npm run test:ui     # Interactive UI
 3. **Prayer Names**: Match exactly: "fajr", "dhur", "asr", "maghrib", "ishaa", "taraweeh"
 4. **Phase Changes**: `getPhaseInfo()` should be called fresh, not cached
 5. **AI Model Names**: "gpt-4o-mini" or "gpt-4o" (not "gpt-4")
+6. **Two Zustand Stores**: Main app (`useStore`) and admin (`useAdminStore`) are separate — don't mix
+7. **Store Version**: Currently v10. Always increment and add migration logic when adding fields
+8. **Badge Evaluation**: `deriveRamadanState()` reads across multiple store slices — ensure all are initialized
+9. **Series Fetching**: Always handle both Blob and static fallback paths in `fetcher.ts`

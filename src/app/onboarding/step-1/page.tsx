@@ -99,26 +99,27 @@ export default function OnboardingStep1() {
       </motion.div>
 
       {/* Continue Button */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-        className="pt-6"
-      >
-        <button
-          onClick={handleContinue}
-          disabled={!canContinue}
-          className="w-full rounded-full py-3.5 text-sm font-semibold text-black transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{
-            background: canContinue
-              ? "linear-gradient(135deg, #c9a84c, #e8c75a, #c9a84c)"
-              : "var(--surface-1)",
-            color: canContinue ? "#000" : "var(--muted)",
-          }}
+      <div className="sticky bottom-0 pt-4 pb-6 -mx-6 px-6" style={{ background: "linear-gradient(to top, var(--background) 80%, transparent)" }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
         >
-          Continue
-        </button>
-      </motion.div>
+          <button
+            onClick={handleContinue}
+            disabled={!canContinue}
+            className="w-full rounded-full py-3.5 text-sm font-semibold text-black transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{
+              background: canContinue
+                ? "linear-gradient(135deg, #c9a84c, #e8c75a, #c9a84c)"
+                : "var(--surface-1)",
+              color: canContinue ? "#000" : "var(--muted)",
+            }}
+          >
+            Continue
+          </button>
+        </motion.div>
+      </div>
     </div>
   );
 }
