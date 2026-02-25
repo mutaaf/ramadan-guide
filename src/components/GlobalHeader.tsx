@@ -1,5 +1,7 @@
 "use client";
 
+import { SyncStatusDot } from "@/components/sync/SyncStatusDot";
+
 export function GlobalHeader() {
   return (
     <header
@@ -14,12 +16,15 @@ export function GlobalHeader() {
         className="border-b px-6 py-3"
         style={{ borderColor: "var(--card-border)" }}
       >
-        <p
-          className="text-sm font-semibold tracking-tight text-center"
-          style={{ color: "var(--accent-gold)" }}
-        >
-          Your Personal Ramadan Coach
-        </p>
+        <div className="flex items-center justify-center gap-2">
+          <p
+            className="text-sm font-semibold tracking-tight text-center"
+            style={{ color: "var(--accent-gold)" }}
+          >
+            Your Personal Ramadan Coach
+          </p>
+          <SyncStatusDot />
+        </div>
       </div>
     </header>
   );

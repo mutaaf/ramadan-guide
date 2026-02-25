@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
 import { AISettingsModal } from "@/components/ai/AISettingsModal";
+import { CloudSyncModal } from "@/components/sync/CloudSyncModal";
 import { CharitySection } from "@/components/CharitySection";
 import { useStore } from "@/store/useStore";
 import { AICache } from "@/lib/ai/cache";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { isSupabaseConfigured, getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const BOOK_PDF_URL = "https://drive.google.com/file/d/14dZVQGAeIvKDSNWyuHHARwkusKmgVue4/view";
 
@@ -25,7 +27,33 @@ const sections = [
 
 export default function MorePage() {
   const [showSettings, setShowSettings] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const cloudSyncEnabled = useStore((s) => s.cloudSyncEnabled);
+
+  // Open sync modal when redirected from OAuth callback (?sync=setup)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const syncParam = params.get("sync");
+    if (syncParam === "setup" || syncParam === "error") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShowSyncModal(true);
+      window.history.replaceState({}, "", "/more");
+
+      if (syncParam === "setup") {
+        const supabase = getSupabaseBrowserClient();
+        if (supabase) {
+          void (async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+              useStore.getState().setCloudSyncEnabled(true);
+              useStore.getState().setCloudSyncUserId(user.id);
+            }
+          })();
+        }
+      }
+    }
+  }, []);
 
   function handleDownloadData() {
     const state = useStore.getState();
@@ -77,6 +105,29 @@ export default function MorePage() {
             <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </Card>
+
+        {/* Cloud Sync */}
+        {isSupabaseConfigured() && (
+          <Card delay={0.02} className="flex items-center gap-4 lg:gap-5" onClick={() => setShowSyncModal(true)}>
+            <div
+              className="flex h-11 w-11 lg:h-12 lg:w-12 items-center justify-center rounded-xl shrink-0"
+              style={{ background: "rgba(201, 168, 76, 0.12)", color: "var(--accent-gold)" }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-[15px]">Cloud Sync</p>
+              <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
+                {cloudSyncEnabled ? "Syncing across devices" : "Sync across all your devices"}
+              </p>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--muted)" }}>
+              <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </Card>
+        )}
 
         {/* Download Your Data */}
         <Card delay={0.04} className="flex items-center gap-4 lg:gap-5" onClick={handleDownloadData}>
@@ -169,6 +220,7 @@ export default function MorePage() {
       </div>
 
       <AISettingsModal open={showSettings} onClose={() => setShowSettings(false)} />
+      <CloudSyncModal open={showSyncModal} onClose={() => setShowSyncModal(false)} />
 
       <ConfirmDialog
         open={showClearConfirm}

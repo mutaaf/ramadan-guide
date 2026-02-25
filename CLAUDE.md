@@ -40,6 +40,7 @@ This app provides AI-powered coaching, tracking, and guidance tailored to these 
 - **Charts**: D3.js for visualizations
 - **PWA**: Serwist (service worker, offline support)
 - **AI**: OpenAI API (GPT-4o-mini / GPT-4o / Whisper)
+- **Cloud Sync**: Supabase (Postgres + Auth, optional)
 - **Storage**: Vercel Blob (series publishing)
 - **Analytics**: Vercel Analytics
 - **Testing**: Playwright
@@ -75,6 +76,8 @@ src/
 │   ├── api/
 │   │   ├── ai/            # AI API routes
 │   │   │   └── whisper/   # Speech-to-text transcription
+│   │   ├── auth/          # Auth API routes
+│   │   │   └── delete-account/ # Server-side account deletion
 │   │   ├── partner/       # Accountability partner API routes
 │   │   │   ├── connect/   # Partner code exchange
 │   │   │   ├── sync/      # Stats sync
@@ -85,6 +88,8 @@ src/
 │   │       └── ...        # Transcript, playlist, OG image
 │   ├── admin/             # Admin panel
 │   │   └── series/        # Series CRUD, scholar mgmt, import
+│   ├── auth/
+│   │   └── callback/      # OAuth redirect handler
 │   ├── ask/               # Ask Coach Hamza (chat)
 │   ├── dashboard/         # Progress dashboard with charts
 │   │   └── badges/        # Achievement badges showcase
@@ -111,6 +116,10 @@ src/
 │   ├── schedule/          # Schedule builder wizard
 │   ├── series/            # Series cards, episode views, companion content
 │   │   └── admin/         # Admin forms (series, episodes, scholars)
+│   ├── sync/              # Cloud sync components
+│   │   ├── SyncProvider.tsx    # Root: starts/stops sync engine
+│   │   ├── CloudSyncModal.tsx  # Sign-in, status, account mgmt
+│   │   └── SyncStatusDot.tsx   # Header sync indicator
 │   ├── ui/                # Reusable UI components
 │   ├── DockNav.tsx        # Desktop dock navigation
 │   └── PartnerWidget.tsx  # Home dashboard partner widget
@@ -138,10 +147,17 @@ src/
 │   │   ├── admin-store.ts # Admin panel Zustand store
 │   │   ├── fetcher.ts     # Blob + static file fetching
 │   │   └── prompts/       # Companion guide AI prompts
+│   ├── supabase/          # Supabase client utilities
+│   │   ├── client.ts      # Browser client singleton
+│   │   └── server.ts      # Server client + admin client
+│   ├── sync/              # Cloud sync engine
+│   │   ├── types.ts       # SyncStatus, SyncableData
+│   │   ├── extract.ts     # SYNC_FIELDS, extract/apply helpers
+│   │   └── engine.ts      # CloudSyncEngine class (singleton)
 │   ├── prayer-times.ts    # Aladhan API integration
 │   └── ramadan.ts         # Phase detection, dates, constants
 ├── store/
-│   └── useStore.ts        # Zustand global state (v10)
+│   └── useStore.ts        # Zustand global state (v11)
 └── config/
     └── charity.ts         # Charity organization data
 ```
@@ -151,7 +167,7 @@ src/
 ## Key Files Reference
 
 ### Core State (`src/store/useStore.ts`)
-Central Zustand store (v10) with:
+Central Zustand store (v11) with:
 - `DayEntry`: Daily tracking data (prayers, sleep, hydration, meals, training)
 - `UserProfile`: Sport, experience level, goals, concerns
 - `UserMemory`: AI learning from conversations
@@ -161,6 +177,7 @@ Central Zustand store (v10) with:
 - `seriesUserData`: Episode completion, bookmarks, notes, saved action items
 - `badgeUnlocks`: Badge unlock timestamps and share counts
 - `enabledRings`: Customizable dashboard rings (prayers, water, dhikr, quran, series)
+- `cloudSyncEnabled` / `cloudSyncUserId`: Optional cloud sync state
 - `getPrayerStreak()`: Consecutive days with all 5 prayers completed
 
 ### Phase System (`src/lib/ramadan.ts`)
@@ -246,6 +263,23 @@ AI-powered lecture companion system with scholar management and publishing.
 
 **Share (`share.ts`)**: Web Share API with fallback download, pre-formatted social captions with hashtags
 
+### Cloud Sync (`src/lib/sync/` + `src/lib/supabase/`)
+Optional cross-device data sync via Supabase. Disabled by default — only active when Supabase env vars are set and user signs in.
+
+**Architecture**: Single JSONB blob per user in `user_data` table (~200-300KB). Last-write-wins conflict resolution. Row-level security ensures users can only access their own data.
+
+**Engine (`engine.ts`)**: Standalone `CloudSyncEngine` class (singleton).
+- Debounced push (2s after last store change), pulls on app open / tab focus / network restore
+- 60s max-interval flush timer
+- Exponential backoff on errors (2s → 4s → ... → 60s max)
+- Status: `idle` | `syncing` | `error` | `offline`
+
+**Extract (`extract.ts`)**: `SYNC_FIELDS` whitelist of what syncs to cloud. Device-specific fields (`apiKey`, `partnerStats`, `smartPromptSettings`, etc.) are excluded.
+
+**Auth**: Google + Apple OAuth via Supabase Auth. OAuth callback at `/auth/callback`. Session refresh via `src/middleware.ts`. Account deletion via `/api/auth/delete-account` (service role key).
+
+**UI**: `CloudSyncModal` on `/more` page (sign in, status, sync now, sign out, delete data/account). `SyncStatusDot` in `GlobalHeader` (gold=syncing, red=error, orange=offline). `SyncProvider` in root layout starts/stops engine based on auth state.
+
 ---
 
 ## AI Prompt Guidelines
@@ -280,6 +314,7 @@ const phaseContext = phase === "ramadan"
 | Partner Widget | Yes | Yes | Yes |
 | Series / Learn | Yes | Yes | Yes |
 | Badges | Yes | Yes | Yes |
+| Cloud Sync | Yes | Yes | Yes |
 
 ---
 
@@ -323,14 +358,15 @@ const RAMADAN_DATES = {
 
 ## Known Considerations
 
-1. **Offline-First**: All features should work without network (except AI calls, partner sync, and series fetching)
-2. **Data Privacy**: All data stays in localStorage, never sent to servers except AI queries and partner aggregate stats
+1. **Offline-First**: All features should work without network (except AI calls, partner sync, cloud sync, and series fetching)
+2. **Data Privacy**: All data stays in localStorage by default. Optional cloud sync sends data to Supabase (user must explicitly sign in). AI queries and partner aggregate stats also leave device.
 3. **Cultural Sensitivity**: Content reviewed for Islamic authenticity
 4. **Accessibility**: Charts have aria-labels, proper contrast ratios
 5. **Mobile-First**: UI designed for phones, scales up for tablets/desktop (DockNav for desktop)
 6. **Partner Privacy**: Accountability partner only sees aggregate stats (prayer count, hydration status, streak). No names, no personal data.
-7. **Store Version**: Currently at v10. Always increment version and add migration logic when adding new state fields.
+7. **Store Version**: Currently at v11. Always increment version and add migration logic when adding new state fields.
 8. **Admin Security**: Series publish endpoint requires `ADMIN_SECRET` env var for authentication.
+9. **Cloud Sync**: Optional. Feature is invisible unless `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` env vars are set. Account deletion requires `SUPABASE_SERVICE_ROLE_KEY`. Sync fields are whitelisted in `src/lib/sync/extract.ts` — device-specific fields never leave the device.
 
 ---
 
@@ -352,6 +388,8 @@ The app is designed for Vercel deployment:
 - API routes for AI (optional, can use client-side with API key)
 - API routes for partner sync (in-memory store; replace with Vercel KV for production)
 - API routes for series publishing (Vercel Blob storage)
+- API route for account deletion (Supabase service role)
+- Supabase for optional cloud sync (Postgres + Auth)
 - Service worker for offline PWA support
 - Vercel Analytics for usage tracking
 - CI via GitHub Actions (build + lint + Playwright E2E)

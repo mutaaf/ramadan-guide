@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import { GeometricPattern } from "@/components/GeometricPattern";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 
 const BOOK_PDF_URL = "https://drive.google.com/file/d/14dZVQGAeIvKDSNWyuHHARwkusKmgVue4/view";
 
@@ -161,6 +162,19 @@ export default function OnboardingStep4() {
           <p className="text-xs text-center mt-3" style={{ color: "var(--muted)" }}>
             Bismillah — Let&apos;s make this Ramadan count
           </p>
+          {isSupabaseConfigured() && (
+            <button
+              onClick={() => {
+                handleComplete();
+                // Small delay to ensure onboarded is set before navigating to /more
+                setTimeout(() => window.location.assign("/more?sync=setup"), 100);
+              }}
+              className="text-xs text-center mt-2 block w-full"
+              style={{ color: "var(--accent-gold)" }}
+            >
+              Sync across devices? Sign in
+            </button>
+          )}
         </motion.div>
       </div>
     </div>

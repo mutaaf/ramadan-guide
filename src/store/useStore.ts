@@ -299,6 +299,12 @@ interface RamadanStore {
   markBadgesSeen: (ids: string[]) => void;
   recordBadgeShare: (badgeId: string) => void;
 
+  // Cloud sync
+  cloudSyncEnabled: boolean;
+  cloudSyncUserId: string | null;
+  setCloudSyncEnabled: (v: boolean) => void;
+  setCloudSyncUserId: (id: string | null) => void;
+
   // Helper to calculate prayer streak
   getPrayerStreak: () => number;
 }
@@ -347,6 +353,10 @@ export const useStore = create<RamadanStore>()(
 
       // Badge tracking for recap
       badgeUnlocks: {} as Record<string, { unlockedAt: number; shareCount: number }>,
+
+      // Cloud sync
+      cloudSyncEnabled: false,
+      cloudSyncUserId: null as string | null,
 
       setUser: (name, sport) => set({ userName: name, sport }),
       setOnboarded: (v) => set({ onboarded: v }),
@@ -751,6 +761,9 @@ export const useStore = create<RamadanStore>()(
           return { enabledRings: [...current, ringId] };
         }),
 
+      setCloudSyncEnabled: (v) => set({ cloudSyncEnabled: v }),
+      setCloudSyncUserId: (id) => set({ cloudSyncUserId: id }),
+
       getPrayerStreak: () => {
         const state = get();
         const sortedDates = Object.keys(state.days).sort().reverse();
@@ -774,7 +787,7 @@ export const useStore = create<RamadanStore>()(
     }),
     {
       name: "ramadan-guide-storage",
-      version: 10,
+      version: 11,
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Record<string, unknown>;
         if (version === 0) {
@@ -845,6 +858,10 @@ export const useStore = create<RamadanStore>()(
         }
         if (version < 10) {
           state.badgeUnlocks = {};
+        }
+        if (version < 11) {
+          state.cloudSyncEnabled = false;
+          state.cloudSyncUserId = null;
         }
         return state as unknown as RamadanStore;
       },
