@@ -8,6 +8,7 @@ import type {
   AdminGenerationStatus,
 } from "./types";
 import type { PublishSnapshot } from "./diff";
+import { fetchSeriesIndex, fetchSeriesEpisodes } from "./fetcher";
 
 interface SeriesAdminStore {
   // Editable data
@@ -70,6 +71,10 @@ interface SeriesAdminStore {
   // Import
   importIndex: (scholars: Scholar[], series: Series[]) => void;
   importSeriesData: (seriesId: string, episodes: Episode[], companions: Record<string, CompanionGuide>) => void;
+
+  // Sync from published
+  lastSyncedFromLive: number | null;
+  loadFromPublished: () => Promise<void>;
 }
 
 export const useAdminStore = create<SeriesAdminStore>()(
@@ -83,6 +88,7 @@ export const useAdminStore = create<SeriesAdminStore>()(
       generationStatuses: {},
       lastPublishedAt: null,
       lastPublishedSnapshot: null,
+      lastSyncedFromLive: null,
 
       setLastPublishedAt: (timestamp) => set({ lastPublishedAt: timestamp }),
 
@@ -270,6 +276,47 @@ export const useAdminStore = create<SeriesAdminStore>()(
           episodes: { ...s.episodes, [seriesId]: episodes },
           companions: { ...s.companions, ...companions },
         })),
+
+      loadFromPublished: async () => {
+        const state = get();
+        try {
+          const index = await fetchSeriesIndex();
+
+          // Merge scholars — add any not already present
+          const existingScholarIds = new Set(state.scholars.map((s) => s.id));
+          const newScholars = index.scholars.filter((s) => !existingScholarIds.has(s.id));
+
+          // Merge series — add any not already present
+          const existingSeriesIds = new Set(state.series.map((s) => s.id));
+          const newSeries = index.series.filter((s) => !existingSeriesIds.has(s.id));
+
+          // Fetch episodes for all published series
+          const allNewEpisodes: Record<string, Episode[]> = { ...state.episodes };
+          const allNewCompanions: Record<string, CompanionGuide> = { ...state.companions };
+
+          for (const sr of index.series) {
+            // Only fetch episodes for series not already in the store
+            if (existingSeriesIds.has(sr.id)) continue;
+            try {
+              const data = await fetchSeriesEpisodes(sr.id);
+              allNewEpisodes[sr.id] = data.episodes;
+              Object.assign(allNewCompanions, data.companions);
+            } catch {
+              // Skip series whose episode data can't be fetched
+            }
+          }
+
+          set({
+            scholars: [...state.scholars, ...newScholars],
+            series: [...state.series, ...newSeries],
+            episodes: allNewEpisodes,
+            companions: allNewCompanions,
+            lastSyncedFromLive: Date.now(),
+          });
+        } catch {
+          // fetchSeriesIndex failed — nothing to do
+        }
+      },
     }),
     {
       name: "series-admin-storage",

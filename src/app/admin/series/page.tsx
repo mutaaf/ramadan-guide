@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Card } from "@/components/Card";
@@ -13,8 +13,27 @@ import { computePublishDiff } from "@/lib/series/diff";
 import type { Series } from "@/lib/series/types";
 
 export default function AdminDashboardPage() {
-  const { scholars, series, episodes, companions, lastPublishedSnapshot, addSeries } = useAdminStore();
+  const { scholars, series, episodes, companions, lastPublishedSnapshot, addSeries, loadFromPublished } = useAdminStore();
   const [showCreateSeries, setShowCreateSeries] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+
+  const handleSyncFromLive = useCallback(async () => {
+    setSyncing(true);
+    try {
+      await loadFromPublished();
+    } finally {
+      setSyncing(false);
+    }
+  }, [loadFromPublished]);
+
+  // Auto-load from published if store is empty on mount
+  useEffect(() => {
+    if (series.length === 0 && scholars.length === 0) {
+      handleSyncFromLive();
+    }
+    // Only run on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const totalEpisodes = Object.values(episodes).reduce((sum, eps) => sum + eps.length, 0);
   const totalCompanions = Object.keys(companions).length;
@@ -53,10 +72,22 @@ export default function AdminDashboardPage() {
   return (
     <div className="px-6 py-6 space-y-4">
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold">Series Admin</h1>
-        <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-          Manage scholars, series, episodes, and AI companions
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Series Admin</h1>
+            <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
+              Manage scholars, series, episodes, and AI companions
+            </p>
+          </div>
+          <button
+            onClick={handleSyncFromLive}
+            disabled={syncing}
+            className="text-xs font-medium px-3 py-1.5 rounded-xl shrink-0"
+            style={{ background: "var(--surface-1)" }}
+          >
+            {syncing ? "Syncing..." : "Sync from Live"}
+          </button>
+        </div>
       </motion.div>
 
       {/* Stats */}
@@ -217,7 +248,7 @@ export default function AdminDashboardPage() {
 
         {series.length === 0 && !showCreateSeries && (
           <p className="text-sm text-center py-6" style={{ color: "var(--muted)" }}>
-            No series yet. Add a scholar, then create your first series.
+            {syncing ? "Loading published series..." : "No series yet. Add a scholar, then create your first series."}
           </p>
         )}
       </div>
