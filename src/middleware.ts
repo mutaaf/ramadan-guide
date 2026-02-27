@@ -7,6 +7,13 @@ export async function middleware(request: NextRequest) {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return NextResponse.next();
 
+  // With localStorage-based auth, cookies may not be present.
+  // Skip middleware refresh if no Supabase auth cookies exist.
+  const hasAuthCookies = request.cookies.getAll().some(
+    (c) => c.name.startsWith("sb-") || c.name.includes("supabase")
+  );
+  if (!hasAuthCookies) return NextResponse.next();
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(url, key, {

@@ -31,10 +31,18 @@ export function SyncProvider() {
     let cancelled = false;
 
     void (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      let { data: { session } } = await supabase.auth.getSession();
       if (cancelled) return;
+
+      // If session is null, try refreshing before giving up
       if (!session) {
-        // Session expired — clear sync state
+        const { data: refreshData } = await supabase.auth.refreshSession();
+        if (cancelled) return;
+        session = refreshData.session;
+      }
+
+      if (!session) {
+        // Session truly expired — clear sync state
         useStore.getState().setCloudSyncEnabled(false);
         useStore.getState().setCloudSyncUserId(null);
         return;

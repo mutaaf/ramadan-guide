@@ -11,6 +11,7 @@ import { useStore } from "@/store/useStore";
 import { AICache } from "@/lib/ai/cache";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { isSupabaseConfigured, getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { NotificationSettings } from "@/components/NotificationSettings";
 
 const BOOK_PDF_URL = "https://drive.google.com/file/d/14dZVQGAeIvKDSNWyuHHARwkusKmgVue4/view";
 
@@ -76,6 +77,7 @@ export default function MorePage() {
 
   function confirmClearAllData() {
     localStorage.removeItem("ramadan-guide-storage");
+    localStorage.removeItem("ramadan-guide-auth");
     AICache.clear();
     localStorage.removeItem("ramadan-partner-code");
     localStorage.removeItem("ramadan-partner-device-id");
@@ -129,8 +131,13 @@ export default function MorePage() {
           </Card>
         )}
 
+        {/* Notification Settings */}
+        <Card delay={0.04}>
+          <NotificationSettings />
+        </Card>
+
         {/* Download Your Data */}
-        <Card delay={0.04} className="flex items-center gap-4 lg:gap-5" onClick={handleDownloadData}>
+        <Card delay={0.06} className="flex items-center gap-4 lg:gap-5" onClick={handleDownloadData}>
           <div
             className="flex h-11 w-11 lg:h-12 lg:w-12 items-center justify-center rounded-xl shrink-0"
             style={{ background: "rgba(201, 168, 76, 0.12)", color: "var(--accent-gold)" }}

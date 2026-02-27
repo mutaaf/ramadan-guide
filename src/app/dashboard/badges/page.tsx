@@ -4,9 +4,18 @@ import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { useStore } from "@/store/useStore";
 import { evaluateBadges } from "@/lib/badges/evaluate";
-import { BADGE_DEFINITIONS, type BadgeDefinition } from "@/lib/badges/definitions";
+import { BADGE_DEFINITIONS, type BadgeCategory, type BadgeDefinition } from "@/lib/badges/definitions";
 import { BadgeCardList } from "@/components/badges/BadgeCard";
 import { BadgeShareModal } from "@/components/badges/BadgeShareModal";
+
+const CATEGORY_LABELS: { key: "all" | BadgeCategory; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "journey", label: "Journey" },
+  { key: "prayer", label: "Prayer" },
+  { key: "quran", label: "Quran" },
+  { key: "fasting", label: "Fasting" },
+  { key: "wellness", label: "Wellness" },
+];
 
 export default function BadgesPage() {
   // Subscribe to key state for reactivity
@@ -17,6 +26,7 @@ export default function BadgesPage() {
   const tasbeehHistory = useStore((s) => s.tasbeehHistory);
   const markBadgesSeen = useStore((s) => s.markBadgesSeen);
   const [selectedBadge, setSelectedBadge] = useState<BadgeDefinition | null>(null);
+  const [activeCategory, setActiveCategory] = useState<"all" | BadgeCategory>("all");
 
   // Re-evaluate on state changes
   void days; void juzProgress; void onboarded; void seriesUserData; void tasbeehHistory;
@@ -31,6 +41,10 @@ export default function BadgesPage() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const filteredBadges = activeCategory === "all"
+    ? BADGE_DEFINITIONS
+    : BADGE_DEFINITIONS.filter((b) => b.category === activeCategory);
 
   const unlockedCount = unlocked.length;
   const totalCount = BADGE_DEFINITIONS.length;
@@ -80,9 +94,37 @@ export default function BadgesPage() {
           </div>
         </div>
 
+        {/* Category filter tabs */}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+          {CATEGORY_LABELS.map(({ key, label }) => {
+            const isActive = activeCategory === key;
+            const categoryCount = key === "all"
+              ? BADGE_DEFINITIONS.length
+              : BADGE_DEFINITIONS.filter((b) => b.category === key).length;
+            const categoryUnlocked = key === "all"
+              ? unlockedCount
+              : BADGE_DEFINITIONS.filter((b) => b.category === key && unlockedIds.has(b.id)).length;
+
+            return (
+              <button
+                key={key}
+                onClick={() => setActiveCategory(key)}
+                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+                style={{
+                  background: isActive ? "var(--accent-gold)" : "var(--surface-1)",
+                  color: isActive ? "#000" : "var(--muted)",
+                  border: isActive ? "none" : "1px solid var(--card-border)",
+                }}
+              >
+                {label} {categoryUnlocked}/{categoryCount}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Badge grid */}
         <div className="grid grid-cols-2 gap-3">
-          {BADGE_DEFINITIONS.map((badge, i) => {
+          {filteredBadges.map((badge, i) => {
             const isUnlocked = unlockedIds.has(badge.id);
             const isNew = newIds.includes(badge.id);
             return (

@@ -15,6 +15,22 @@ import {
   DEFAULT_QUICK_LOG_ENGAGEMENT,
 } from "@/lib/health/types";
 
+export interface NotificationPreferences {
+  enabled: boolean;
+  prayerReminders: boolean;    // 10min before each prayer
+  fastingReminders: boolean;   // Sahoor (45min before Fajr) + Iftar (at Maghrib)
+  dailyCheckIn: boolean;       // Evening journal reminder at 9 PM
+  badgeUnlocks: boolean;       // Notify on new badge unlock
+}
+
+export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  enabled: false,
+  prayerReminders: true,
+  fastingReminders: true,
+  dailyCheckIn: true,
+  badgeUnlocks: true,
+};
+
 export type RingId = "prayers" | "water" | "dhikr" | "quran" | "series";
 export const DEFAULT_ENABLED_RINGS: RingId[] = ["prayers", "water", "dhikr"];
 
@@ -299,6 +315,10 @@ interface RamadanStore {
   markBadgesSeen: (ids: string[]) => void;
   recordBadgeShare: (badgeId: string) => void;
 
+  // Notification preferences
+  notificationPreferences: NotificationPreferences;
+  updateNotificationPreferences: (prefs: Partial<NotificationPreferences>) => void;
+
   // Cloud sync
   cloudSyncEnabled: boolean;
   cloudSyncUserId: string | null;
@@ -353,6 +373,9 @@ export const useStore = create<RamadanStore>()(
 
       // Badge tracking for recap
       badgeUnlocks: {} as Record<string, { unlockedAt: number; shareCount: number }>,
+
+      // Notification preferences
+      notificationPreferences: DEFAULT_NOTIFICATION_PREFERENCES,
 
       // Cloud sync
       cloudSyncEnabled: false,
@@ -761,6 +784,11 @@ export const useStore = create<RamadanStore>()(
           return { enabledRings: [...current, ringId] };
         }),
 
+      updateNotificationPreferences: (prefs) =>
+        set((s) => ({
+          notificationPreferences: { ...s.notificationPreferences, ...prefs },
+        })),
+
       setCloudSyncEnabled: (v) => set({ cloudSyncEnabled: v }),
       setCloudSyncUserId: (id) => set({ cloudSyncUserId: id }),
 
@@ -787,7 +815,7 @@ export const useStore = create<RamadanStore>()(
     }),
     {
       name: "ramadan-guide-storage",
-      version: 11,
+      version: 12,
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Record<string, unknown>;
         if (version === 0) {
@@ -862,6 +890,9 @@ export const useStore = create<RamadanStore>()(
         if (version < 11) {
           state.cloudSyncEnabled = false;
           state.cloudSyncUserId = null;
+        }
+        if (version < 12) {
+          state.notificationPreferences = DEFAULT_NOTIFICATION_PREFERENCES;
         }
         return state as unknown as RamadanStore;
       },

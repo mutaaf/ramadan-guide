@@ -14,6 +14,12 @@ export function getSupabaseBrowserClient() {
 
   client = createBrowserClient(url, key, {
     db: { schema: DB_SCHEMA },
+    auth: {
+      flowType: "pkce",
+      storage: typeof window !== "undefined" ? window.localStorage : undefined,
+      storageKey: "ramadan-guide-auth",
+      detectSessionInUrl: true,
+    },
   });
   return client;
 }

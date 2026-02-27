@@ -121,10 +121,10 @@ export function FeatureTour({ onComplete }: FeatureTourProps) {
   const { platform, deferredPrompt, handleInstall } = useInstallPrompt();
   const [showIOSSteps, setShowIOSSteps] = useState(false);
 
-  // Build slides: include install slide only if not already installed
+  // Build slides: include install slide at position 2 (after welcome) if not already installed
   const SLIDES = platform === "installed"
     ? FEATURE_SLIDES
-    : [...FEATURE_SLIDES, INSTALL_SLIDE];
+    : [FEATURE_SLIDES[0], INSTALL_SLIDE, ...FEATURE_SLIDES.slice(1)];
 
   const isLast = current === SLIDES.length - 1;
   const isInstallSlide = SLIDES[current]?.visual === "install";
@@ -136,6 +136,8 @@ export function FeatureTour({ onComplete }: FeatureTourProps) {
   };
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
+    // Block swiping forward on the install slide — user must tap a CTA
+    if (isInstallSlide && info.offset.x < -SWIPE_THRESHOLD) return;
     if (info.offset.x < -SWIPE_THRESHOLD && current < SLIDES.length - 1) {
       goTo(current + 1);
     } else if (info.offset.x > SWIPE_THRESHOLD && current > 0) {
@@ -146,7 +148,7 @@ export function FeatureTour({ onComplete }: FeatureTourProps) {
   const onInstallClick = async () => {
     const accepted = await handleInstall();
     if (accepted) {
-      onComplete();
+      goTo(current + 1);
     }
   };
 
@@ -176,8 +178,8 @@ export function FeatureTour({ onComplete }: FeatureTourProps) {
         }}
       />
 
-      {/* Skip button */}
-      {!isLast && (
+      {/* Skip button — hidden on install slide and last slide */}
+      {!isLast && !isInstallSlide && (
         <button
           onClick={onComplete}
           className="absolute top-6 right-6 z-20 text-sm font-medium px-3 py-1.5 rounded-full transition-all active:scale-95"
@@ -299,7 +301,7 @@ export function FeatureTour({ onComplete }: FeatureTourProps) {
               </button>
             )}
             <button
-              onClick={onComplete}
+              onClick={() => goTo(current + 1)}
               className="w-full text-sm font-medium py-2 transition-all active:scale-[0.97]"
               style={{ color: "var(--muted)" }}
             >
