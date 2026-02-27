@@ -199,11 +199,12 @@ a {
   min-height: 44px;
 }
 
-/* Exception for inline links and small UI elements that don't need large touch targets */
+/* Exception for inline links, toggles, and small UI elements that don't need large touch targets */
 p a,
 span a,
 li a,
-.inline-link {
+.inline-link,
+[role="switch"] {
   min-height: auto;
 }
 
