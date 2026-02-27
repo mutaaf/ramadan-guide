@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/store/useStore";
-import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { getSupabaseBrowserClient, isSupabaseConfigured, clearAuthStorage } from "@/lib/supabase/client";
 import { syncEngine } from "@/lib/sync/engine";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { SyncStatusInfo } from "@/lib/sync/types";
@@ -65,6 +65,7 @@ export function CloudSyncModal({ open, onClose }: CloudSyncModalProps) {
     if (!supabase) return;
     syncEngine.stop();
     await supabase.auth.signOut();
+    clearAuthStorage();
     setCloudSyncEnabled(false);
     setCloudSyncUserId(null);
     localStorage.removeItem("ramadan-sync-last-push");
@@ -87,14 +88,21 @@ export function CloudSyncModal({ open, onClose }: CloudSyncModalProps) {
   const handleDeleteAccount = useCallback(async () => {
     setShowDeleteAccountConfirm(false);
     syncEngine.stop();
+    const supabase = getSupabaseBrowserClient();
     try {
-      const res = await fetch("/api/auth/delete-account", { method: "POST" });
+      // Get access token to authenticate the server-side deletion
+      const { data: { session } } = await (supabase?.auth.getSession() ?? Promise.resolve({ data: { session: null } }));
+      const token = session?.access_token;
+      const res = await fetch("/api/auth/delete-account", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       if (!res.ok) throw new Error("Failed to delete account");
     } catch {
       // Still sign out locally even if server delete fails
     }
-    const supabase = getSupabaseBrowserClient();
     if (supabase) await supabase.auth.signOut();
+    clearAuthStorage();
     setCloudSyncEnabled(false);
     setCloudSyncUserId(null);
     localStorage.removeItem("ramadan-sync-last-push");

@@ -32,16 +32,20 @@ const serwist = new Serwist({
 
 serwist.addEventListeners();
 
-// Exclude Supabase auth endpoints and /auth/ paths from service worker cache
-// by intercepting fetch and using network-only for these requests
+// Exclude auth-related requests from service worker cache (network-only).
+// This covers: OAuth callbacks, Supabase API calls, and token endpoints.
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  const isAuthPath =
+  const isAuthRelated =
     url.pathname.startsWith("/auth/") ||
-    url.hostname.includes("supabase");
+    url.pathname.includes("/callback") ||
+    url.hostname.includes("supabase") ||
+    url.hostname.includes("accounts.google.com") ||
+    url.hostname.includes("appleid.apple.com") ||
+    url.searchParams.has("code");
 
-  if (isAuthPath) {
+  if (isAuthRelated) {
     event.respondWith(fetch(event.request));
   }
 });

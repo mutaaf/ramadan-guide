@@ -17,21 +17,29 @@ export default function AuthCallbackPage() {
         return;
       }
 
-      // The browser client with detectSessionInUrl: true will automatically
-      // exchange the code from the URL hash/params and store the session
-      // in localStorage (via our auth storage config).
-      const { error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) {
-        setStatus("error");
-        router.replace("/more?sync=error");
-        return;
+      // Extract the PKCE code from the URL
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get("code");
+
+      if (code) {
+        // Explicitly exchange the authorization code for a session.
+        // This stores the access + refresh tokens in localStorage
+        // via our auth storage config.
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) {
+          console.error("[auth/callback] Code exchange failed:", error.message);
+          setStatus("error");
+          router.replace("/more?sync=error");
+          return;
+        }
       }
 
-      // Verify we actually have a session (code exchange succeeded)
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      // Verify we have a valid session after exchange
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
         router.replace("/more?sync=setup");
       } else {
+        console.error("[auth/callback] No session after code exchange");
         setStatus("error");
         router.replace("/more?sync=error");
       }

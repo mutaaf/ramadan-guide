@@ -1,20 +1,23 @@
-import { NextResponse } from "next/server";
-import { getSupabaseServerClient, getSupabaseAdminClient } from "@/lib/supabase/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { getSupabaseAdminClient } from "@/lib/supabase/server";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    // Get the authenticated user from the session
-    const supabase = await getSupabaseServerClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    // Client sends the access token since auth lives in localStorage, not cookies
+    const authHeader = request.headers.get("authorization");
+    const token = authHeader?.replace("Bearer ", "");
 
-    if (authError || !user) {
+    if (!token) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
+    // Verify the token using the admin client
     const admin = await getSupabaseAdminClient();
+    const { data: { user }, error: authError } = await admin.auth.getUser(token);
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
 
     // Delete user_data row
     await admin.from("user_data").delete().eq("user_id", user.id);

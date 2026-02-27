@@ -10,7 +10,7 @@ import { CharitySection } from "@/components/CharitySection";
 import { useStore } from "@/store/useStore";
 import { AICache } from "@/lib/ai/cache";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { isSupabaseConfigured, getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured, clearAuthStorage } from "@/lib/supabase/client";
 import { NotificationSettings } from "@/components/NotificationSettings";
 
 const BOOK_PDF_URL = "https://drive.google.com/file/d/14dZVQGAeIvKDSNWyuHHARwkusKmgVue4/view";
@@ -32,7 +32,8 @@ export default function MorePage() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const cloudSyncEnabled = useStore((s) => s.cloudSyncEnabled);
 
-  // Open sync modal when redirected from OAuth callback (?sync=setup)
+  // Open sync modal when redirected from OAuth callback (?sync=setup or ?sync=error)
+  // SyncProvider's onAuthStateChange handles setting the store state automatically.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const syncParam = params.get("sync");
@@ -40,19 +41,6 @@ export default function MorePage() {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowSyncModal(true);
       window.history.replaceState({}, "", "/more");
-
-      if (syncParam === "setup") {
-        const supabase = getSupabaseBrowserClient();
-        if (supabase) {
-          void (async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-              useStore.getState().setCloudSyncEnabled(true);
-              useStore.getState().setCloudSyncUserId(user.id);
-            }
-          })();
-        }
-      }
     }
   }, []);
 
@@ -77,7 +65,7 @@ export default function MorePage() {
 
   function confirmClearAllData() {
     localStorage.removeItem("ramadan-guide-storage");
-    localStorage.removeItem("ramadan-guide-auth");
+    clearAuthStorage();
     AICache.clear();
     localStorage.removeItem("ramadan-partner-code");
     localStorage.removeItem("ramadan-partner-device-id");

@@ -6,14 +6,69 @@ import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/c
 import { syncEngine } from "@/lib/sync/engine";
 
 /**
- * Root-level component that starts/stops the sync engine
- * based on auth state and cloudSyncEnabled flag.
+ * Root-level component that:
+ * 1. Listens for Supabase auth state changes (sign-in, sign-out, token refresh)
+ * 2. Auto-restores session on app reopen (PWA or web)
+ * 3. Starts/stops the sync engine based on auth + user preference
  */
 export function SyncProvider() {
   const cloudSyncEnabled = useStore((s) => s.cloudSyncEnabled);
   const cloudSyncUserId = useStore((s) => s.cloudSyncUserId);
   const started = useRef(false);
 
+  // ── Auth state change listener ──────────────────────────────────────
+  // Detects sign-in, sign-out, and token refresh events from Supabase.
+  // This is what makes auth persist across web reloads and PWA reopens.
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    // On mount, check for an existing session (stored in localStorage)
+    void (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const store = useStore.getState();
+        // Restore sync state if we have a valid session but store lost it
+        if (!store.cloudSyncUserId || store.cloudSyncUserId !== session.user.id) {
+          store.setCloudSyncUserId(session.user.id);
+          store.setCloudSyncEnabled(true);
+        }
+      }
+    })();
+
+    // Listen for auth events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        const store = useStore.getState();
+
+        if (event === "SIGNED_IN" && session?.user) {
+          // New sign-in — set store state
+          if (!store.cloudSyncUserId || store.cloudSyncUserId !== session.user.id) {
+            store.setCloudSyncUserId(session.user.id);
+            store.setCloudSyncEnabled(true);
+          }
+        } else if (event === "SIGNED_OUT") {
+          // Signed out — clear store state and stop engine
+          store.setCloudSyncEnabled(false);
+          store.setCloudSyncUserId(null);
+          if (started.current) {
+            syncEngine.stop();
+            started.current = false;
+          }
+        }
+        // TOKEN_REFRESHED is handled automatically by Supabase client
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // ── Sync engine lifecycle ───────────────────────────────────────────
+  // Starts/stops the engine based on store state (cloudSyncEnabled + cloudSyncUserId).
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
     if (!cloudSyncEnabled || !cloudSyncUserId) {
@@ -27,28 +82,30 @@ export function SyncProvider() {
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
 
-    // Verify session then start engine
+    // Verify session is valid, then start engine
     let cancelled = false;
 
     void (async () => {
-      let { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (cancelled) return;
 
-      // If session is null, try refreshing before giving up
       if (!session) {
+        // Try refreshing the token
         const { data: refreshData } = await supabase.auth.refreshSession();
         if (cancelled) return;
-        session = refreshData.session;
+
+        if (!refreshData.session) {
+          // Session truly expired — clear sync state
+          useStore.getState().setCloudSyncEnabled(false);
+          useStore.getState().setCloudSyncUserId(null);
+          return;
+        }
       }
 
-      if (!session) {
-        // Session truly expired — clear sync state
-        useStore.getState().setCloudSyncEnabled(false);
-        useStore.getState().setCloudSyncUserId(null);
-        return;
-      }
+      const activeSession = session || (await supabase.auth.getSession()).data.session;
+      if (!activeSession || cancelled) return;
 
-      syncEngine.start(supabase, session.user.id);
+      syncEngine.start(supabase, activeSession.user.id);
       started.current = true;
     })();
 
