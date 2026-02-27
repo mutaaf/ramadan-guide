@@ -20,6 +20,7 @@ interface PrayerTimes {
  */
 export function useSmartPrompts(prayerTimes?: PrayerTimes) {
   const {
+    onboarded,
     smartPromptSettings,
     updateSmartPromptSettings,
     getDay,
@@ -38,6 +39,13 @@ export function useSmartPrompts(prayerTimes?: PrayerTimes) {
   // Check if we should show prompt
   useEffect(() => {
     const checkPromptTiming = () => {
+      // Don't show prompts during onboarding
+      if (!onboarded) {
+        setShowPrompt(false);
+        setPromptType(null);
+        return;
+      }
+
       const now = new Date();
       const currentHour = now.getHours() + now.getMinutes() / 60;
       const today = getTodayString();
@@ -115,6 +123,7 @@ export function useSmartPrompts(prayerTimes?: PrayerTimes) {
 
     return () => clearInterval(interval);
   }, [
+    onboarded,
     smartPromptSettings,
     prayerTimes,
     getDay,

@@ -429,6 +429,7 @@ export function AskCoachHamza({ initialQuestion }: AskCoachHamzaProps = {}) {
           <button
             onClick={handleSubmit}
             disabled={!question.trim() || loading}
+            aria-label="Send message"
             className="rounded-xl px-4 py-3 text-sm font-medium transition-all active:scale-[0.96] disabled:opacity-40"
             style={{ background: "var(--accent-gold)", color: "#000" }}
           >

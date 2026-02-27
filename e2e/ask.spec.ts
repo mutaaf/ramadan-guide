@@ -19,8 +19,8 @@ test.describe("Ask Coach Hamza", () => {
     const input = page.locator('input[placeholder="Ask Coach Hamza..."]');
     await expect(input).toHaveValue("");
 
-    // Find the send button (arrow icon button next to input)
-    const sendBtn = page.locator("button").filter({ has: page.locator("svg") }).last();
+    // Find the send button by aria-label
+    const sendBtn = page.locator('button[aria-label="Send message"]');
     await expect(sendBtn).toBeDisabled();
   });
 
