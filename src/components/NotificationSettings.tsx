@@ -1,6 +1,7 @@
 "use client";
 
 import { useStore } from "@/store/useStore";
+import { Toggle } from "@/components/Toggle";
 import { scheduleDailyNotifications } from "@/lib/notifications/prayer-scheduler";
 
 export function NotificationSettings() {
@@ -54,6 +55,7 @@ export function NotificationSettings() {
           <Toggle
             checked={prefs.enabled}
             onChange={(v) => handleToggle("enabled", v)}
+            size="sm"
           />
         )}
       </div>
@@ -107,24 +109,7 @@ function ToggleRow({
         <p className="text-sm">{label}</p>
         <p className="text-xs" style={{ color: "var(--muted)" }}>{description}</p>
       </div>
-      <Toggle checked={checked} onChange={onChange} />
+      <Toggle checked={checked} onChange={onChange} size="sm" />
     </div>
-  );
-}
-
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className="relative w-10 h-6 rounded-full transition-colors shrink-0"
-      style={{ background: checked ? "var(--accent-gold)" : "var(--surface-2)" }}
-    >
-      <div
-        className="absolute top-0.5 w-5 h-5 rounded-full transition-transform bg-white"
-        style={{ transform: checked ? "translateX(18px)" : "translateX(2px)" }}
-      />
-    </button>
   );
 }

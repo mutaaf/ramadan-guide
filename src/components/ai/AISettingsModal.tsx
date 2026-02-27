@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/store/useStore";
 import { AICache } from "@/lib/ai/cache";
+import { Toggle } from "@/components/Toggle";
 
 interface AISettingsModalProps {
   open: boolean;
@@ -78,16 +79,11 @@ export function AISettingsModal({ open, onClose }: AISettingsModalProps) {
                     {useApiRoute ? "Using built-in server key (recommended)" : "Proxy through /api/ai"}
                   </p>
                 </div>
-                <button
-                  onClick={() => setUseApiRoute(!useApiRoute)}
-                  className="relative h-7 w-12 rounded-full transition-colors"
-                  style={{ background: useApiRoute ? "var(--accent-gold)" : "var(--ring-track)" }}
-                >
-                  <div
-                    className="absolute top-0.5 h-6 w-6 rounded-full bg-white transition-all shadow-sm"
-                    style={{ left: useApiRoute ? 22 : 2 }}
-                  />
-                </button>
+                <Toggle
+                  checked={useApiRoute}
+                  onChange={setUseApiRoute}
+                  size="sm"
+                />
               </div>
             </div>
 

@@ -6,6 +6,7 @@ import { useStore } from "@/store/useStore";
 import { getSupabaseBrowserClient, isSupabaseConfigured, clearAuthStorage } from "@/lib/supabase/client";
 import { syncEngine } from "@/lib/sync/engine";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { Toggle } from "@/components/Toggle";
 import type { SyncStatusInfo } from "@/lib/sync/types";
 
 interface CloudSyncModalProps {
@@ -113,8 +114,8 @@ export function CloudSyncModal({ open, onClose }: CloudSyncModalProps) {
     await syncEngine.syncNow();
   }, []);
 
-  const handleToggleSync = useCallback(async () => {
-    if (cloudSyncEnabled) {
+  const handleToggleSync = useCallback(async (value: boolean) => {
+    if (!value) {
       // Disable sync
       syncEngine.stop();
       setCloudSyncEnabled(false);
@@ -265,16 +266,11 @@ export function CloudSyncModal({ open, onClose }: CloudSyncModalProps) {
                         {cloudSyncEnabled ? "Auto-syncing changes" : "Sync paused"}
                       </p>
                     </div>
-                    <button
-                      onClick={handleToggleSync}
-                      className="relative h-7 w-12 rounded-full transition-colors"
-                      style={{ background: cloudSyncEnabled ? "var(--accent-gold)" : "var(--ring-track)" }}
-                    >
-                      <div
-                        className="absolute top-0.5 h-6 w-6 rounded-full bg-white transition-all shadow-sm"
-                        style={{ left: cloudSyncEnabled ? 22 : 2 }}
-                      />
-                    </button>
+                    <Toggle
+                      checked={cloudSyncEnabled}
+                      onChange={handleToggleSync}
+                      size="sm"
+                    />
                   </div>
 
                   {/* Divider */}
