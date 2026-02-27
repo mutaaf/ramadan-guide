@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Badge Achievement System", () => {
   test("badges page loads at /dashboard/badges", async ({ page }) => {
     await page.goto("/dashboard/badges");
-    await expect(page.locator("h1")).toContainText("Badges");
+    await expect(page.locator("h1")).toContainText("Achievements");
   });
 
   test("badge grid shows badge cards", async ({ page }) => {

@@ -10,14 +10,6 @@ test.describe("iPad Landscape Responsive", () => {
     await expect(dockNav).toBeVisible();
   });
 
-  test("DockNav is hidden during onboarding", async ({ page }) => {
-    test.use({ storageState: { cookies: [], origins: [] } });
-    await page.goto("/onboarding");
-    // DockNav should be hidden during onboarding
-    const dockNav = page.locator("nav.dock-nav");
-    await expect(dockNav).toBeHidden();
-  });
-
   test("chat input is visible and not overlapped on /ask", async ({ page }) => {
     await page.goto("/ask");
     const input = page.locator('input[placeholder="Ask Coach Hamza..."]');
@@ -32,22 +24,32 @@ test.describe("iPad Landscape Responsive", () => {
     }
   });
 
-  test("onboarding continue button visible without scrolling", async ({ page }) => {
+  test.describe("during onboarding", () => {
     test.use({ storageState: { cookies: [], origins: [] } });
-    await page.goto("/onboarding/step-1");
 
-    // Fill in required fields so button becomes enabled
-    await page.fill('input[placeholder="Your name or nickname"]', "Test");
-    await page.click("button:has-text('Football')");
+    test("DockNav is hidden during onboarding", async ({ page }) => {
+      await page.goto("/onboarding");
+      // DockNav should be hidden during onboarding
+      const dockNav = page.locator("nav.dock-nav");
+      await expect(dockNav).toBeHidden();
+    });
 
-    const continueBtn = page.locator("button:has-text('Continue')");
-    await expect(continueBtn).toBeVisible();
+    test("onboarding continue button visible without scrolling", async ({ page }) => {
+      await page.goto("/onboarding/step-1");
 
-    // Button should be within the viewport (no scrolling needed)
-    const box = await continueBtn.boundingBox();
-    expect(box).toBeTruthy();
-    if (box) {
-      expect(box.y + box.height).toBeLessThanOrEqual(768);
-    }
+      // Fill in required fields so button becomes enabled
+      await page.fill('input[placeholder="Your name or nickname"]', "Test");
+      await page.click("button:has-text('Football')");
+
+      const continueBtn = page.locator("button:has-text('Continue')");
+      await expect(continueBtn).toBeVisible();
+
+      // Button should be within the viewport (no scrolling needed)
+      const box = await continueBtn.boundingBox();
+      expect(box).toBeTruthy();
+      if (box) {
+        expect(box.y + box.height).toBeLessThanOrEqual(768);
+      }
+    });
   });
 });

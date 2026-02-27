@@ -13,13 +13,15 @@ test.describe("Accountability Partner", () => {
 
   test("shows partner code generation UI", async ({ page }) => {
     await page.goto("/partner/connect");
-    // Should show options to generate or enter a code
-    const generateBtn = page.locator("button:has-text('Generate'), button:has-text('Get'), button:has-text('Create')").first();
-    const enterInput = page.locator("input[placeholder*='code'], input[placeholder*='Code'], input[placeholder*='partner']").first();
+    // Should show the partner code and a way to enter a partner's code
+    const copyCodeBtn = page.locator("button:has-text('Copy Code')");
+    const connectBtn = page.locator("button:has-text('Connect')");
+    const codeInput = page.locator("input[placeholder='XXXXXX']");
 
     // At least one of these should be visible
-    const hasGenerate = await generateBtn.isVisible().catch(() => false);
-    const hasInput = await enterInput.isVisible().catch(() => false);
-    expect(hasGenerate || hasInput).toBeTruthy();
+    const hasCopy = await copyCodeBtn.isVisible().catch(() => false);
+    const hasConnect = await connectBtn.isVisible().catch(() => false);
+    const hasInput = await codeInput.isVisible().catch(() => false);
+    expect(hasCopy || hasConnect || hasInput).toBeTruthy();
   });
 });

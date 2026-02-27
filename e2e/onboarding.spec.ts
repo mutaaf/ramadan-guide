@@ -5,7 +5,8 @@ test.describe("Onboarding Flow", () => {
 
   test("welcome page loads and can navigate to step 1", async ({ page }) => {
     await page.goto("/onboarding");
-    await expect(page.locator("text=Get Started")).toBeVisible();
+    // Feature tour starts on first slide with "Next" button
+    await expect(page.locator("button:has-text('Next')")).toBeVisible();
   });
 
   test("step 1: enter name and select sport, then continue", async ({ page }) => {
@@ -68,7 +69,9 @@ test.describe("Onboarding Flow", () => {
     await page.fill('input[placeholder="Your name or nickname"]', "Khalid");
     await page.click("button:has-text('Football')");
     await page.click("button:has-text('Continue')");
+    await page.waitForURL("/onboarding/step-2");
     await page.click("button:has-text('Continue')");
+    await page.waitForURL("/onboarding/step-3");
     await page.click("button:has-text('Spiritual Growth')");
     await page.click("button:has-text('Continue')");
 
