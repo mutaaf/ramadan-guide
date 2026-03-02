@@ -16,6 +16,7 @@ export default function AdminDashboardPage() {
   const { scholars, series, episodes, companions, lastPublishedSnapshot, addSeries, loadFromPublished } = useAdminStore();
   const [showCreateSeries, setShowCreateSeries] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
 
   const handleSyncFromLive = useCallback(async () => {
     setSyncing(true);
@@ -33,6 +34,18 @@ export default function AdminDashboardPage() {
     }
     // Only run on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch pending submissions count
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("admin-token") ?? "" : "";
+    if (!token) return;
+    fetch("/api/submissions?status=pending&limit=1", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => { if (d) setPendingCount(d.count ?? 0); })
+      .catch(() => {});
   }, []);
 
   const totalEpisodes = Object.values(episodes).reduce((sum, eps) => sum + eps.length, 0);
@@ -206,6 +219,30 @@ export default function AdminDashboardPage() {
             )}
           </Card>
         )}
+
+        <Link href="/admin/series/submissions">
+          <Card asLink className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="font-semibold text-sm">Submissions</p>
+                {pendingCount !== null && pendingCount > 0 && (
+                  <span
+                    className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                    style={{ background: "var(--accent-gold)", color: "white" }}
+                  >
+                    {pendingCount}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs" style={{ color: "var(--muted)" }}>
+                User-submitted lectures for review
+              </p>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--muted)" }}>
+              <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </Card>
+        </Link>
 
         <Link href="/admin/series/scholars">
           <Card asLink className="flex items-center justify-between">

@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { useSeriesIndex } from "@/lib/series/hooks";
 import { useSeriesProgress } from "@/lib/series/hooks";
 import { SeriesCard } from "@/components/series/SeriesCard";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Series } from "@/lib/series/types";
 
 function SeriesCardWithProgress({ series, scholar, delay }: {
@@ -24,6 +26,24 @@ export default function SeriesBrowsePage() {
     <div>
       <PageHeader title="Series Companion" subtitle="AI-powered lecture guides" back="/learn" />
       <div className="px-6 pb-8 space-y-2">
+        {isSupabaseConfigured() && (
+          <Link
+            href="/learn/series/submit"
+            className="flex items-center justify-between rounded-2xl p-3 transition-opacity active:opacity-80"
+            style={{
+              background: "rgba(212, 168, 83, 0.08)",
+              border: "1px solid rgba(212, 168, 83, 0.2)",
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-base">&#128218;</span>
+              <span className="text-sm font-medium">Suggest a Lecture</span>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--accent-gold)" }}>
+              <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </Link>
+        )}
         {loading && (
           <div className="flex items-center justify-center py-12">
             <div
