@@ -17,7 +17,11 @@ const inter = Inter({
   display: "swap",
 });
 
-const siteUrl = "https://ramadan-guide.vercel.app";
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.NEXT_PUBLIC_VERCEL_URL
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+    : "https://ramadan-guide-five.vercel.app");
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
