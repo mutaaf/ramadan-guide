@@ -52,7 +52,7 @@ export default function BookmarksPage() {
   return (
     <div>
       <PageHeader title="Bookmarks" subtitle="Your saved episodes" back="/learn/series" />
-      <div className="px-6 pb-8 space-y-3">
+      <div className="px-6 pb-8 flex flex-col gap-3">
         {loading && (
           <div className="flex items-center justify-center py-12">
             <div

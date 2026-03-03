@@ -25,7 +25,7 @@ export default function SeriesBrowsePage() {
   return (
     <div>
       <PageHeader title="Series Companion" subtitle="AI-powered lecture guides" back="/learn" />
-      <div className="px-6 pb-8 space-y-3">
+      <div className="px-6 pb-8 flex flex-col gap-3">
         {isSupabaseConfigured() && (
           <Link
             href="/learn/series/submit"

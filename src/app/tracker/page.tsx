@@ -81,7 +81,7 @@ export default function TrackerPage() {
           </Link>
         )}
 
-        <div className="space-y-3 lg:space-y-4">
+        <div className="flex flex-col gap-3 lg:gap-4">
           {sections.map((s, i) => (
             <Link key={s.href} href={s.href}>
               <Card asLink delay={i * 0.06} className="flex items-center gap-4 lg:gap-5">
