@@ -7,7 +7,6 @@ import { GlobalHeader } from "@/components/GlobalHeader";
 import { CacheCleanup } from "@/components/ai/CacheCleanup";
 import { Analytics } from "@vercel/analytics/next";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
-import { InstallPrompt } from "@/components/InstallPrompt";
 import { HealthPromptProvider } from "@/components/health/HealthPromptProvider";
 import { SyncProvider } from "@/components/sync/SyncProvider";
 
@@ -144,7 +143,7 @@ export default function RootLayout({
         <BottomNav />
         <Analytics />
         <ServiceWorkerRegistration />
-        <InstallPrompt />
+        {/* PWA install prompt moved to HomeDashboard as non-intrusive banner */}
         <HealthPromptProvider />
         <SyncProvider />
       </body>

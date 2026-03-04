@@ -25,6 +25,7 @@ import { SavedActionsCard } from "@/components/series/SavedActionsCard";
 import { WellnessRings } from "@/components/WellnessRings";
 import { PrayerToggles } from "@/components/PrayerToggles";
 import { NewBadgeBanner } from "@/components/badges/NewBadgeBanner";
+import { InstallBanner } from "@/components/InstallPrompt";
 
 export function HomeDashboard() {
   const { userName, days, juzProgress, getTasbeehTotalForDay, seriesUserData, enabledRings, toggleRing } = useStore();
@@ -172,6 +173,9 @@ export function HomeDashboard() {
       </motion.div>
 
       <div className="px-6 space-y-4">
+        {/* PWA Install Banner */}
+        <InstallBanner />
+
         {/* New Badge Banner */}
         <NewBadgeBanner />
 
