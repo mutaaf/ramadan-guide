@@ -6,40 +6,42 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
-  const [status, setStatus] = useState<"loading" | "error" | "pwa-done">("loading");
+  const [status, setStatus] = useState<"loading" | "error" | "done">("loading");
 
   useEffect(() => {
     const url = new URL(window.location.href);
     const code = url.searchParams.get("code");
     const mode = url.searchParams.get("mode");
 
-    // Popup mode: send code back to opener and close
-    if (mode === "popup" && window.opener) {
-      window.opener.postMessage(
-        { type: "oauth-callback", code },
-        window.location.origin
-      );
-      window.close();
-      return;
-    }
+    if (mode === "popup") {
+      // Browser popup: window.opener exists → send code via postMessage
+      if (window.opener) {
+        window.opener.postMessage(
+          { type: "oauth-callback", code },
+          window.location.origin
+        );
+        window.close();
+        return;
+      }
 
-    // PWA relay mode: POST code to relay endpoint so the PWA can pick it up
-    if (mode === "pwa") {
-      const relay = url.searchParams.get("relay");
+      // PWA in-app sheet: no window.opener, but we share localStorage
+      // with the PWA — exchange the code here and close.
       void (async () => {
-        if (relay && code) {
-          await fetch("/api/auth/relay", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: relay, code }),
-          }).catch(() => {});
+        const supabase = getSupabaseBrowserClient();
+        if (supabase && code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.error("[auth/callback] Code exchange failed:", error.message);
+          }
         }
-        setStatus("pwa-done");
+        setStatus("done");
+        // Try to close this sheet/tab — may be ignored by the browser
+        window.close();
       })();
       return;
     }
 
-    // Normal redirect mode (fallback)
+    // Normal redirect mode (fallback for direct navigation)
     void (async () => {
       const supabase = getSupabaseBrowserClient();
       if (!supabase) {
@@ -71,7 +73,7 @@ export default function AuthCallbackPage() {
     })();
   }, [router]);
 
-  if (status === "pwa-done") {
+  if (status === "done") {
     return (
       <div className="min-h-screen flex items-center justify-center px-6">
         <div className="text-center space-y-3">
@@ -87,7 +89,7 @@ export default function AuthCallbackPage() {
             Sign-in complete
           </p>
           <p className="text-xs" style={{ color: "var(--muted)" }}>
-            You can close this tab and return to the app.
+            You can close this window and return to the app.
           </p>
         </div>
       </div>
