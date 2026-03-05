@@ -6,7 +6,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
-  const [status, setStatus] = useState<"loading" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "error" | "pwa-done">("loading");
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -20,6 +20,22 @@ export default function AuthCallbackPage() {
         window.location.origin
       );
       window.close();
+      return;
+    }
+
+    // PWA relay mode: POST code to relay endpoint so the PWA can pick it up
+    if (mode === "pwa") {
+      const relay = url.searchParams.get("relay");
+      void (async () => {
+        if (relay && code) {
+          await fetch("/api/auth/relay", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: relay, code }),
+          }).catch(() => {});
+        }
+        setStatus("pwa-done");
+      })();
       return;
     }
 
@@ -54,6 +70,29 @@ export default function AuthCallbackPage() {
       }
     })();
   }, [router]);
+
+  if (status === "pwa-done") {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="text-center space-y-3">
+          <div
+            className="w-12 h-12 mx-auto rounded-full flex items-center justify-center"
+            style={{ background: "rgba(201, 168, 76, 0.15)" }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <p className="text-sm font-semibold" style={{ color: "var(--accent-gold)" }}>
+            Sign-in complete
+          </p>
+          <p className="text-xs" style={{ color: "var(--muted)" }}>
+            You can close this tab and return to the app.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (status === "error") {
     return (
