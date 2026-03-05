@@ -9,6 +9,21 @@ export default function AuthCallbackPage() {
   const [status, setStatus] = useState<"loading" | "error">("loading");
 
   useEffect(() => {
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get("code");
+    const mode = url.searchParams.get("mode");
+
+    // Popup mode: send code back to opener and close
+    if (mode === "popup" && window.opener) {
+      window.opener.postMessage(
+        { type: "oauth-callback", code },
+        window.location.origin
+      );
+      window.close();
+      return;
+    }
+
+    // Normal redirect mode (fallback)
     void (async () => {
       const supabase = getSupabaseBrowserClient();
       if (!supabase) {
@@ -17,14 +32,7 @@ export default function AuthCallbackPage() {
         return;
       }
 
-      // Extract the PKCE code from the URL
-      const url = new URL(window.location.href);
-      const code = url.searchParams.get("code");
-
       if (code) {
-        // Explicitly exchange the authorization code for a session.
-        // This stores the access + refresh tokens in localStorage
-        // via our auth storage config.
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (error) {
           console.error("[auth/callback] Code exchange failed:", error.message);
@@ -37,7 +45,8 @@ export default function AuthCallbackPage() {
       // Verify we have a valid session after exchange
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        router.replace("/more?sync=setup");
+        const next = url.searchParams.get("next");
+        router.replace(next || "/more?sync=setup");
       } else {
         console.error("[auth/callback] No session after code exchange");
         setStatus("error");

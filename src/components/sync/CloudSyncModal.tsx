@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/store/useStore";
-import { getSupabaseBrowserClient, isSupabaseConfigured, clearAuthStorage } from "@/lib/supabase/client";
+import { getSupabaseBrowserClient, isSupabaseConfigured, clearAuthStorage, signInWithPopup } from "@/lib/supabase/client";
 import { syncEngine } from "@/lib/sync/engine";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Toggle } from "@/components/Toggle";
@@ -48,17 +48,13 @@ export function CloudSyncModal({ open, onClose }: CloudSyncModalProps) {
   }, [open, cloudSyncEnabled]);
 
   const handleSignIn = useCallback(async (provider: "google" | "apple") => {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
     setLoading(true);
-    try {
-      await supabase.auth.signInWithOAuth({
-        provider,
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
-      });
-    } catch {
-      setLoading(false);
+    const { success, error } = await signInWithPopup(provider);
+    setLoading(false);
+    if (!success && error && error !== "Sign-in cancelled") {
+      console.error("[CloudSync] Sign-in failed:", error);
     }
+    // SyncProvider's onAuthStateChange will handle the rest
   }, []);
 
   const handleSignOut = useCallback(async () => {

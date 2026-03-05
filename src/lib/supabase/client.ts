@@ -43,3 +43,80 @@ export function clearAuthStorage(): void {
     localStorage.removeItem(AUTH_STORAGE_KEY);
   }
 }
+
+/**
+ * Sign in with OAuth using a popup window.
+ * Works in PWA standalone mode (avoids PKCE code_verifier being lost in a different browser context)
+ * and is less disruptive than a full-page redirect in regular browser mode.
+ *
+ * Must be called from a user-gesture (click handler) call stack so the synchronous
+ * window.open() isn't blocked by the browser's popup blocker.
+ */
+export async function signInWithPopup(
+  provider: "google" | "apple"
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return { success: false, error: "Supabase not configured" };
+
+  // Open popup synchronously — must be in click handler call stack to avoid blockers
+  const popup = window.open(
+    "about:blank",
+    "oauth-popup",
+    "width=500,height=600,left=200,top=100"
+  );
+  if (!popup) return { success: false, error: "Popup blocked" };
+
+  // Get the OAuth URL without redirecting the current page
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback?mode=popup`,
+      skipBrowserRedirect: true,
+    },
+  });
+
+  if (error || !data.url) {
+    popup.close();
+    return { success: false, error: error?.message ?? "Failed to get OAuth URL" };
+  }
+
+  // Navigate popup to OAuth URL
+  popup.location.href = data.url;
+
+  // Wait for the popup to send back the session via postMessage
+  return new Promise((resolve) => {
+    const cleanup = () => {
+      window.removeEventListener("message", onMessage);
+      clearInterval(pollClosed);
+    };
+
+    const onMessage = async (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type !== "oauth-callback") return;
+      cleanup();
+
+      const { code } = event.data;
+      if (code) {
+        const { error: exchangeError } =
+          await supabase.auth.exchangeCodeForSession(code);
+        if (exchangeError) {
+          resolve({ success: false, error: exchangeError.message });
+        } else {
+          resolve({ success: true });
+        }
+      } else {
+        resolve({ success: false, error: "No auth code received" });
+      }
+    };
+
+    // Poll for popup being closed without completing auth
+    const pollClosed = setInterval(() => {
+      if (popup.closed) {
+        cleanup();
+        resolve({ success: false, error: "Sign-in cancelled" });
+      }
+    }, 500);
+
+    window.addEventListener("message", onMessage);
+  });
+}

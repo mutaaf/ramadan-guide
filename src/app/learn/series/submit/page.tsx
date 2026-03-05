@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
-import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { getSupabaseBrowserClient, isSupabaseConfigured, signInWithPopup } from "@/lib/supabase/client";
 import { extractVideoId } from "@/lib/series/youtube-utils";
 
 type SubmitState = "idle" | "loading" | "success" | "error";
@@ -122,12 +122,8 @@ export default function SubmitLecturePage() {
   };
 
   const handleSignIn = async (provider: "google" | "apple") => {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
-    await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/learn/series/submit` },
-    });
+    const { success } = await signInWithPopup(provider);
+    if (success) setIsSignedIn(true);
   };
 
   if (!isSupabaseConfigured()) {
