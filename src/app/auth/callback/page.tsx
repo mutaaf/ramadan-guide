@@ -12,6 +12,7 @@ export default function AuthCallbackPage() {
     const url = new URL(window.location.href);
     const code = url.searchParams.get("code");
     const mode = url.searchParams.get("mode");
+    const relay = url.searchParams.get("relay");
 
     if (mode === "popup") {
       // Browser popup: window.opener exists → send code via postMessage
@@ -24,19 +25,19 @@ export default function AuthCallbackPage() {
         return;
       }
 
-      // PWA in-app sheet: no window.opener, but we share localStorage
-      // with the PWA — exchange the code here and close.
+      // PWA in-app sheet: no window.opener, localStorage is NOT shared.
+      // Relay the code to the server so the PWA can pick it up and
+      // exchange it locally (where the PKCE verifier lives).
       void (async () => {
-        const supabase = getSupabaseBrowserClient();
-        if (supabase && code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) {
-            console.error("[auth/callback] Code exchange failed:", error.message);
-          }
+        if (relay && code) {
+          await fetch("/api/auth/relay", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: relay, code }),
+          }).catch(() => {});
         }
         setStatus("done");
-        // Try to close this sheet/tab — may be ignored by the browser
-        window.close();
+        window.close(); // may be ignored by iOS
       })();
       return;
     }
@@ -60,7 +61,6 @@ export default function AuthCallbackPage() {
         }
       }
 
-      // Verify we have a valid session after exchange
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         const next = url.searchParams.get("next");

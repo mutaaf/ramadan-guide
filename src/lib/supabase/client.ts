@@ -47,17 +47,21 @@ export function clearAuthStorage(): void {
 /**
  * Sign in with OAuth using a popup / in-app sheet.
  *
- * Opens a popup synchronously (must be in click-handler call stack to avoid
- * blockers), gets the OAuth URL via `skipBrowserRedirect`, and navigates the
- * popup to it. The callback page handles the rest:
+ * Opens a popup synchronously (avoids popup blockers), navigates to the OAuth
+ * URL, then waits for the auth code via three parallel methods:
  *
- * - **Browser popup** (`window.opener` exists): sends the auth code back via
- *   `postMessage`, and we exchange it here (where the PKCE verifier lives).
+ *  1. **postMessage** — works in desktop/Android browser popups where
+ *     `window.opener` is available.
  *
- * - **PWA in-app sheet** (`window.opener` is null): the callback page exchanges
- *   the code directly (the in-app sheet shares localStorage with the PWA), then
- *   shows "Sign-in complete". We detect the new session via polling +
- *   visibilitychange when the user returns.
+ *  2. **Server relay** — the callback page POSTs the code to `/api/auth/relay`,
+ *     and we poll it here. Works in iOS PWA where the in-app Safari sheet has
+ *     NO `window.opener` and does NOT share localStorage.
+ *
+ *  3. **Session check** — if localStorage IS shared (some platforms), the
+ *     callback page may exchange the code there and the session appears here.
+ *
+ * The PKCE code_verifier stays in this window's localStorage, so the code
+ * exchange always happens here (not in the popup/sheet).
  */
 export async function signInWithPopup(
   provider: "google" | "apple"
@@ -73,10 +77,12 @@ export async function signInWithPopup(
   );
   if (!popup) return { success: false, error: "Popup blocked" };
 
+  const relayId = crypto.randomUUID();
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${window.location.origin}/auth/callback?mode=popup`,
+      redirectTo: `${window.location.origin}/auth/callback?mode=popup&relay=${relayId}`,
       skipBrowserRedirect: true,
     },
   });
@@ -97,32 +103,43 @@ export async function signInWithPopup(
       window.removeEventListener("message", onMessage);
       document.removeEventListener("visibilitychange", onVisible);
       clearInterval(pollClosed);
+      clearInterval(relayPoll);
       clearInterval(sessionPoll);
       resolve(result);
     };
 
-    // ── Method 1: postMessage from popup (works in browser) ───────────
-    const onMessage = async (event: MessageEvent) => {
+    const exchangeCode = async (code: string) => {
+      const { error: exchangeError } =
+        await supabase.auth.exchangeCodeForSession(code);
+      finish(
+        exchangeError
+          ? { success: false, error: exchangeError.message }
+          : { success: true }
+      );
+    };
+
+    // ── Method 1: postMessage (browser popup with window.opener) ──────
+    const onMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
       if (event.data?.type !== "oauth-callback") return;
+      if (event.data.code) exchangeCode(event.data.code);
+      else finish({ success: false, error: "No auth code received" });
+    };
 
-      const { code } = event.data;
-      if (code) {
-        const { error: exchangeError } =
-          await supabase.auth.exchangeCodeForSession(code);
-        finish(
-          exchangeError
-            ? { success: false, error: exchangeError.message }
-            : { success: true }
-        );
-      } else {
-        finish({ success: false, error: "No auth code received" });
+    // ── Method 2: Server relay (PWA in-app sheet → server → here) ─────
+    const checkRelay = async () => {
+      if (resolved) return;
+      try {
+        const res = await fetch(`/api/auth/relay?id=${relayId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.code) exchangeCode(data.code);
+      } catch {
+        // ignore transient errors
       }
     };
 
-    // ── Method 2: session check (works in PWA where in-app sheet
-    //    shares localStorage — the callback page exchanges the code
-    //    there and the session appears in our localStorage) ────────────
+    // ── Method 3: Session check (if localStorage is shared) ───────────
     const checkSession = async () => {
       if (resolved) return;
       const {
@@ -132,22 +149,28 @@ export async function signInWithPopup(
     };
 
     const onVisible = () => {
-      if (document.visibilityState === "visible") checkSession();
+      if (document.visibilityState === "visible") {
+        checkRelay();
+        checkSession();
+      }
     };
 
     // Poll for popup/sheet being closed
     const pollClosed = setInterval(() => {
       if (!popup.closed) return;
       clearInterval(pollClosed);
-      // Give a moment for localStorage to sync before declaring cancel
+      // Final check after a brief delay (session may still be propagating)
       setTimeout(async () => {
+        if (resolved) return;
+        await checkRelay();
         if (resolved) return;
         await checkSession();
         if (!resolved) finish({ success: false, error: "Sign-in cancelled" });
-      }, 600);
+      }, 800);
     }, 500);
 
-    // Periodic session poll as extra fallback
+    // Poll relay and session periodically
+    const relayPoll = setInterval(checkRelay, 2000);
     const sessionPoll = setInterval(checkSession, 2000);
 
     window.addEventListener("message", onMessage);
