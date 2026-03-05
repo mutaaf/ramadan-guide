@@ -69,16 +69,9 @@ export async function signInWithPopup(
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return { success: false, error: "Supabase not configured" };
 
-  // Open popup synchronously — must be in click handler call stack
-  const popup = window.open(
-    "about:blank",
-    "oauth-popup",
-    "width=500,height=600,left=200,top=100"
-  );
-  if (!popup) return { success: false, error: "Popup blocked" };
-
   const relayId = crypto.randomUUID();
 
+  // Get the OAuth URL first (stores PKCE verifier in our localStorage)
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
@@ -88,11 +81,14 @@ export async function signInWithPopup(
   });
 
   if (error || !data.url) {
-    popup.close();
     return { success: false, error: error?.message ?? "Failed to get OAuth URL" };
   }
 
-  popup.location.href = data.url;
+  // Open the OAuth URL directly — on iOS PWA, setting popup.location.href
+  // on an about:blank sheet doesn't work, so we must open the final URL.
+  // iOS may show a confirmation dialog since this is after an await.
+  const popup = window.open(data.url, "oauth-popup");
+  if (!popup) return { success: false, error: "Popup blocked" };
 
   return new Promise((resolve) => {
     let resolved = false;
