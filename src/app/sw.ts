@@ -39,6 +39,7 @@ self.addEventListener("fetch", (event) => {
 
   const isAuthRelated =
     url.pathname.startsWith("/auth/") ||
+    url.pathname.startsWith("/api/auth/") ||
     url.pathname.includes("/callback") ||
     url.hostname.includes("supabase") ||
     url.hostname.includes("accounts.google.com") ||

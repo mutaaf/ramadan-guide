@@ -14,62 +14,60 @@ export default function AuthCallbackPage() {
     const mode = url.searchParams.get("mode");
     const relay = url.searchParams.get("relay");
 
-    if (mode === "popup") {
-      // Browser popup: window.opener exists → send code via postMessage
-      if (window.opener) {
-        window.opener.postMessage(
-          { type: "oauth-callback", code },
-          window.location.origin
-        );
-        window.close();
-        return;
-      }
-
-      // PWA in-app sheet: no window.opener, localStorage is NOT shared.
-      // Relay the code to the server so the PWA can pick it up and
-      // exchange it locally (where the PKCE verifier lives).
-      void (async () => {
-        if (relay && code) {
-          await fetch("/api/auth/relay", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: relay, code }),
-          }).catch(() => {});
-        }
-        setStatus("done");
-        window.close(); // may be ignored by iOS
-      })();
+    // Browser popup with window.opener: send code back via postMessage
+    if (mode === "popup" && window.opener) {
+      window.opener.postMessage(
+        { type: "oauth-callback", code },
+        window.location.origin
+      );
+      window.close();
       return;
     }
 
-    // Normal redirect mode (fallback for direct navigation)
+    // All other cases: try to exchange the code directly first.
+    // This works when we're in the same browsing context as the PWA
+    // (e.g., iOS PWA where window.open navigates the same webview).
+    // If the PKCE verifier isn't in localStorage (different context like
+    // an in-app overlay or Safari), Supabase throws a client-side error
+    // WITHOUT consuming the auth code, so we can safely fall back to relay.
     void (async () => {
       const supabase = getSupabaseBrowserClient();
-      if (!supabase) {
+      if (!supabase || !code) {
         setStatus("error");
-        router.replace("/more?sync=error");
+        if (!mode) router.replace("/more?sync=error");
         return;
       }
 
-      if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) {
-          console.error("[auth/callback] Code exchange failed:", error.message);
-          setStatus("error");
-          router.replace("/more?sync=error");
+      // Attempt local exchange (has PKCE verifier → same context as PWA)
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (!error) {
+        // Exchange succeeded — we're in the PWA context
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const next = url.searchParams.get("next");
+          router.replace(next || "/more?sync=setup");
           return;
         }
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const next = url.searchParams.get("next");
-        router.replace(next || "/more?sync=setup");
-      } else {
-        console.error("[auth/callback] No session after code exchange");
-        setStatus("error");
-        router.replace("/more?sync=error");
+      // Exchange failed (no PKCE verifier = different browsing context).
+      // Relay the code to the server for the PWA to pick up.
+      if (mode === "popup" && relay) {
+        await fetch("/api/auth/relay", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: relay, code }),
+        }).catch(() => {});
+        setStatus("done");
+        window.close(); // may be ignored by iOS
+        return;
       }
+
+      // Normal redirect mode with failed exchange
+      console.error("[auth/callback] Code exchange failed:", error?.message);
+      setStatus("error");
+      router.replace("/more?sync=error");
     })();
   }, [router]);
 
