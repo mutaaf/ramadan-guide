@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
@@ -31,6 +31,7 @@ export default function MorePage() {
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const cloudSyncEnabled = useStore((s) => s.cloudSyncEnabled);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Open sync modal when redirected from OAuth callback (?sync=setup or ?sync=error)
   // SyncProvider's onAuthStateChange handles setting the store state automatically.
@@ -61,6 +62,34 @@ export default function MorePage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }
+
+  function handleImportData(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result as string);
+        if (parsed.appName !== "Ramadan Companion" || !parsed.data) {
+          alert("Invalid file. Please select a Ramadan Companion export file.");
+          return;
+        }
+        if (!window.confirm("This will overwrite all your current data with the imported data. Continue?")) {
+          return;
+        }
+        localStorage.setItem(
+          "ramadan-guide-storage",
+          JSON.stringify({ state: parsed.data, version: 12 })
+        );
+        window.location.reload();
+      } catch {
+        alert("Could not read file. Make sure it's a valid JSON export.");
+      }
+    };
+    reader.readAsText(file);
+    // Reset so the same file can be re-selected
+    e.target.value = "";
   }
 
   function confirmClearAllData() {
@@ -139,6 +168,34 @@ export default function MorePage() {
           <div className="flex-1">
             <p className="font-semibold text-[15px]">Download Your Data</p>
             <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Export all your progress as JSON</p>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--muted)" }}>
+            <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </Card>
+
+        {/* Import Data */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          className="hidden"
+          onChange={handleImportData}
+        />
+        <Card delay={0.07} className="flex items-center gap-4 lg:gap-5" onClick={() => fileInputRef.current?.click()}>
+          <div
+            className="flex h-11 w-11 lg:h-12 lg:w-12 items-center justify-center rounded-xl shrink-0"
+            style={{ background: "rgba(201, 168, 76, 0.12)", color: "var(--accent-gold)" }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <polyline points="17,8 12,3 7,8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-[15px]">Import Data</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Restore from a JSON export file</p>
           </div>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--muted)" }}>
             <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

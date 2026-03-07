@@ -6,6 +6,23 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Redirect all traffic to canonical domain in production
+  const host = request.headers.get("host") || "";
+  const canonicalDomain = "www.myramadanguide.com";
+
+  if (
+    host !== canonicalDomain &&
+    !host.startsWith("localhost") &&
+    !host.startsWith("127.0.0.1") &&
+    process.env.NODE_ENV === "production"
+  ) {
+    const url = request.nextUrl.clone();
+    url.host = canonicalDomain;
+    url.port = "";
+    url.protocol = "https";
+    return NextResponse.redirect(url, 308);
+  }
+
   const { pathname, searchParams } = request.nextUrl;
 
   // Server-side relay: when OAuth callback arrives with relay params,
