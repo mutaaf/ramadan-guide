@@ -9,9 +9,11 @@ function OnboardingContent() {
   const searchParams = useSearchParams();
   const isReplay = searchParams.get("replay") === "1";
 
-  const handleComplete = () => {
+  const handleComplete = (mode?: "restored" | "new") => {
     if (isReplay) {
       router.back();
+    } else if (mode === "restored") {
+      router.push("/");
     } else {
       router.push("/onboarding/step-1");
     }
