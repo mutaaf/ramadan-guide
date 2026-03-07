@@ -36,21 +36,25 @@ export default function AuthCallbackPage() {
         }
       }
 
-      // ALWAYS post to relay as backup (this is the critical fix —
-      // on iOS PWA the overlay has window.opener but postMessage silently fails)
+      // Relay backup via sendBeacon (survives page close on iOS).
+      // Middleware already did this server-side, but belt-and-suspenders.
       if (relay && code) {
-        fetch("/api/auth/relay", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: relay, code }),
-        })
-          .then(() => console.log("[oauth:callback] relayed code"))
-          .catch((e) => console.warn("[oauth:callback] relay POST failed", e));
+        try {
+          const blob = new Blob(
+            [JSON.stringify({ id: relay, code })],
+            { type: "application/json" }
+          );
+          navigator.sendBeacon("/api/auth/relay", blob);
+          console.log("[oauth:callback] sent sendBeacon to relay");
+        } catch (e) {
+          console.warn("[oauth:callback] sendBeacon failed", e);
+        }
       }
 
       // Use queueMicrotask to avoid synchronous setState in effect body
       queueMicrotask(() => setStatus("done"));
-      window.close(); // may be ignored by iOS
+      // Delay close so sendBeacon has time to fire
+      setTimeout(() => window.close(), 500);
       return;
     }
 
