@@ -34,6 +34,7 @@ export async function POST(request: Request) {
     }
     cleanup();
     store.set(id, { code, expires: Date.now() + TTL });
+    console.log("[oauth:relay] stored code for", id);
     return Response.json({ ok: true });
   } catch {
     return Response.json({ error: "Invalid request" }, { status: 400 });
@@ -49,8 +50,10 @@ export async function GET(request: Request) {
   cleanup();
   const entry = store.get(id);
   if (!entry || Date.now() > entry.expires) {
+    console.log("[oauth:relay] no code for", id);
     return Response.json({ code: null });
   }
   store.delete(id); // one-time retrieval
+  console.log("[oauth:relay] returned code for", id);
   return Response.json({ code: entry.code });
 }

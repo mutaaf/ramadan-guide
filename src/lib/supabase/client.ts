@@ -44,26 +44,13 @@ export function clearAuthStorage(): void {
   }
 }
 
-/** Detect if running as an installed PWA (standalone / fullscreen) */
-function isPWAStandalone(): boolean {
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.matchMedia("(display-mode: fullscreen)").matches ||
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (navigator as any).standalone === true
-  );
-}
-
 /**
- * Sign in with OAuth using a popup (browser) or external browser (PWA).
+ * Sign in with OAuth using a popup/overlay.
  *
- * **Browser**: Opens a popup, callback sends the code via postMessage,
- * we exchange it here where the PKCE verifier lives.
- *
- * **iOS PWA**: `window.open()` opens Safari externally (returns null, no
- * popup reference, no postMessage, no shared localStorage). The callback
- * page in Safari relays the code to `/api/auth/relay` (Edge Runtime).
- * The PWA polls the relay when the user switches back.
+ * Uses a unified wait strategy that listens on ALL three channels
+ * simultaneously (postMessage + relay polling + visibility check).
+ * This avoids the iOS PWA deadlock where window.open() returns a
+ * non-null in-app overlay that doesn't share localStorage.
  */
 export async function signInWithPopup(
   provider: "google" | "apple"
@@ -72,9 +59,9 @@ export async function signInWithPopup(
   if (!supabase) return { success: false, error: "Supabase not configured" };
 
   const relayId = crypto.randomUUID();
-  const inPWA = isPWAStandalone();
+  console.log("[oauth] starting sign-in", { provider, relayId });
 
-  // Get the OAuth URL (stores PKCE verifier in our localStorage)
+  // Get OAuth URL (stores PKCE verifier in localStorage)
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
@@ -84,138 +71,109 @@ export async function signInWithPopup(
   });
 
   if (error || !data.url) {
+    console.error("[oauth] failed to get OAuth URL", error);
     return { success: false, error: error?.message ?? "Failed to get OAuth URL" };
   }
 
-  // Open the OAuth URL
+  // Open OAuth URL directly (on iOS PWA this opens an in-app overlay or Safari)
   const popup = window.open(data.url, "oauth-popup");
+  console.log("[oauth] window.open result:", popup ? "non-null" : "null");
 
-  // On iOS PWA, window.open() opens Safari and returns null.
-  // That's fine — we'll poll the relay when the user comes back.
-  if (!popup && !inPWA) {
-    return { success: false, error: "Popup blocked" };
+  if (!popup) {
+    // null = opened in external browser (iOS PWA). That's fine — relay will handle it.
+    console.log("[oauth] popup is null, will rely on relay + visibility");
   }
 
-  if (inPWA) {
-    return waitForRelay(supabase, relayId);
-  }
-
-  return waitForPopup(supabase, relayId, popup!);
+  return waitForAuth(supabase, relayId, popup);
 }
 
-// ── PWA flow: poll relay + visibilitychange ─────────────────────────────
+// ── Unified auth wait: postMessage + relay + visibility ─────────────────
 
-function waitForRelay(
+function waitForAuth(
   supabase: NonNullable<ReturnType<typeof getSupabaseBrowserClient>>,
-  relayId: string
+  relayId: string,
+  popup: Window | null
 ): Promise<{ success: boolean; error?: string }> {
   return new Promise((resolve) => {
     let resolved = false;
 
-    const finish = (result: { success: boolean; error?: string }) => {
+    const finish = (result: { success: boolean; error?: string }, source: string) => {
       if (resolved) return;
       resolved = true;
+      console.log("[oauth] resolved via", source, result);
+      window.removeEventListener("message", onMessage);
       document.removeEventListener("visibilitychange", onVisible);
-      clearInterval(poll);
+      clearInterval(relayPoll);
+      clearInterval(popupPoll);
       clearTimeout(timeout);
       resolve(result);
     };
 
-    const checkRelay = async () => {
-      if (resolved) return;
-      try {
-        const res = await fetch(`/api/auth/relay?id=${relayId}`);
-        if (!res.ok) return;
-        const json = await res.json();
-        if (!json.code) return;
-
-        const { error } = await supabase.auth.exchangeCodeForSession(json.code);
-        finish(error ? { success: false, error: error.message } : { success: true });
-      } catch {
-        // transient network error, keep trying
-      }
-    };
-
-    // Check aggressively when the user switches back to the PWA
-    const onVisible = () => {
-      if (document.visibilityState === "visible") {
-        // Check immediately and again after a short delay
-        checkRelay();
-        setTimeout(checkRelay, 1000);
-        setTimeout(checkRelay, 3000);
-      }
-    };
-
-    document.addEventListener("visibilitychange", onVisible);
-
-    // Also poll on an interval
-    const poll = setInterval(checkRelay, 2500);
-
-    // Give up after 5 minutes
-    const timeout = setTimeout(() => {
-      finish({ success: false, error: "Sign-in timed out" });
-    }, 5 * 60 * 1000);
-  });
-}
-
-// ── Browser flow: postMessage + relay fallback ──────────────────────────
-
-function waitForPopup(
-  supabase: NonNullable<ReturnType<typeof getSupabaseBrowserClient>>,
-  relayId: string,
-  popup: Window
-): Promise<{ success: boolean; error?: string }> {
-  return new Promise((resolve) => {
-    let resolved = false;
-
-    const finish = (result: { success: boolean; error?: string }) => {
-      if (resolved) return;
-      resolved = true;
-      window.removeEventListener("message", onMessage);
-      clearInterval(pollClosed);
-      clearInterval(relayPoll);
-      resolve(result);
-    };
-
-    const exchangeCode = async (code: string) => {
+    const exchangeCode = async (code: string, source: string) => {
+      console.log("[oauth] exchanging code from", source);
       const { error } = await supabase.auth.exchangeCodeForSession(code);
-      finish(error ? { success: false, error: error.message } : { success: true });
+      finish(
+        error ? { success: false, error: error.message } : { success: true },
+        source
+      );
     };
 
-    // Method 1: postMessage from popup
+    // Channel 1: postMessage (works in desktop browsers)
     const onMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
       if (event.data?.type !== "oauth-callback") return;
-      if (event.data.code) exchangeCode(event.data.code);
-      else finish({ success: false, error: "No auth code received" });
+      console.log("[oauth] received postMessage");
+      if (event.data.code) exchangeCode(event.data.code, "postMessage");
+      else finish({ success: false, error: "No auth code received" }, "postMessage-empty");
     };
+    window.addEventListener("message", onMessage);
 
-    // Method 2: relay fallback
+    // Channel 2: Relay polling (works on iOS PWA where overlay/Safari posts to relay)
     const checkRelay = async () => {
       if (resolved) return;
       try {
         const res = await fetch(`/api/auth/relay?id=${relayId}`);
         if (!res.ok) return;
         const json = await res.json();
-        if (json.code) exchangeCode(json.code);
+        if (json.code) {
+          console.log("[oauth] relay returned code");
+          exchangeCode(json.code, "relay");
+        }
       } catch {
-        // ignore
+        /* transient error, keep trying */
       }
     };
+    const relayPoll = setInterval(checkRelay, 2000);
 
-    // Detect popup closed → final check then give up
-    const pollClosed = setInterval(() => {
-      if (!popup.closed) return;
-      clearInterval(pollClosed);
-      setTimeout(async () => {
-        if (resolved) return;
-        await checkRelay();
-        if (!resolved) finish({ success: false, error: "Sign-in cancelled" });
-      }, 800);
-    }, 500);
+    // Channel 3: Check on visibility change (user switches back to PWA)
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && !resolved) {
+        console.log("[oauth] app became visible, checking relay");
+        checkRelay();
+        setTimeout(checkRelay, 1500);
+        setTimeout(checkRelay, 4000);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
 
-    const relayPoll = setInterval(checkRelay, 2500);
+    // Detect popup closed (desktop browsers)
+    const popupPoll = popup
+      ? setInterval(() => {
+          if (!popup.closed) return;
+          clearInterval(popupPoll);
+          console.log("[oauth] popup closed, final relay check");
+          setTimeout(async () => {
+            if (resolved) return;
+            await checkRelay();
+            if (!resolved)
+              finish({ success: false, error: "Sign-in cancelled" }, "popup-closed");
+          }, 1000);
+        }, 500)
+      : setInterval(() => {}, 999999); // no-op, cleared on finish
 
-    window.addEventListener("message", onMessage);
+    // Give up after 5 minutes
+    const timeout = setTimeout(() => {
+      finish({ success: false, error: "Sign-in timed out" }, "timeout");
+    }, 5 * 60 * 1000);
   });
 }

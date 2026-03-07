@@ -14,58 +14,66 @@ export default function AuthCallbackPage() {
     const mode = url.searchParams.get("mode");
     const relay = url.searchParams.get("relay");
 
-    // Browser popup with window.opener: send code back via postMessage
-    if (mode === "popup" && window.opener) {
-      window.opener.postMessage(
-        { type: "oauth-callback", code },
-        window.location.origin
-      );
-      window.close();
+    console.log("[oauth:callback] loaded", {
+      code: !!code,
+      mode,
+      relay,
+      hasOpener: !!window.opener,
+    });
+
+    // Popup/overlay mode: try postMessage AND always relay
+    if (mode === "popup") {
+      // Try postMessage (works when window.opener is the actual PWA window)
+      if (window.opener) {
+        try {
+          window.opener.postMessage(
+            { type: "oauth-callback", code },
+            window.location.origin
+          );
+          console.log("[oauth:callback] sent postMessage");
+        } catch (e) {
+          console.warn("[oauth:callback] postMessage failed", e);
+        }
+      }
+
+      // ALWAYS post to relay as backup (this is the critical fix —
+      // on iOS PWA the overlay has window.opener but postMessage silently fails)
+      if (relay && code) {
+        fetch("/api/auth/relay", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: relay, code }),
+        })
+          .then(() => console.log("[oauth:callback] relayed code"))
+          .catch((e) => console.warn("[oauth:callback] relay POST failed", e));
+      }
+
+      // Use queueMicrotask to avoid synchronous setState in effect body
+      queueMicrotask(() => setStatus("done"));
+      window.close(); // may be ignored by iOS
       return;
     }
 
-    // All other cases: try to exchange the code directly first.
-    // This works when we're in the same browsing context as the PWA
-    // (e.g., iOS PWA where window.open navigates the same webview).
-    // If the PKCE verifier isn't in localStorage (different context like
-    // an in-app overlay or Safari), Supabase throws a client-side error
-    // WITHOUT consuming the auth code, so we can safely fall back to relay.
+    // Normal redirect mode (no popup): exchange code locally
     void (async () => {
       const supabase = getSupabaseBrowserClient();
       if (!supabase || !code) {
         setStatus("error");
-        if (!mode) router.replace("/more?sync=error");
+        router.replace("/more?sync=error");
         return;
       }
-
-      // Attempt local exchange (has PKCE verifier → same context as PWA)
       const { error } = await supabase.auth.exchangeCodeForSession(code);
-
       if (!error) {
-        // Exchange succeeded — we're in the PWA context
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (session?.user) {
           const next = url.searchParams.get("next");
           router.replace(next || "/more?sync=setup");
           return;
         }
       }
-
-      // Exchange failed (no PKCE verifier = different browsing context).
-      // Relay the code to the server for the PWA to pick up.
-      if (mode === "popup" && relay) {
-        await fetch("/api/auth/relay", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: relay, code }),
-        }).catch(() => {});
-        setStatus("done");
-        window.close(); // may be ignored by iOS
-        return;
-      }
-
-      // Normal redirect mode with failed exchange
-      console.error("[auth/callback] Code exchange failed:", error?.message);
+      console.error("[oauth:callback] exchange failed:", error?.message);
       setStatus("error");
       router.replace("/more?sync=error");
     })();
