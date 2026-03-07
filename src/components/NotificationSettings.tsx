@@ -41,30 +41,33 @@ export function NotificationSettings() {
 
   const sendTestNotification = useCallback(async () => {
     try {
+      // On iOS PWAs, must use SW showNotification — new Notification() is unsupported
       if ("serviceWorker" in navigator) {
-        const reg = await navigator.serviceWorker.ready;
-        await reg.showNotification("Ramadan Companion", {
-          body: "Notifications are working! — Coach Hamza",
-          icon: "/icon-192x192.png",
-        });
-      } else {
-        new Notification("Ramadan Companion", {
-          body: "Notifications are working! — Coach Hamza",
-        });
+        // Race against a timeout so we don't hang if SW isn't active
+        const reg = await Promise.race([
+          navigator.serviceWorker.ready,
+          new Promise<null>((r) => setTimeout(() => r(null), 3000)),
+        ]);
+        if (reg) {
+          await reg.showNotification("Ramadan Companion", {
+            body: "Notifications are working! — Coach Hamza",
+            icon: "/icon-192x192.png",
+            badge: "/icon-192x192.png",
+            tag: "test-notification",
+          });
+          setTestSent(true);
+          setTimeout(() => setTestSent(false), 3000);
+          return;
+        }
       }
+      // Fallback for non-iOS browsers without SW
+      new Notification("Ramadan Companion", {
+        body: "Notifications are working! — Coach Hamza",
+      });
       setTestSent(true);
       setTimeout(() => setTestSent(false), 3000);
     } catch {
-      // Fallback to basic Notification API
-      try {
-        new Notification("Ramadan Companion", {
-          body: "Notifications are working! — Coach Hamza",
-        });
-        setTestSent(true);
-        setTimeout(() => setTestSent(false), 3000);
-      } catch {
-        // silently fail
-      }
+      setTestSent(false);
     }
   }, []);
 
