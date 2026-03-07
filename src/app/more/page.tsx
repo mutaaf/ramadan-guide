@@ -49,9 +49,12 @@ export default function MorePage() {
   const userProfile = useStore((s) => s.userProfile);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const userName = useStore((s) => s.userName);
+  const storeSport = useStore((s) => s.sport);
+
   const openEditProfile = () => {
-    setEditName(userProfile.userName);
-    setEditSport(userProfile.sport);
+    setEditName(userProfile.userName || userName);
+    setEditSport((userProfile.sport || storeSport) as SportType | "");
     setShowEditProfile(true);
   };
 
@@ -193,7 +196,10 @@ export default function MorePage() {
           </div>
           <div className="flex-1">
             <p className="font-semibold text-[15px]">Edit Profile</p>
-            <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Change your name or sport</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
+              {(userProfile.userName || userName) || "Change your name or sport"}
+              {(userProfile.sport || storeSport) ? ` — ${SPORTS.find(s => s.value === (userProfile.sport || storeSport))?.label || ""}` : ""}
+            </p>
           </div>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--muted)" }}>
             <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

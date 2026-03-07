@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { useStore } from "@/store/useStore";
 import { Toggle } from "@/components/Toggle";
 import { scheduleDailyNotifications } from "@/lib/notifications/prayer-scheduler";
@@ -7,25 +8,65 @@ import { scheduleDailyNotifications } from "@/lib/notifications/prayer-scheduler
 export function NotificationSettings() {
   const prefs = useStore((s) => s.notificationPreferences);
   const updatePrefs = useStore((s) => s.updateNotificationPreferences);
+  const [testSent, setTestSent] = useState(false);
 
-  const permissionGranted =
-    typeof Notification !== "undefined" && Notification.permission === "granted";
-  const permissionDenied =
-    typeof Notification !== "undefined" && Notification.permission === "denied";
+  // Re-read permission each render so toggling/revoking is reflected
+  const [permission, setPermission] = useState(() =>
+    typeof Notification !== "undefined" ? Notification.permission : "default"
+  );
+
+  const permissionGranted = permission === "granted";
+  const permissionDenied = permission === "denied";
 
   const handleToggle = async (key: keyof typeof prefs, value: boolean) => {
-    const updated = { ...prefs, [key]: value };
+    // If enabling and permission isn't granted yet, request it first
+    if (key === "enabled" && value && !permissionGranted) {
+      const result = await Notification.requestPermission();
+      setPermission(result);
+      if (result !== "granted") return;
+    }
+
     updatePrefs({ [key]: value });
-    await scheduleDailyNotifications(updated);
+    await scheduleDailyNotifications({ ...prefs, [key]: value });
   };
 
   const handleRequestPermission = async () => {
     const result = await Notification.requestPermission();
+    setPermission(result);
     if (result === "granted") {
       updatePrefs({ enabled: true });
       await scheduleDailyNotifications({ ...prefs, enabled: true });
     }
   };
+
+  const sendTestNotification = useCallback(async () => {
+    try {
+      if ("serviceWorker" in navigator) {
+        const reg = await navigator.serviceWorker.ready;
+        await reg.showNotification("Ramadan Companion", {
+          body: "Notifications are working! — Coach Hamza",
+          icon: "/icon-192x192.png",
+        });
+      } else {
+        new Notification("Ramadan Companion", {
+          body: "Notifications are working! — Coach Hamza",
+        });
+      }
+      setTestSent(true);
+      setTimeout(() => setTestSent(false), 3000);
+    } catch {
+      // Fallback to basic Notification API
+      try {
+        new Notification("Ramadan Companion", {
+          body: "Notifications are working! — Coach Hamza",
+        });
+        setTestSent(true);
+        setTimeout(() => setTestSent(false), 3000);
+      } catch {
+        // silently fail
+      }
+    }
+  }, []);
 
   if (typeof Notification === "undefined") return null;
 
@@ -88,23 +129,14 @@ export function NotificationSettings() {
           />
 
           <button
-            onClick={async () => {
-              const reg = await navigator.serviceWorker?.ready;
-              if (reg) {
-                reg.showNotification("Ramadan Companion", {
-                  body: "Notifications are working! — Coach Hamza",
-                  icon: "/icon-192x192.png",
-                });
-              } else {
-                new Notification("Ramadan Companion", {
-                  body: "Notifications are working! — Coach Hamza",
-                });
-              }
+            onClick={sendTestNotification}
+            className="text-xs font-medium px-3 py-1.5 rounded-full transition-colors"
+            style={{
+              background: testSent ? "rgba(34,197,94,0.15)" : "rgba(201, 168, 76, 0.12)",
+              color: testSent ? "#22c55e" : "var(--accent-gold)",
             }}
-            className="text-xs font-medium px-3 py-1.5 rounded-full"
-            style={{ background: "rgba(201, 168, 76, 0.12)", color: "var(--accent-gold)" }}
           >
-            Send Test Notification
+            {testSent ? "Sent!" : "Send Test Notification"}
           </button>
         </div>
       )}
