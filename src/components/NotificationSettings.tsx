@@ -86,6 +86,26 @@ export function NotificationSettings() {
             checked={prefs.badgeUnlocks}
             onChange={(v) => handleToggle("badgeUnlocks", v)}
           />
+
+          <button
+            onClick={async () => {
+              const reg = await navigator.serviceWorker?.ready;
+              if (reg) {
+                reg.showNotification("Ramadan Companion", {
+                  body: "Notifications are working! — Coach Hamza",
+                  icon: "/icon-192x192.png",
+                });
+              } else {
+                new Notification("Ramadan Companion", {
+                  body: "Notifications are working! — Coach Hamza",
+                });
+              }
+            }}
+            className="text-xs font-medium px-3 py-1.5 rounded-full"
+            style={{ background: "rgba(201, 168, 76, 0.12)", color: "var(--accent-gold)" }}
+          >
+            Send Test Notification
+          </button>
         </div>
       )}
     </div>

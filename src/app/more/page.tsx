@@ -7,13 +7,24 @@ import { Card } from "@/components/Card";
 import { AISettingsModal } from "@/components/ai/AISettingsModal";
 import { CloudSyncModal } from "@/components/sync/CloudSyncModal";
 import { CharitySection } from "@/components/CharitySection";
-import { useStore } from "@/store/useStore";
+import { useStore, type SportType } from "@/store/useStore";
 import { AICache } from "@/lib/ai/cache";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { isSupabaseConfigured, clearAuthStorage } from "@/lib/supabase/client";
 import { NotificationSettings } from "@/components/NotificationSettings";
 
 const BOOK_PDF_URL = "https://drive.google.com/file/d/14dZVQGAeIvKDSNWyuHHARwkusKmgVue4/view";
+
+const SPORTS: { value: SportType; label: string; icon: string }[] = [
+  { value: "football", label: "Football", icon: "🏈" },
+  { value: "basketball", label: "Basketball", icon: "🏀" },
+  { value: "soccer", label: "Soccer", icon: "⚽" },
+  { value: "track", label: "Track & Field", icon: "🏃" },
+  { value: "swimming", label: "Swimming", icon: "🏊" },
+  { value: "mma", label: "MMA / Combat", icon: "🥊" },
+  { value: "other", label: "Other Sport", icon: "💪" },
+  { value: "wellness", label: "General Wellness", icon: "🌿" },
+];
 
 const sections = [
   { href: "/ask", title: "Ask Coach Hamza", subtitle: "Your personal Ramadan Q&A", icon: "?" },
@@ -30,8 +41,24 @@ export default function MorePage() {
   const [showSettings, setShowSettings] = useState(false);
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editSport, setEditSport] = useState<SportType | "">("");
   const cloudSyncEnabled = useStore((s) => s.cloudSyncEnabled);
+  const updateUserProfile = useStore((s) => s.updateUserProfile);
+  const userProfile = useStore((s) => s.userProfile);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const openEditProfile = () => {
+    setEditName(userProfile.userName);
+    setEditSport(userProfile.sport);
+    setShowEditProfile(true);
+  };
+
+  const saveEditProfile = () => {
+    updateUserProfile({ userName: editName.trim(), sport: editSport });
+    setShowEditProfile(false);
+  };
 
   // Open sync modal when redirected from OAuth callback (?sync=setup or ?sync=error)
   // SyncProvider's onAuthStateChange handles setting the store state automatically.
@@ -151,6 +178,26 @@ export default function MorePage() {
         {/* Notification Settings */}
         <Card delay={0.04}>
           <NotificationSettings />
+        </Card>
+
+        {/* Edit Profile */}
+        <Card delay={0.05} className="flex items-center gap-4 lg:gap-5" onClick={openEditProfile}>
+          <div
+            className="flex h-11 w-11 lg:h-12 lg:w-12 items-center justify-center rounded-xl shrink-0"
+            style={{ background: "rgba(201, 168, 76, 0.12)", color: "var(--accent-gold)" }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-[15px]">Edit Profile</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Change your name or sport</p>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--muted)" }}>
+            <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </Card>
 
         {/* Download Your Data */}
@@ -273,6 +320,68 @@ export default function MorePage() {
 
       <AISettingsModal open={showSettings} onClose={() => setShowSettings(false)} />
       <CloudSyncModal open={showSyncModal} onClose={() => setShowSyncModal(false)} />
+
+      {/* Edit Profile Modal */}
+      {showEditProfile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
+          <div
+            className="w-full max-w-sm rounded-2xl p-6 space-y-5"
+            style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}
+          >
+            <h2 className="text-lg font-bold">Edit Profile</h2>
+
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Name</label>
+              <input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                style={{ background: "var(--surface-2)", color: "var(--foreground)" }}
+                placeholder="Your name"
+                maxLength={40}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Sport</label>
+              <div className="grid grid-cols-2 gap-2">
+                {SPORTS.map((s) => (
+                  <button
+                    key={s.value}
+                    onClick={() => setEditSport(s.value)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm transition-all"
+                    style={{
+                      background: editSport === s.value ? "var(--selected-gold-bg)" : "var(--surface-2)",
+                      border: editSport === s.value ? "1px solid var(--selected-gold-border)" : "1px solid transparent",
+                    }}
+                  >
+                    <span>{s.icon}</span>
+                    <span>{s.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => setShowEditProfile(false)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-medium"
+                style={{ background: "var(--surface-2)", color: "var(--muted)" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveEditProfile}
+                disabled={!editName.trim()}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold disabled:opacity-40"
+                style={{ background: "var(--accent-gold)", color: "#000" }}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ConfirmDialog
         open={showClearConfirm}

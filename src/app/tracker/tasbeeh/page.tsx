@@ -1,15 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
 import { useStore } from "@/store/useStore";
+import { getTodayString } from "@/lib/ramadan";
 
 export default function TasbeehPage() {
   const { tasbeehCounters, incrementTasbeeh, resetTasbeeh, resetAllTasbeeh } =
     useStore();
   const [activeId, setActiveId] = useState(tasbeehCounters[0]?.id || "subhanallah");
+  const lastDateRef = useRef(getTodayString());
+
+  // Auto-reset counters when date changes (midnight rollover)
+  useEffect(() => {
+    const checkDate = () => {
+      const today = getTodayString();
+      if (today !== lastDateRef.current) {
+        lastDateRef.current = today;
+        resetAllTasbeeh();
+      }
+    };
+
+    const interval = setInterval(checkDate, 30_000);
+    return () => clearInterval(interval);
+  }, [resetAllTasbeeh]);
   const [showCelebration, setShowCelebration] = useState(false);
 
   const activeCounter = tasbeehCounters.find((c) => c.id === activeId) || tasbeehCounters[0];

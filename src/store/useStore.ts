@@ -213,7 +213,7 @@ export const createEmptyDay = (date: string): DayEntry => ({
   firstThought: "",
   goodDeeds: [],
   tomorrowGoals: "",
-  fasted: true,
+  fasted: false,
 });
 
 interface RamadanStore {
