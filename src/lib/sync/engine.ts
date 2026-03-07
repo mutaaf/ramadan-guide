@@ -22,6 +22,9 @@ export class CloudSyncEngine {
   // Snapshot to detect real changes
   private lastSnapshot = "";
 
+  // Guard: block pushes until first pull completes
+  private initialPullDone = false;
+
   // Status
   private _status: SyncStatusInfo = {
     status: "idle",
@@ -101,6 +104,7 @@ export class CloudSyncEngine {
     this.supabase = null;
     this.userId = null;
     this.lastSnapshot = "";
+    this.initialPullDone = false;
     this.setStatus("idle", null);
   }
 
@@ -124,13 +128,13 @@ export class CloudSyncEngine {
   }
 
   private schedulePush() {
-    if (!this.running) return;
+    if (!this.running || !this.initialPullDone) return;
     if (this.debounceTimer) clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => this.push(), DEBOUNCE_MS);
   }
 
   private async push() {
-    if (!this.running || !this.supabase || !this.userId) return;
+    if (!this.running || !this.supabase || !this.userId || !this.initialPullDone) return;
     if (!navigator.onLine) {
       this.setStatus("offline", null);
       return;
@@ -186,9 +190,15 @@ export class CloudSyncEngine {
 
       if (error) throw error;
 
-      // No cloud data — first time, upload local state
+      // No cloud data — first time user on this account
       if (!row) {
-        await this.push();
+        this.initialPullDone = true;
+        // Only push if there's real local data (not a fresh install)
+        const localState = useStore.getState();
+        if (localState.onboarded && Object.keys(localState.days).length > 0) {
+          await this.push();
+        }
+        this.setStatus("idle", null);
         return;
       }
 
@@ -213,6 +223,7 @@ export class CloudSyncEngine {
       }
       // else: local is newer or same, push will happen on next debounce
 
+      this.initialPullDone = true;
       this.backoff = 2_000;
       this.setStatus("idle", null);
     } catch (err) {
