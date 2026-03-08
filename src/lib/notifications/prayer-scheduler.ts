@@ -1,5 +1,5 @@
 import { scheduleNotification, cancelAllNotifications } from "./scheduler";
-import { getCachedLocation, getPrayerTimes } from "@/lib/prayer-times";
+import { getCachedLocation, setCachedLocation, getPrayerTimes } from "@/lib/prayer-times";
 import { getPhaseInfo } from "@/lib/ramadan";
 import type { NotificationPreferences } from "@/store/useStore";
 
@@ -18,6 +18,34 @@ function parseTimeToday(timeStr: string): Date {
   return date;
 }
 
+/**
+ * Try to get location — first from cache, then via geolocation API.
+ */
+async function getLocation(): Promise<{ latitude: number; longitude: number } | null> {
+  const cached = getCachedLocation();
+  if (cached) return cached;
+
+  // Try to request geolocation
+  if (!("geolocation" in navigator)) return null;
+
+  try {
+    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        timeout: 10000,
+        maximumAge: 60 * 60 * 1000, // 1 hour
+      });
+    });
+    const loc = {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+    };
+    setCachedLocation(loc);
+    return loc;
+  } catch {
+    return null;
+  }
+}
+
 export async function scheduleDailyNotifications(
   preferences: NotificationPreferences
 ): Promise<void> {
@@ -29,7 +57,7 @@ export async function scheduleDailyNotifications(
   // Check notification permission
   if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
 
-  const location = getCachedLocation();
+  const location = await getLocation();
   if (!location) return;
 
   const times = await getPrayerTimes(location.latitude, location.longitude);

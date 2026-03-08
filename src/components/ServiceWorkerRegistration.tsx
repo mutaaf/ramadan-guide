@@ -3,6 +3,11 @@
 import { useEffect } from "react";
 import { useStore } from "@/store/useStore";
 import { scheduleDailyNotifications } from "@/lib/notifications/prayer-scheduler";
+import {
+  checkAndFireNotifications,
+  startNotificationChecker,
+  stopNotificationChecker,
+} from "@/lib/notifications/scheduler";
 
 export function ServiceWorkerRegistration() {
   const notificationPreferences = useStore((s) => s.notificationPreferences);
@@ -21,6 +26,9 @@ export function ServiceWorkerRegistration() {
 
           // Schedule notifications after SW registration
           void scheduleDailyNotifications(notificationPreferences);
+
+          // Start the periodic notification checker (polls every 30s)
+          startNotificationChecker();
         })
         .catch((error) => {
           console.error("Service Worker registration failed:", error);
@@ -35,11 +43,12 @@ export function ServiceWorkerRegistration() {
     };
     navigator.serviceWorker?.addEventListener("message", handleMessage);
 
-    // Reschedule notifications when app returns to foreground
+    // Reschedule and check for missed notifications when app returns to foreground
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
         const prefs = useStore.getState().notificationPreferences;
         void scheduleDailyNotifications(prefs);
+        void checkAndFireNotifications();
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
@@ -47,6 +56,7 @@ export function ServiceWorkerRegistration() {
     return () => {
       navigator.serviceWorker?.removeEventListener("message", handleMessage);
       document.removeEventListener("visibilitychange", handleVisibility);
+      stopNotificationChecker();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
